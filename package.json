@@ -1,0 +1,39 @@
+{
+  "name": "gofamint-ui",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "npm@10.0.0",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "install:all": "npm install && npm run install:packages",
+    "install:packages": "npm install --workspaces",
+    "install:clean": "npm run clean:all && npm run install:all",
+    "clean:all": "rm -rf node_modules && rm -rf packages/*/node_modules && rm -rf .turbo",
+    "dev": "turbo run dev --parallel",
+    "dev:app": "turbo run dev --filter=gofamintui-app",
+    "dev:cms": "turbo run dev --filter=gofamintui-cms",
+    "build": "turbo run build",
+    "build:app": "turbo run build --filter=gofamintui-app",
+    "build:cms": "turbo run build --filter=gofamintui-cms",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "type-check": "turbo run type-check",
+    "docker:dev": "docker-compose up -d",
+    "docker:prod": "docker-compose -f docker-compose.prod.yml up -d",
+    "docker:build": "docker-compose build"
+  },
+  "devDependencies": {
+    "@turbo/gen": "^2.4.4",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@typescript-eslint/parser": "^6.7.0",
+    "eslint": "^8.57.1",
+    "prettier": "^3.5.3",
+    "turbo": "^2.5.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
