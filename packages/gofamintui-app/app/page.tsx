@@ -15,7 +15,7 @@ import { Metadata, ResolvingMetadata } from "next";
 import { sanityFetchWrapper } from "@/sanity/sanityFetch";
 import { homepageMetadataQuery } from "@/sanity/queries/homePageMetaData";
 import { urlFor } from "@/sanity/sanityClient";
-import { Sermons } from "@/sanity/interfaces/sermonsPage";
+import { Sermon, Sermons } from "@/sanity/interfaces/sermonsPage";
 import { recentSermonsQuery } from "@/sanity/queries/sermonsPage";
 import SermonComponent from "@/components/sermonComponent";
 
@@ -177,6 +177,7 @@ export default async function Home() {
   ]);
 
 
+  
 
   return (
     <div>
@@ -329,7 +330,7 @@ export default async function Home() {
             <div className="grid grid-cols-1 md:grid-cols-[repeat(auto-fit,minmax(350px,400px))] gap-9 mx-auto items-start justify-center w-full px-4">
               {mostRecentSermons &&
                 mostRecentSermons.map((message, index) => (
-                  <SermonComponent key={index} {...message} />
+                  <SermonComponent key={index} sermon={message} />
                 ))}
             </div>
           </div>

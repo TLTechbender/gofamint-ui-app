@@ -2,9 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useInfiniteQuery } from "@tanstack/react-query";
 
-import { sanityFetchWrapper } from "@/sanity/sanityFetch";
 import useInfiniteSermons from "@/hooks/useInfiniteSermons";
 import InfiniteScrollContainer from "./infiniteScrollContainer";
 import SermonComponent from "./sermonComponent";
@@ -24,11 +22,11 @@ export default function SermonsPage() {
   const initialPageParam = parseInt(searchParams.get("page") || "1");
 
   const itemsPerPage = 2;
- 
-    const { data, hasNextPage, isError, isLoading,fetchNextPage } = useInfiniteSermons({ searchTerm });
+
+  const { data, hasNextPage, isError, isLoading, fetchNextPage } =
+    useInfiniteSermons({ searchTerm });
 
   console.log("Data:", data);
-  
 
   // Debounced search function
   const debouncedSearch = useCallback(
@@ -123,7 +121,6 @@ export default function SermonsPage() {
     }
   };
 
- 
   const allSermons = useMemo(() => {
     if (!data?.pages) return [];
 
@@ -131,9 +128,8 @@ export default function SermonsPage() {
       (page: any) => page.sermonsResponse || [] // Handle different response structures
     );
   }, [data?.pages]);
-    
-    
-    console.log(allSermons);
+
+  console.log(allSermons);
 
   // Loading state for initial load
   if (isLoading && !data) {
@@ -237,7 +233,15 @@ export default function SermonsPage() {
         </div>
 
         <div>
-          <InfiniteScrollContainer onBottomReached={() => fetchNextPage()}>
+          <InfiniteScrollContainer
+            onBottomReached={() => {
+              if (hasNextPage) {
+                return fetchNextPage();
+              }
+
+              return;
+            }}
+          >
             <div className="grid grid-cols-1 md:grid-cols-[repeat(auto-fit,minmax(350px,400px))] gap-9 mx-auto items-start justify-center w-full px-4">
               {allSermons.map((sermon: Sermon, index: number) => (
                 <SermonComponent key={index} sermon={sermon} />
