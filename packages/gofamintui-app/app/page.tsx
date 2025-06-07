@@ -12,7 +12,7 @@ import JourneyPlanner from "@/components/journeyPlanner";
 import { Homepage } from "@/sanity/interfaces/homePage";
 import { homepageQuery } from "@/sanity/queries/homePage";
 import { Metadata, ResolvingMetadata } from "next";
-import { sanityFetchWrapper } from "@/sanity/sanityFetch";
+import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
 import { homepageMetadataQuery } from "@/sanity/queries/homePageMetaData";
 import { urlFor } from "@/sanity/sanityClient";
 import { Sermon, Sermons } from "@/sanity/interfaces/sermonsPage";
@@ -175,9 +175,6 @@ export default async function Home() {
     sanityFetchWrapper<Homepage>(homepageQuery),
     sanityFetchWrapper<Sermon[]>(recentSermonsQuery),
   ]);
-
-
-  
 
   return (
     <div>

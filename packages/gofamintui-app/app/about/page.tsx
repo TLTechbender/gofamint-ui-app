@@ -1,4 +1,4 @@
-import { sanityFetchWrapper } from "@/sanity/sanityFetch";
+import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
 import { AboutPage } from "@/sanity/interfaces/aboutPage";
 import { aboutPageQuery } from "@/sanity/queries/aboutPage";
 import { aboutPageMetadataQuery } from "@/sanity/queries/aboutPageMetaData";

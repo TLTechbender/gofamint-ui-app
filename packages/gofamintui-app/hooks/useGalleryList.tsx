@@ -4,7 +4,7 @@ import {
   buildGalleryListCountQuery,
   buildGalleryListQuery,
 } from "@/sanity/queries/galleryListPage";
-import { sanityFetchWrapper } from "@/sanity/sanityFetch";
+import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useMemo, useCallback } from "react";
 
@@ -43,7 +43,7 @@ const createGalleryListQueryFunction =
 
     const hasMore = end < totalCount;
 
-    console.log('kuronbe');
+    console.log("kuronbe");
     console.log(galleryListResponse);
 
     return {

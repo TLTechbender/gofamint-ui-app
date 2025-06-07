@@ -4,7 +4,7 @@ import {
   buildGalleryImagesBySlugQuery,
   buildGalleryImagesCountBySlugQuery,
 } from "@/sanity/queries/galleryPage";
-import { sanityFetchWrapper } from "@/sanity/sanityFetch";
+import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useMemo, useCallback } from "react";
 
@@ -29,10 +29,7 @@ const createGalleryImagesQueryFunction =
     };
 
     const [galleryResponse, totalCount] = await Promise.all([
-      sanityFetchWrapper<GalleryBySlug>(
-        buildGalleryImagesBySlugQuery,
-        params
-      ),
+      sanityFetchWrapper<GalleryBySlug>(buildGalleryImagesBySlugQuery, params),
       sanityFetchWrapper<number>(buildGalleryImagesCountBySlugQuery, {
         slug,
       }),

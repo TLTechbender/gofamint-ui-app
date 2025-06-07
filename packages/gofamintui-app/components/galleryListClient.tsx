@@ -42,7 +42,7 @@ const GalleryListClient = () => {
           params.set("search", trimmedSearch);
         }
         router.push(
-          `/sermons${params.toString() ? `?${params.toString()}` : ""}`
+          `/gallery${params.toString() ? `?${params.toString()}` : ""}`
         );
       }, 500); // 500ms delay
     },
@@ -68,7 +68,7 @@ const GalleryListClient = () => {
     if (trimmedSearch) {
       params.set("search", trimmedSearch);
     }
-    router.push(`/sermons${params.toString() ? `?${params.toString()}` : ""}`);
+    router.push(`/gallery${params.toString() ? `?${params.toString()}` : ""}`);
   };
 
   // Handle input change with debouncing
@@ -274,3 +274,4 @@ const GalleryCard: React.FC<GalleryCardProps> = ({ gallery }) => {
     </Link>
   );
 };
+  

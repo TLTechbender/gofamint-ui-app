@@ -79,7 +79,7 @@ import {
   buildSermonsCountQuery,
   buildSermonsQuery,
 } from "@/sanity/queries/sermonsPage";
-import { sanityFetchWrapper } from "@/sanity/sanityFetch";
+import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useMemo, useCallback } from "react";
 
