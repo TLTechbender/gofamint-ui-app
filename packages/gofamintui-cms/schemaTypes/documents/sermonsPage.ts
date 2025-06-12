@@ -43,7 +43,39 @@ export default defineType({
           validation: (Rule) => Rule.required(),
         }),
       ],
-    }),
+    }), 
+
+
+     defineField({
+          name: 'heroSection',
+          title: 'Hero Section',
+          type: 'object',
+          validation: (Rule) => Rule.required(),
+          fields: [
+            defineField({
+              name: 'backgroundImage',
+              title: 'Background Image',
+              type: 'image',
+              options: {
+                hotspot: true,
+              },
+              validation: (Rule) => Rule.required(),
+            }),
+            defineField({
+              name: 'title',
+              title: 'Hero Title',
+              type: 'string',
+              validation: (Rule) => Rule.required().min(10),
+            }),
+            defineField({
+              name: 'subtitle',
+              title: 'Hero Subtitle',
+              type: 'string',
+              validation: (Rule) => Rule.required().min(10),
+            }),
+         
+          ],
+        }),
 
     // Array of sermons
     defineField({

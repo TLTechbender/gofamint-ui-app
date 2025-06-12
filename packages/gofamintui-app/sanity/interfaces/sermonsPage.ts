@@ -21,6 +21,11 @@ export interface Sermons {
     keywords: string[];
     ogImage: SanityImage;
   };
+  heroSection: {
+    backgroundImage: SanityImage;
+    title: string;
+    subtitle: string;
+  }
   sermons: Sermon[];
 }
 

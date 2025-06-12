@@ -1,12 +1,6 @@
 import Link from "next/link";
-import heroImage from "../public/hero-img.jpg";
-import message from "../public/message.png";
-import {
-  ChevronRight,
-  Clock,
-  LocateIcon,
-  LocationEditIcon,
-} from "lucide-react";
+
+import { ChevronRight, Clock, LocationEditIcon, Quote } from "lucide-react";
 import Image from "next/image";
 import JourneyPlanner from "@/components/journeyPlanner";
 import { Homepage } from "@/sanity/interfaces/homePage";
@@ -15,67 +9,11 @@ import { Metadata, ResolvingMetadata } from "next";
 import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
 import { homepageMetadataQuery } from "@/sanity/queries/homePageMetaData";
 import { urlFor } from "@/sanity/sanityClient";
-import { Sermon, Sermons } from "@/sanity/interfaces/sermonsPage";
+import { Sermon } from "@/sanity/interfaces/sermonsPage";
 import { recentSermonsQuery } from "@/sanity/queries/sermonsPage";
 import SermonComponent from "@/components/sermonComponent";
 
-// export const metadata = {
-//   title: "GSF UI – Gofamint Students’ Fellowship, University of Ibadan",
-//   description:
-//     "Official page of the Gofamint Students’ Fellowship (GSF), University of Ibadan chapter. Raising fire-brand saints, promoting academic and spiritual excellence on campus.",
-//   keywords: [
-//     "GSF UI",
-//     "Gofamint Students Fellowship",
-//     "Gospel Faith Mission International",
-//     "University of Ibadan",
-//     "Christian Students UI",
-//     "Campus Fellowship Nigeria",
-//     "Academic excellence",
-//     "Spiritual growth",
-//     "Student ministry",
-//     "Campus Fellowship Ibadan",
-//     "Campus Fellowship UI",
-//     "Gofamint in Campus",
-//   ],
-//   authors: [
-//     {
-//       name: "Gofamint Students’ Fellowship UI Chapter",
-//       url: "https://gofamintui.org",
-//     },
-//   ],
-//   creator: "GSF UI Media Team",
-//   openGraph: {
-//     title: "GSF UI – Gofamint Students’ Fellowship, University of Ibadan",
-//     description:
-//       "GSF UI is the official students’ ministry of GOFAMINT at the University of Ibadan. We promote spiritual growth, academic liberation, and impactful Christian living on campus.",
-//     url: "https://gofamintui.org",
-//     siteName: "GSF UI",
-//     images: [
-//       {
-//         url: "https://gofamintui.org/og-image.jpg",
-//         width: 1200,
-//         height: 630,
-//         alt: "GSF UI Official Banner",
-//       },
-//     ],
-//     locale: "en_NG",
-//     type: "website",
-//   },
-//   twitter: {
-//     card: "summary_large_image",
-//     title: "GSF UI – Gofamint Students’ Fellowship, University of Ibadan",
-//     description:
-//       "Experience the academic and spiritual transformation with GSF UI – The student arm of GOFAMINT at the University of Ibadan.",
-//     site: "@gofamintui",
-//     creator: "@gofamintui",
-//     images: ["https://gofamintui.org/og-image.jpg"],
-//   },
-//   metadataBase: new URL("https://gofamintui.org"),
-// };
-
-export async function generateMetadata(
-  parent: ResolvingMetadata
-): Promise<Metadata> {
+export async function generateMetadata(): Promise<Metadata> {
   const dynamicMetaData = await sanityFetchWrapper<Homepage>(
     homepageMetadataQuery
   );
@@ -168,8 +106,6 @@ export async function generateMetadata(
   };
 }
 
-export const dynamic = "force-dynamic";
-
 export default async function Home() {
   const [homepage, mostRecentSermons] = await Promise.all([
     sanityFetchWrapper<Homepage>(homepageQuery),
@@ -181,7 +117,7 @@ export default async function Home() {
       <div>
         <section id="hero">
           <div
-            className="relative min-h-[80vh] bg-fixed bg-center bg-cover flex items-center justify-center md:justify-start"
+            className="relative min-h-[90vh] bg-fixed bg-center bg-cover flex items-center justify-center md:justify-start"
             style={{
               backgroundImage: `url(${urlFor(
                 homepage.heroSection.backgroundImage as any
@@ -189,13 +125,13 @@ export default async function Home() {
                 .width(1920)
                 .height(1080)
                 .format("webp")
-                .quality(85)
+                .quality(95)
                 .url()})`,
             }}
           >
             <div className="absolute inset-0 bg-black/60 z-0"></div>
 
-            <div className="relative z-10 w-full px-4 md:px-6 lg:px-8 flex flex-col gap-3 h-full text-center md:text-left justify-center md:items-start items-center lg:basis-1/2">
+            <div className="relative z-10 w-full px-4 md:ml-6 lg:ml-16 flex flex-col gap-3 h-full text-center md:text-left justify-center md:items-start items-center lg:basis-1/2">
               <h1 className="text-white text-3xl md:text-4xl lg:text-6xl font-bold mb-4">
                 {homepage.heroSection.title}
               </h1>
@@ -205,14 +141,14 @@ export default async function Home() {
               <span className="flex gap-4 mt-4">
                 <Link
                   href={homepage.heroSection.primaryButton.link}
-                  className="text-black bg-white px-4 py-2.5 text-base md:text-lg rounded capitalize transition duration-200 hover:bg-gray-100 hover:animate-bounce"
+                  className="text-black bg-white px-4 md:px-8 md:py-3.5 py-2 text-base md:text-lg rounded capitalize transition duration-200 hover:bg-gray-100 hover:animate-bounce"
                 >
                   {homepage.heroSection.primaryButton.text}
                 </Link>
 
                 <Link
                   href={homepage.heroSection.secondaryButton.link}
-                  className="text-white border border-white px-4 py-2.5  text-base md:text-lg capitalize rounded transition duration-200 hover:bg-white hover:text-black"
+                  className="text-white border border-white px-4 md:px-6 md:py-3.5 py-2  text-base md:text-lg capitalize rounded transition duration-200 hover:bg-white hover:text-black"
                 >
                   {homepage.heroSection.secondaryButton.text}
                 </Link>
@@ -234,7 +170,7 @@ export default async function Home() {
           </div>
         </section>
         <section id="third">
-          <div className="bg-[#212121] py-24 flex flex-col gap-6">
+          <div className="bg-[#212121] py-24 flex flex-col gap-10">
             <div className="flex items-center justify-between mx-auto w-full max-w-[1280px] px-4">
               <span className="text-white flex flex-col gap-2 ">
                 <h2 className="text-5xl capitalize font-bold">
@@ -253,7 +189,7 @@ export default async function Home() {
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-[repeat(auto-fit,minmax(320px,450px))] gap-9 mx-auto items-start justify-center w-full px-4 ">
+            <div className="grid grid-cols-1 md:grid-cols-[repeat(auto-fit,minmax(280px,345px))] gap-9 mx-auto items-start justify-center w-full px-4 ">
               {homepage.servicesSection.services.map((service, index) => (
                 <div
                   key={index}
@@ -262,10 +198,10 @@ export default async function Home() {
                   <picture className="w-full basis-1/2 aspect-[345/202] overflow-hidden rounded-lg">
                     <Image
                       src={urlFor(service.posterImage as any)
-                        .width(1920)
-                        .height(1080)
+                        .width(345)
+                        .height(250)
                         .format("webp")
-                        .quality(85)
+                        .quality(95)
                         .url()}
                       width={345}
                       height={220}
@@ -273,12 +209,12 @@ export default async function Home() {
                       className="w-full h-full object-cover"
                     />
                   </picture>
-                  <div className="flex flex-col gap-3.5 basis-1/2 text-white">
+                  <div className="flex flex-col gap-4.5 basis-1/2 text-white">
                     <h3 className="font-bold text-4xl">{service.title}</h3>
                     <h3 className="leading-8 font-normal text-sm">
                       {service.description}
                     </h3>
-                    <span className="flex gap-1.5 items-center text-lg md:text-2xl">
+                    <span className="flex gap-1.5 items-center text-base md:text-xl">
                       <Clock size={20} />
                       <p>{service.time}</p>
                     </span>
@@ -289,135 +225,134 @@ export default async function Home() {
           </div>
         </section>
         <section id="fourth">
-          <JourneyPlanner />
+          <div className="my-4 py-8">
+            <JourneyPlanner />
+          </div>
         </section>
 
-        <section id="fifth">
-          <div
-            style={{
-              background: "rgb(33, 33, 33)",
-            }}
-          >
-            <div className="flex items-center justify-between mx-auto w-full max-w-[1280px] px-4">
-              <span className="text-white flex flex-col gap-2">
-                <h2 className="text-3xl capitalize font-bold">
+        <section
+          style={{
+            background: "rgb(33, 33, 33)",
+          }}
+          className="py-16 md:py-20"
+          id="fifth"
+        >
+          {/* Header with Better Spacing */}
+          <div className="mx-auto w-full max-w-[1280px] px-4 md:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
+              <div className="space-y-3">
+                <h2 className="text-white text-3xl md:text-4xl font-bold capitalize leading-tight">
                   Revisit Recent Messages
                 </h2>
-                <h4 className="text-base capitalize">
+                <p className="text-gray-300 text-base md:text-lg max-w-md leading-relaxed">
                   Catch Up on God's Word from his servants and remain blessed
-                </h4>
-              </span>
+                </p>
+              </div>
 
-              <span className="text-white">
-                <Link
-                  href={`/sermons`}
-                  className="group flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-white/20 bg-white/5 backdrop-blur-sm transition-all duration-300 hover:bg-white/10 hover:border-white/40 hover:shadow-lg hover:shadow-white/10 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-transparent"
-                >
-                  <span className="text-sm font-medium capitalize transition-colors duration-300 group-hover:text-white/90">
-                    view more
-                  </span>
-                  <ChevronRight
-                    size={20}
-                    className="w-4 h-4 transition-all duration-300 group-hover:translate-x-1 group-hover:scale-110"
-                  />
-                </Link>
-              </span>
+              <a
+                href="/sermons"
+                className="group inline-flex items-center justify-center gap-3 px-6 py-3 rounded-xl border border-white/20 bg-white/5 backdrop-blur-sm transition-all duration-300 hover:bg-white/10 hover:border-white/40 hover:shadow-lg hover:shadow-white/10 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-transparent text-white self-start"
+              >
+                <span className="text-sm font-medium capitalize transition-colors duration-300 group-hover:text-white/90">
+                  view more
+                </span>
+                <ChevronRight
+                  size={20}
+                  className="w-4 h-4 transition-all duration-300 group-hover:translate-x-1 group-hover:scale-110"
+                />
+              </a>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-[repeat(auto-fit,minmax(350px,400px))] gap-9 mx-auto items-start justify-center w-full px-4">
-              {mostRecentSermons &&
-                mostRecentSermons.map((message, index) => (
-                  <SermonComponent key={index} sermon={message} />
-                ))}
+            {/* Grid with Enhanced Spacing */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+              {mostRecentSermons.map((sermon, index) => (
+                <SermonComponent key={index} sermon={sermon} />
+              ))}
             </div>
           </div>
         </section>
 
-        <section id="sixth">
+        <section className="relative py-20 lg:py-32 overflow-hidden">
           <div
-            className="relative min-h-[80vh] bg-fixed bg-center bg-cover flex items-center justify-center md:justify-start"
+            className="absolute inset-0 bg-cover bg-center bg-fixed"
             style={{
-              background: `url(${urlFor(
-                homepage.testimonialsSection.backgroundImage as any
-              )
-                .width(1920)
-                .height(1080)
-                .format("jpg")
-                .quality(85)
-                .url()})`,
+              backgroundImage:
+                "url('https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=1920&h=1080&fit=crop')",
             }}
-          >
-            <div className="absolute inset-0 bg-black/60 z-0"></div>
-            {/* Header */}
-            <div className="text-center mb-16">
-              <div className="inline-block">
-                <h2 className="text-5xl md:text-6xl font-bold text-white mb-4 tracking-tight">
-                  {homepage.testimonialsSection.title}
-                </h2>
-                <div className="h-1 w-24 bg-white mx-auto mb-6"></div>
-                <p className="text-xl text-white/90 max-w-2xl mx-auto leading-relaxed">
-                  {homepage.testimonialsSection.subtitle}
-                </p>
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/60 to-black/80" />
+
+          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16 lg:mb-20">
+              <div className="inline-flex items-center gap-3 mb-6">
+                <div className="w-12 h-px bg-white/40" />
+                <Quote className="w-6 h-6 text-white/60" />
+                <div className="w-12 h-px bg-white/40" />
               </div>
+
+              <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 tracking-tight">
+                Testimonials
+              </h2>
+
+              <p className="text-lg sm:text-xl text-white/80 max-w-2xl mx-auto leading-relaxed">
+                Hear from our Members about their transformative experiences
+              </p>
             </div>
 
-            {/* Testimonials Grid */}
-            <div className="max-w-7xl mx-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {homepage.testimonialsSection.testimonials.map(
-                  (testimonial, index) => (
-                    <div
-                      key={index}
-                      className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/5 backdrop-blur-md p-8 hover:bg-white/10 hover:border-white/40 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-white/10"
-                    >
-                      {/* Quote icon */}
-                      <div className="absolute -top-4 -left-4 text-white/20 text-8xl font-serif leading-none">
-                        "
-                      </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+              {homepage.testimonialsSection.testimonials.map(
+                (testimonial, index) => (
+                  <div
+                    key={index}
+                    className="group relative bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 hover:bg-white/15 hover:border-white/30 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20"
+                  >
+                    <div className="absolute -top-3 -left-3 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition-colors duration-300">
+                      <Quote className="w-4 h-4 text-white" />
+                    </div>
 
-                      {/* Testimonial text */}
-                      <div className="relative z-10">
-                        <p className="text-white text-lg leading-relaxed mb-6 font-light">
-                          {testimonial.text}
-                        </p>
+                    <div className="space-y-6">
+                      <p className="text-white/90 text-base leading-relaxed font-light">
+                        "{testimonial.text}"
+                      </p>
 
-                        {/* Name with elegant styling */}
-                        <div className="flex items-center">
-                          <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mr-4 group-hover:bg-white/30 transition-colors duration-300">
-                            <span className="text-white font-bold text-lg">
-                              {testimonial.name
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}
-                            </span>
-                          </div>
-                          <div>
-                            <h4 className="text-white font-semibold text-lg">
-                              {testimonial.name}
-                            </h4>
-                            <div className="w-16 h-px bg-white/40 mt-1"></div>
-                          </div>
+                      <div className="flex items-center gap-4 pt-4 border-t border-white/20">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-white/30 to-white/10 flex items-center justify-center group-hover:from-white/40 group-hover:to-white/20 transition-all duration-300">
+                          <span className="text-white font-semibold text-sm">
+                            {testimonial.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
+                          </span>
+                        </div>
+                        <div>
+                          <h4 className="text-white font-semibold text-base">
+                            {testimonial.name}
+                          </h4>
+                          <p className="text-white/60 text-sm">
+                            {testimonial.position}
+                          </p>
                         </div>
                       </div>
-
-                      {/* Decorative corner elements */}
-                      <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-white/30 rounded-tr-lg"></div>
-                      <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-white/30 rounded-bl-lg"></div>
                     </div>
-                  )
-                )}
-              </div>
+
+                    <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-white/20 rounded-br-lg opacity-50 group-hover:opacity-80 transition-opacity duration-300" />
+                  </div>
+                )
+              )}
             </div>
 
-            {/* Bottom decorative element */}
-            <div className="text-center mt-20">
-              <div className="inline-flex items-center gap-4">
-                <div className="w-16 h-px bg-white/40"></div>
-                <div className="w-3 h-3 rounded-full bg-white/60"></div>
-                <div className="w-24 h-px bg-white/40"></div>
-                <div className="w-3 h-3 rounded-full bg-white/60"></div>
-                <div className="w-16 h-px bg-white/40"></div>
+            <div className="text-center mt-16 lg:mt-20">
+              <div className="inline-flex items-center justify-center gap-4 mb-8">
+                <div className="w-16 h-px bg-gradient-to-r from-transparent to-white/40" />
+                <div className="w-2 h-2 rounded-full bg-white/60" />
+                <div className="w-24 h-px bg-white/40" />
+                <div className="w-2 h-2 rounded-full bg-white/60" />
+                <div className="w-16 h-px bg-gradient-to-l from-transparent to-white/40" />
               </div>
+
+              <p className="text-white/60 text-sm italic">
+                "Let the redeemed of the Lord tell their story" - Psalm 107:2
+              </p>
             </div>
           </div>
         </section>

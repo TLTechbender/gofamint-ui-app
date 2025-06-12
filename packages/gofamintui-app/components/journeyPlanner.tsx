@@ -248,7 +248,7 @@ const JourneyPlanner: React.FC = () => {
             </span>
           </div>
           <p className="text-gray-600">
-            Call us at <span className="font-bold">+234 XXX XXX XXXX</span>
+            Call us at <span className="font-bold">+234 bala blu bala</span>
           </p>
         </div>
       </div>

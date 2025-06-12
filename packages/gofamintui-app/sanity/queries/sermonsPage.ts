@@ -79,3 +79,29 @@ export const recentSermonsQuery = `
     crop
   }
 }`;
+
+
+
+export const sermonsPageHeroSection = `
+  *[_type == "sermons"][0] {
+    heroSection {
+      backgroundImage {
+        asset-> {
+          _id,
+          url,
+          metadata {
+            lqip,
+            dimensions {
+              width,
+              height
+            }
+          }
+        },
+        hotspot,
+        crop
+      },
+      title,
+      subtitle
+    }
+  }
+`;

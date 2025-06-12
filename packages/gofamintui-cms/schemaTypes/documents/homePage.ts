@@ -404,14 +404,7 @@ export default defineType({
                   rows: 4,
                   validation: (Rule) => Rule.required().min(50),
                 }),
-                defineField({
-                  name: 'image',
-                  title: 'Profile Image',
-                  type: 'image',
-                  options: {
-                    hotspot: true,
-                  },
-                }),
+
                 defineField({
                   name: 'position',
                   title: 'Position/Title',

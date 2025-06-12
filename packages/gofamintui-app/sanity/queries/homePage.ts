@@ -130,21 +130,7 @@ export const homepageQuery = `
       testimonials[] {
         name,
         text,
-        image {
-          asset->{
-            _id,
-            url,
-            metadata {
-              lqip,
-              dimensions {
-                width,
-                height
-              }
-            }
-          },
-          hotspot,
-          crop
-        },
+        
         position,
         date
       }

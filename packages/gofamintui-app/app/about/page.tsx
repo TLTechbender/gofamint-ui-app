@@ -429,7 +429,7 @@ export default async function About() {
         {/* Hero Section */}
         <section id="hero">
           <div
-            className="relative min-h-[50vh] bg-fixed bg-center bg-cover flex items-center justify-center md:justify-start"
+            className="relative min-h-[80vh] bg-fixed bg-center bg-cover flex items-center justify-center md:justify-start"
             style={{
               backgroundImage: `url(${urlFor(
                 aboutPage.heroSection.backgroundImage as any

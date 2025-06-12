@@ -1,6 +1,6 @@
 import BlogsPageClient from "@/components/blogsPageClient";
 
-export default function BlogsPage() {
+export default async function BlogsPage() {
   return (
     <div>
       <BlogsPageClient />

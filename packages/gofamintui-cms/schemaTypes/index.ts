@@ -1,23 +1,31 @@
 import aboutPage from './documents/aboutPage'
-import {comment} from './documents/blogComments'
+import {author} from './documents/author'
+
 import {blogPost} from './documents/blogs'
-import eventRegistration from './documents/eventRegistration'
+import contact from './documents/contact'
+
 import events from './documents/events'
+import excecutives from './documents/excecutives'
+import footerContent from './documents/footerContent'
 
 import gallery from './documents/gallery'
+
 import homePage from './documents/homePage'
+import onlineGiving from './documents/onlineGiving'
 import sermonsPage from './documents/sermonsPage'
-import {user} from './documents/user'
+import streaming from './documents/streaming'
 
 export const schemaTypes = [
   homePage,
   aboutPage,
   sermonsPage,
   gallery,
-
-  user,
-  eventRegistration,
+  onlineGiving,
+  excecutives,
+  contact,
+  streaming,
+  author,
   events,
   blogPost,
-  comment,
+  footerContent,
 ]

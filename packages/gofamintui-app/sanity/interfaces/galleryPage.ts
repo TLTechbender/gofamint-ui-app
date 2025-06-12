@@ -1,33 +1,28 @@
-import { SanityImage } from "./sanityImage";
-
-
-interface SanityImageWithCaption extends SanityImage {
-  caption?: string;
-}
-
-interface SanitySlug {
-  current: string;
-  _type: "slug";
-}
-
-// Main interface for buildGalleryImagesBySlugQuery
-export interface GalleryBySlug {
+export interface GalleryPageData {
   _id: string;
+  _type: "project";
+  _createdAt: string;
+  _updatedAt: string;
   title: string;
-  slug: SanitySlug;
   description: string;
-  featuredImage: SanityImage;
-  category: string;
-  eventDate: string; // or Date if you're parsing it
-  location: string;
-  tags: string[];
-  _createdAt: string; // or Date if you're parsing it
-  images: SanityImageWithCaption[];
+  featuredImage: {
+    _type: "image";
+    asset: {
+      _ref: string;
+      _type: "reference";
+    };
+    hotspot?: {
+      x: number;
+      y: number;
+      height: number;
+      width: number;
+    };
+    crop?: {
+      top: number;
+      bottom: number;
+      left: number;
+      right: number;
+    };
+  };
+  googleDriveFolder: string;
 }
-
-
-
-
-// Usage examples:
-// const gallery: GalleryBySlugResult = await sanityClient.fetch(buildGalleryImagesBySlugQuery(), { slug: 'my-gallery' });
-// const imageCount: GalleryImageCount = await sanityClient.fetch(buildGalleryImagesCountBySlugQuery(), { slug: 'my-gallery' });

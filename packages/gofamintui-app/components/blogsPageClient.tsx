@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -17,13 +17,20 @@ const BlogsPageClient = () => {
   const [searchInput, setSearchInput] = useState(
     searchParams.get("search") || ""
   );
-  const loadingRef = useRef(false);
-  const debounceRef = useRef<NodeJS.Timeout>();
 
-  const { data, hasNextPage, isError, isLoading, fetchNextPage, blogPosts } =
-    useBlogPosts({
-      searchTerm: searchInput,
-    });
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const {
+    hasNextPage,
+    isError,
+    isLoading,
+    isFetchingNextPage,
+    fetchNextPage,
+    blogPosts,
+   
+  } = useBlogPosts({
+    searchTerm: searchInput,
+  });
 
   const debouncedSearch = useCallback(
     (searchValue: string) => {
@@ -45,7 +52,7 @@ const BlogsPageClient = () => {
           params.set("search", trimmedSearch);
         }
         router.push(
-          `/blogs${params.toString() ? `?${params.toString()}` : ""}`
+          `/blog${params.toString() ? `?${params.toString()}` : ""}`
         );
       }, 500); // 500ms delay
     },
@@ -71,7 +78,7 @@ const BlogsPageClient = () => {
     if (trimmedSearch) {
       params.set("search", trimmedSearch);
     }
-    router.push(`/blogs${params.toString() ? `?${params.toString()}` : ""}`);
+    router.push(`/blog${params.toString() ? `?${params.toString()}` : ""}`);
   };
 
   // Handle input change with debouncing
@@ -90,8 +97,14 @@ const BlogsPageClient = () => {
     }
   };
 
-  console.log(blogPosts);
+  // Clear search function
+  const clearSearch = () => {
+    setSearchInput("");
+    setSearchTerm("");
+    router.push("/blog");
+  };
 
+  
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Search */}
@@ -105,11 +118,13 @@ const BlogsPageClient = () => {
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
               className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+              disabled={isLoading && blogPosts.length === 0}
             />
             <button
               type="submit"
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 disabled:opacity-50"
               title="Search now"
+              disabled={isLoading && blogPosts.length === 0}
             >
               <svg
                 className="w-5 h-5"
@@ -129,37 +144,225 @@ const BlogsPageClient = () => {
         </form>
       </div>
 
-      {/* Content */}
-      <InfiniteScrollContainer
-              onBottomReached={() => {
-                  console.log(hasNextPage);
-                  if (hasNextPage) {
-              console.log('i don reach')
-            return fetchNextPage();
-          }
-          return;
-        }}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-[repeat(auto-fit,minmax(400px,1fr))] gap-6 mx-auto w-full max-w-6xl">
-          {blogPosts.map((blogPost: BlogPost, index: number) => (
-            <BlogPostCard key={blogPost._id || index} blogPost={blogPost} />
-          ))}
-        </div>
-      </InfiniteScrollContainer>
-
-      {/* Loading State */}
-      {isLoading && (
-        <div className="flex justify-center items-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      {/* Error State */}
+      {isError && (
+        <div className="max-w-md mx-auto mb-8">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+            <div className="w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+              <svg
+                className="w-6 h-6 text-red-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-red-900 mb-2">
+              Something went wrong
+            </h3>
+            <p className="text-red-700 mb-4">
+              We couldn't load the blog posts. Please check your connection and
+              try again.
+            </p>
+           
+          </div>
         </div>
       )}
 
-      {/* Empty State */}
-      {!isLoading && blogPosts.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">No blog posts found.</p>
+      {/* First Load Loading State */}
+      {isLoading && blogPosts.length === 0 && !isError && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-[repeat(auto-fit,minmax(400px,1fr))] gap-6 mx-auto w-full max-w-6xl">
+            {[...Array(6)].map((_, index) => (
+              <BlogPostSkeleton key={index} />
+            ))}
+          </div>
         </div>
       )}
+
+      {/* Content - Only show when not in initial loading state */}
+      {!isLoading || blogPosts.length > 0 ? (
+        <>
+          {/* Search Results Info */}
+          {searchTerm && !isError && (
+            <div className="mb-6 text-center">
+              <p className="text-gray-600">
+                {blogPosts.length > 0 ? (
+                  <>
+                    Found{" "}
+                    <span className="font-semibold">{blogPosts.length}</span>{" "}
+                    result
+                    {blogPosts.length !== 1 ? "s" : ""} for "{searchTerm}"
+                  </>
+                ) : (
+                  <>No results found for "{searchTerm}"</>
+                )}
+              </p>
+              {searchTerm && (
+                <button
+                  onClick={clearSearch}
+                  className="mt-2 text-blue-600 hover:text-blue-800 underline text-sm"
+                >
+                  Clear search
+                </button>
+              )}
+            </div>
+          )}
+
+          <InfiniteScrollContainer
+            onBottomReached={() => {
+              if (hasNextPage && !isFetchingNextPage) {
+                return fetchNextPage();
+              }
+              return;
+            }}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-[repeat(auto-fit,minmax(400px,1fr))] gap-6 mx-auto w-full max-w-6xl">
+              {blogPosts.map((blogPost: BlogPost, index: number) => (
+                <BlogPostCard key={blogPost._id || index} blogPost={blogPost} />
+              ))}
+            </div>
+          </InfiniteScrollContainer>
+
+          {/* Next Page Loading State */}
+          {isFetchingNextPage && (
+            <div className="flex justify-center items-center py-8">
+              <div className="flex items-center space-x-2 text-gray-600">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                <span>Loading more posts...</span>
+              </div>
+            </div>
+          )}
+
+          {/* Empty State for Search */}
+          {!isLoading && blogPosts.length === 0 && searchTerm && !isError && (
+            <div className="text-center py-12 max-w-md mx-auto">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                <svg
+                  className="w-8 h-8 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                No posts found
+              </h3>
+              <p className="text-gray-600 mb-4">
+                We couldn't find any blog posts matching your search. Try using
+                different keywords or browse all posts.
+              </p>
+              <div className="space-y-2">
+                <button
+                  onClick={clearSearch}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Browse All Posts
+                </button>
+                <p className="text-sm text-gray-500">
+                  Suggestions: Try shorter keywords, check spelling, or use
+                  broader terms
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Empty State for No Posts at All */}
+          {!isLoading && blogPosts.length === 0 && !searchTerm && !isError && (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                <svg
+                  className="w-8 h-8 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                No blog posts yet
+              </h3>
+              <p className="text-gray-600">Check back later for new content!</p>
+            </div>
+          )}
+
+          {/* End of Results Indicator */}
+          {!hasNextPage && blogPosts.length > 0 && !isFetchingNextPage && (
+            <div className="text-center py-8">
+              <p className="text-gray-500 text-sm">
+                You've reached the end of the posts
+              </p>
+            </div>
+          )}
+        </>
+      ) : null}
+    </div>
+  );
+};
+
+// Skeleton component for loading state
+const BlogPostSkeleton = () => {
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden h-full flex flex-col animate-pulse">
+      {/* Image Skeleton */}
+      <div className="relative aspect-[16/9] bg-gray-200"></div>
+
+      {/* Content Skeleton */}
+      <div className="p-6 flex-1 flex flex-col">
+        {/* Meta Information Skeleton */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center space-x-4">
+            <div className="h-4 bg-gray-200 rounded w-24"></div>
+            <div className="h-4 bg-gray-200 rounded w-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-16"></div>
+          </div>
+          <div className="flex items-center space-x-3">
+            <div className="h-4 bg-gray-200 rounded w-8"></div>
+            <div className="h-4 bg-gray-200 rounded w-8"></div>
+          </div>
+        </div>
+
+        {/* Title Skeleton */}
+        <div className="space-y-2 mb-3">
+          <div className="h-6 bg-gray-200 rounded w-full"></div>
+          <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+        </div>
+
+        {/* Excerpt Skeleton */}
+        <div className="space-y-2 mb-4 flex-1">
+          <div className="h-4 bg-gray-200 rounded w-full"></div>
+          <div className="h-4 bg-gray-200 rounded w-full"></div>
+          <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+        </div>
+
+        {/* Author Skeleton */}
+        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+            <div className="h-4 bg-gray-200 rounded w-24"></div>
+          </div>
+          <div className="h-5 bg-gray-200 rounded w-5"></div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -211,7 +414,7 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({ blogPost }) => {
           )}
         </div>
 
-        {/* Content Section - This takes up more space */}
+        {/* Content Section */}
         <div className="p-6 flex-1 flex flex-col">
           {/* Meta Information */}
           <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
@@ -259,17 +462,16 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({ blogPost }) => {
                     d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
                   />
                 </svg>
-                <span>{blogPost.likes}</span>
               </div>
             </div>
           </div>
 
-          {/* Title - Prominent */}
+          {/* Title */}
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
             {blogPost.title}
           </h2>
 
-          {/* Excerpt - More space given to text content */}
+          {/* Excerpt */}
           <p className="text-gray-600 text-base leading-relaxed mb-4 flex-1 line-clamp-3">
             {blogPost.excerpt}
           </p>
