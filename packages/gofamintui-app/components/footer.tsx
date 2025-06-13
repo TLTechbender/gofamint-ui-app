@@ -248,7 +248,7 @@ export default async function Footer() {
                 your inbox.
               </p>
             </div>
-            <div className="flex w-full md:w-auto max-w-md">
+            <div className="flex md:w-auto max-w-md">
               <input
                 type="email"
                 placeholder="Enter your email address"
