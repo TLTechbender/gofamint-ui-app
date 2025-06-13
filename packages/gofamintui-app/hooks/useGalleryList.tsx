@@ -1,5 +1,6 @@
 "use client";
-import { GalleryListItem } from "@/sanity/interfaces/galleryListPage";
+
+import { GalleryListPageData } from "@/sanity/interfaces/galleryListPage";
 import {
   buildGalleryListCountQuery,
   buildGalleryListQuery,
@@ -31,7 +32,7 @@ const createGalleryListQueryFunction =
     };
 
     const [galleryListResponse, totalCount] = await Promise.all([
-      sanityFetchWrapper<GalleryListItem[]>(
+      sanityFetchWrapper<GalleryListPageData[]>(
         buildGalleryListQuery(hasSearch),
         params
       ),
@@ -43,8 +44,7 @@ const createGalleryListQueryFunction =
 
     const hasMore = end < totalCount;
 
-    console.log("kuronbe");
-    console.log(galleryListResponse);
+   
 
     return {
       galleryListResponse,

@@ -2,11 +2,12 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link";
+
 import { urlFor } from "@/sanity/sanityClient";
 import useInfiniteGalleryList from "@/hooks/useGalleryList";
 import InfiniteScrollContainer from "./infiniteScrollContainer";
-import { GalleryListItem } from "@/sanity/interfaces/galleryListPage";
+import { GalleryListPageData } from "@/sanity/interfaces/galleryListPage";
+
 
 const GalleryListClient = () => {
   const router = useRouter();
@@ -231,7 +232,7 @@ const GalleryListClient = () => {
           >
             <div className="grid grid-cols-1 md:grid-cols-[repeat(auto-fit,minmax(350px,400px))] gap-9 mx-auto items-start justify-center w-full px-4">
               {allGalleryListItems.map(
-                (listItem: GalleryListItem, index: number) => (
+                (listItem: GalleryListPageData, index: number) => (
                   <GalleryCard
                     key={`${listItem._id || index}`}
                     gallery={listItem}
@@ -381,7 +382,7 @@ const GallerySkeleton = () => {
 };
 
 interface GalleryCardProps {
-  gallery: GalleryListItem;
+  gallery: GalleryListPageData;
 }
 
 const GalleryCard: React.FC<GalleryCardProps> = ({ gallery }) => {
@@ -396,7 +397,7 @@ const GalleryCard: React.FC<GalleryCardProps> = ({ gallery }) => {
   };
 
   return (
-    <Link href={`/gallery/${gallery.slug.current}`} className="block group">
+    <a href={gallery.googleDriveFolder} className="block group">
       <div className="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg">
         {/* Image Section */}
         <div className="relative aspect-[4/3] overflow-hidden">
@@ -409,19 +410,12 @@ const GalleryCard: React.FC<GalleryCardProps> = ({ gallery }) => {
                 .quality(85)
                 .url() || ""
             }
-            alt={gallery.featuredImage.alt || gallery.title}
+            alt={ gallery.title}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-110"
-           
-           
           />
 
-          {/* Category Badge */}
-          {gallery.category && (
-            <div className="absolute top-3 left-3 bg-black/70 text-white px-2 py-1 rounded-md text-sm font-medium">
-              {gallery.category}
-            </div>
-          )}
+       
         </div>
 
         {/* Content Section */}
@@ -429,38 +423,14 @@ const GalleryCard: React.FC<GalleryCardProps> = ({ gallery }) => {
           {/* Date */}
           <div className="text-center mb-4">
             <div className="text-2xl font-bold text-gray-800">
-              {formatDate(gallery.eventDate)}
+              {formatDate(gallery._createdAt)}
             </div>
             <div className="text-sm text-gray-600 uppercase tracking-wider mt-1">
               {gallery.title}
             </div>
           </div>
 
-          {/* Location */}
-          {gallery.location && (
-            <div className="flex items-center justify-center text-gray-600 text-sm mb-3">
-              <svg
-                className="w-4 h-4 mr-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-              {gallery.location}
-            </div>
-          )}
+         
 
           {/* Description */}
           {gallery.description && (
@@ -470,26 +440,10 @@ const GalleryCard: React.FC<GalleryCardProps> = ({ gallery }) => {
           )}
 
           {/* Tags */}
-          {gallery.tags && gallery.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 justify-center">
-              {gallery.tags.slice(0, 3).map((tag, index) => (
-                <span
-                  key={index}
-                  className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full"
-                >
-                  {tag}
-                </span>
-              ))}
-              {gallery.tags.length > 3 && (
-                <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                  +{gallery.tags.length - 3} more
-                </span>
-              )}
-            </div>
-          )}
+       
         </div>
       </div>
-    </Link>
+    </a>
   );
 };
 

@@ -44,7 +44,7 @@ const OnlineGivingComponent = ({
 }: {
   givingDetails: OnlineGiving[];
 }) => {
-  console.log(givingDetails);
+
   const [copiedField, setCopiedField] = useState<CopiedFieldType>(null);
   const [selectedBankType, setSelectedBankType] =
     useState<BankType>("nigerian");

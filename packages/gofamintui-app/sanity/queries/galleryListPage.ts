@@ -1,12 +1,17 @@
-// Original query for listing all galleries (with optional search and pagination)
+// Fixed GROQ queries with search functionality
+
+// Base query for galleries with search support
 export const buildGalleryListQuery = (hasSearch = false) => {
-  const baseFields = `
+  const baseQuery = `*[_type == "gallery"${hasSearch ? " && (title match $search || description match $search)" : ""}]`;
+
+  return `${baseQuery} | order(_createdAt desc) [$start...$end] {
     _id,
+    _createdAt,
+    _updatedAt,
     title,
-    slug,
     description,
     featuredImage {
-      asset->{
+      asset-> {
         _id,
         url,
         metadata {
@@ -17,46 +22,17 @@ export const buildGalleryListQuery = (hasSearch = false) => {
           }
         }
       },
-      alt
+      hotspot,
+      crop
     },
-    category,
-    eventDate,
-    location,
-    tags,
-    _createdAt
-  `;
-
-  if (hasSearch) {
-    return `
-      *[_type == "gallery" && published == true && (
-        title match $search + "*" || 
-        description match $search + "*" ||
-        category match $search + "*" ||
-        location match $search + "*"
-      )] | order(eventDate desc) [$start...$end] {
-        ${baseFields}
-      }
-    `;
-  }
-
-  return `
-    *[_type == "gallery" && published == true] | order(eventDate desc) [$start...$end] {
-      ${baseFields}
-    }
-  `;
+    googleDriveFolder,
+    
+  }`;
 };
 
+// Count query with search support
 export const buildGalleryListCountQuery = (hasSearch = false) => {
-  if (hasSearch) {
-    return `
-      count(*[_type == "gallery" && published == true && (
-        title match $search + "*" || 
-        description match $search + "*" ||
-        category match $search + "*" ||
-        location match $search + "*"
-      )])
-    `;
-  }
+  const baseQuery = `*[_type == "gallery"${hasSearch ? " && (title match $search || description match $search)" : ""}]`;
 
-  return `count(*[_type == "gallery" && published == true])`;
+  return `count(${baseQuery})`;
 };

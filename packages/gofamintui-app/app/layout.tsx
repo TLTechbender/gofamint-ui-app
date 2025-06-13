@@ -6,6 +6,13 @@ import ReactToastifyProvider from "@/components/reactToastifyProvider";
 import { LogoOnly } from "@/sanity/interfaces/footerContent";
 import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
 import { logoQuery } from "@/sanity/queries/footerContent";
+import { Metadata } from "next";
+
+
+export const metadata: Metadata = {
+  metadataBase: new URL("https://yourdomain.com"),
+ 
+};
 
 async function getSiteSettings(): Promise<LogoOnly | null> {
   try {

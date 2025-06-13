@@ -1,15 +1,204 @@
+import { Metadata } from "next";
 import { ExcecutivesPageData } from "@/sanity/interfaces/excecutivesPage";
 import { excecutivesPageQuery } from "@/sanity/queries/excecutivesPage";
-
 import { urlFor } from "@/sanity/sanityClient";
 import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
 import Image from "next/image";
 
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const excosPageData =
+      await sanityFetchWrapper<ExcecutivesPageData>(excecutivesPageQuery);
+
+    // Handle case where no data is available
+    if (!excosPageData || Object.keys(excosPageData).length === 0) {
+      return {
+        title: "Executive Team | GSF UI",
+        description:
+          "Meet the executive team of Gofamint Students' Fellowship, University of Ibadan.",
+        robots: { index: false, follow: true },
+      };
+    }
+
+    // Build dynamic metadata from actual data
+    const heroTitle = excosPageData.heroSection?.title || "Executive Team";
+    const heroSubtitle = excosPageData.heroSection?.subtitle || "";
+    const infoTitle = excosPageData.infoSection?.title || "";
+    const infoSubtitle = excosPageData.infoSection?.subTitle || "";
+
+    // Count executives
+    const execsCount = excosPageData.excosSection?.excos?.length || 0;
+    const execsText = execsCount === 1 ? "executive" : "executives";
+
+    // Build title
+    const title = `${heroTitle} | GSF UI`;
+
+    // Build description from available content
+    let description = "";
+    if (heroSubtitle) {
+      description = heroSubtitle;
+    } else if (infoSubtitle) {
+      description = infoSubtitle;
+    } else {
+      description = `Meet the ${execsCount} dedicated ${execsText} leading Gofamint Students' Fellowship, University of Ibadan.`;
+    }
+
+    // Add executive count context if we have executives
+    if (execsCount > 0 && !description.includes(execsCount.toString())) {
+      description += ` Our team consists of ${execsCount} experienced leaders committed to excellence.`;
+    }
+
+    // Get featured image (hero image or first executive's photo)
+    let featuredImageUrl = null;
+    let imageAlt = title;
+
+    if (excosPageData.heroSection?.image) {
+      featuredImageUrl = urlFor(excosPageData.heroSection.image as any)
+        .width(1200)
+        .height(630)
+        .format("jpg")
+        .quality(80)
+        .url();
+      imageAlt = heroTitle;
+    } else if (excosPageData.overallHead?.posterImage) {
+      featuredImageUrl = urlFor(excosPageData.overallHead.posterImage as any)
+        .width(1200)
+        .height(630)
+        .format("jpg")
+        .quality(80)
+        .url();
+      imageAlt = "GSF UI Leadership";
+    } else if (excosPageData.excosSection?.excos?.[0]?.picture) {
+      featuredImageUrl = urlFor(
+        excosPageData.excosSection.excos[0].picture as any
+      )
+        .width(1200)
+        .height(630)
+        .format("jpg")
+        .quality(80)
+        .url();
+      imageAlt = `${excosPageData.excosSection.excos[0].name} - Executive Team`;
+    }
+
+    // Generate keywords from executive positions
+    const executivePositions = excosPageData.excosSection?.excos
+      ?.map((exco) => exco.operatingCapacity)
+      .filter(Boolean)
+      .slice(0, 5) // Take first 5 positions
+      .join(", ");
+
+    const keywords = [
+      "GSF UI executives",
+      "Gofamint Students Fellowship leadership",
+      "University of Ibadan student executives",
+      "GSF UI leadership team",
+      "student organization executives",
+      ...(executivePositions ? [executivePositions] : []),
+    ];
+
+    return {
+      title,
+      description,
+      keywords,
+      authors: [
+        {
+          name: "Gofamint Students' Fellowship UI Chapter",
+          url: "https://gofamintui.org",
+        },
+      ],
+      creator: "Bolarinwa Paul Ayomide (https://github.com/TLTechbender)",
+      publisher: "Gofamint Students' Fellowship UI",
+      category: "Religious Organization",
+      robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          "max-video-preview": -1,
+          "max-image-preview": "large",
+          "max-snippet": -1,
+        },
+      },
+      openGraph: {
+        title,
+        description,
+        url: "https://gofamintui.org/executives",
+        siteName: "GSF UI",
+        images: featuredImageUrl
+          ? [
+              {
+                url: featuredImageUrl,
+                width: 1200,
+                height: 630,
+                alt: imageAlt,
+                type: "image/jpeg",
+              },
+            ]
+          : [],
+        locale: "en_NG",
+        type: "website",
+        countryName: "Nigeria",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        site: "@gofamintui",
+        creator: "@gofamintui",
+        images: featuredImageUrl
+          ? [
+              {
+                url: featuredImageUrl,
+                alt: imageAlt,
+              },
+            ]
+          : [],
+      },
+      alternates: {
+        canonical: "https://gofamintui.org/executives",
+      },
+      other: {
+        "theme-color": "#ffffff",
+        "color-scheme": "light",
+      },
+      metadataBase: new URL("https://gofamintui.org"),
+    };
+  } catch (error) {
+    console.error("Error generating executives metadata:", error);
+
+    // Fallback metadata if data fetching fails
+    return {
+      title: "Executive Team | GSF UI",
+      description:
+        "Meet the executive team of Gofamint Students' Fellowship, University of Ibadan. Our dedicated leaders are committed to spiritual growth and community service.",
+      keywords: [
+        "GSF UI executives",
+        "Gofamint Students Fellowship leadership",
+        "University of Ibadan student executives",
+        "student organization leadership",
+      ],
+      openGraph: {
+        title: "Executive Team | GSF UI",
+        description:
+          "Meet the executive team of Gofamint Students' Fellowship, University of Ibadan.",
+        type: "website",
+        url: "https://gofamintui.org/executives",
+        siteName: "GSF UI",
+      },
+      twitter: {
+        card: "summary",
+        title: "Executive Team | GSF UI",
+        description:
+          "Meet the executive team of Gofamint Students' Fellowship, University of Ibadan.",
+      },
+    };
+  }
+}
+export const dynamic = "force-dynamic";
 export default async function Excecutives() {
   const excosPageData =
     await sanityFetchWrapper<ExcecutivesPageData>(excecutivesPageQuery);
-
-  console.log(excosPageData);
 
   // Handle empty or null data
   if (!excosPageData || Object.keys(excosPageData).length === 0) {
@@ -45,9 +234,7 @@ export default async function Excecutives() {
 
   return (
     <div>
-      {/* Hero Secti
-      on - Keep as is */}
-   
+      {/* Hero Section - Keep as is */}
       <section id="hero">
         <div
           className="relative min-h-[90vh] bg-fixed bg-center bg-cover flex items-center justify-center md:justify-start"

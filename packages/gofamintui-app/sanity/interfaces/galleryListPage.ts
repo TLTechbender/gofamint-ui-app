@@ -1,17 +1,28 @@
-import { SanityImage } from "./sanityImage";
-
-export interface GalleryListItem {
+export interface GalleryListPageData {
   _id: string;
-  title: string;
-  slug: {
-    current: string;
-  };
-  description: string;
-  featuredImage: SanityImage;
-  category: string;
-  eventDate: string;
-  location: string;
-  tags: string[];
+  _type: "project";
   _createdAt: string;
-  imageCount: number;
+  _updatedAt: string;
+  title: string;
+  description: string;
+  featuredImage: {
+    _type: "image";
+    asset: {
+      _ref: string;
+      _type: "reference";
+    };
+    hotspot?: {
+      x: number;
+      y: number;
+      height: number;
+      width: number;
+    };
+    crop?: {
+      top: number;
+      bottom: number;
+      left: number;
+      right: number;
+    };
+  };
+  googleDriveFolder: string;
 }

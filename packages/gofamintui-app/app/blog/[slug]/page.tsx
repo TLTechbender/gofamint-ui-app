@@ -1,16 +1,8 @@
 import { getBlogPost, incrementViews } from "@/actions/blogPage";
-
+import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PortableText, PortableTextComponents } from "@portabletext/react";
-import {
-  MessageCircle,
-  Share2,
-  Calendar,
-  Clock,
-  User,
-  Eye,
-  Tag,
-} from "lucide-react";
+import { Calendar, Clock, Eye, Tag } from "lucide-react";
 
 // React Icons imports
 import {
@@ -28,6 +20,194 @@ import Image from "next/image";
 import { urlFor } from "@/sanity/sanityClient";
 import ShareButton from "@/components/shareButtonComponent";
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  try {
+    const { slug } = await params;
+    const post = await getBlogPost(slug);
+
+    if (!post) {
+      return {
+        title: "Blog Post Not Found | GSF UI",
+        description: "The requested blog post could not be found.",
+        robots: { index: false, follow: true },
+      };
+    }
+
+    // Build dynamic title
+    const title = `${post.title} | GSF UI`;
+
+    // Build dynamic description
+    let description = "";
+    if (post.excerpt) {
+      description = post.excerpt;
+    } else if (post.seo?.metaDescription) {
+      description = post.seo.metaDescription;
+    } else {
+      // Fallback description
+      description = `Read this inspiring spiritual article by ${post.author.firstName} ${post.author.lastName} on Gofamint Students' Fellowship blog. Discover faith-building insights and spiritual growth content.`;
+    }
+
+    // Build dynamic keywords
+    let keywords = [
+      "GSF UI blog",
+      "spiritual articles",
+      "Christian blog",
+      "faith-based content",
+      "Gofamint Students Fellowship",
+      "University of Ibadan Christian content",
+      `${post.author.firstName} ${post.author.lastName}`,
+    ];
+
+    // Add post tags to keywords
+    if (post.tags && post.tags.length > 0) {
+      keywords = [...keywords, ...post.tags];
+    }
+
+    // Add SEO keywords if available
+    if (post.seo?.keywords && post.seo.keywords.length > 0) {
+      keywords = [...keywords, ...post.seo.keywords];
+    }
+
+    // Get featured image
+    let featuredImageUrl = null;
+    let imageAlt = title;
+
+    if (post.featuredImage?.asset?.url) {
+      featuredImageUrl = post.featuredImage.asset.url;
+      imageAlt = post.featuredImage.alt || title;
+    } else if (post.author.profileImage?.asset?.url) {
+      // Fallback to author image
+      featuredImageUrl = post.author.profileImage.asset.url;
+      imageAlt = `${post.author.firstName} ${post.author.lastName} - ${post.title}`;
+    }
+
+    // Build author information
+    const authorName = `${post.author.firstName} ${post.author.lastName}`;
+    const publishedTime = post.publishedAt;
+    const modifiedTime = post.updatedAt || post.publishedAt;
+
+    return {
+      title,
+      description,
+      keywords: keywords.slice(0, 15), // Limit to 15 keywords
+      authors: [
+        {
+          name: authorName,
+          url: post.author.socialLinks?.website || undefined,
+        },
+      ],
+      creator: authorName,
+      publisher: "Gofamint Students' Fellowship UI",
+      category: "Spiritual Content",
+      robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          "max-video-preview": -1,
+          "max-image-preview": "large",
+          "max-snippet": -1,
+        },
+      },
+      openGraph: {
+        title,
+        description,
+        url: `https://gofamintui.org/blog/${slug}`,
+        siteName: "GSF UI",
+        images: featuredImageUrl
+          ? [
+              {
+                url: featuredImageUrl,
+                width:
+                  post.featuredImage?.asset?.metadata?.dimensions?.width ||
+                  1200,
+                height:
+                  post.featuredImage?.asset?.metadata?.dimensions?.height ||
+                  630,
+                alt: imageAlt,
+                type: "image/jpeg",
+              },
+            ]
+          : [],
+        locale: "en_NG",
+        type: "article",
+        countryName: "Nigeria",
+        publishedTime,
+        modifiedTime,
+        authors: [authorName],
+        tags: post.tags || [],
+        section: "Spiritual Growth",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        site: "@gofamintui",
+        creator: post.author.socialLinks?.twitter
+          ? `@${post.author.socialLinks.twitter.replace("@", "")}`
+          : "@gofamintui",
+        images: featuredImageUrl
+          ? [
+              {
+                url: featuredImageUrl,
+                alt: imageAlt,
+              },
+            ]
+          : [],
+      },
+      alternates: {
+        canonical: `https://gofamintui.org/blog/${slug}`,
+      },
+      other: {
+        "theme-color": "#ffffff",
+        "color-scheme": "light",
+        "article:author": authorName,
+        "article:published_time": publishedTime || "",
+        "article:modified_time": modifiedTime || "",
+        "article:section": "Spiritual Growth",
+        "article:tag": post.tags?.join(", ") || "",
+        "reading-time": post.readingTime ? `${post.readingTime} minutes` : "",
+      },
+      metadataBase: new URL("https://gofamintui.org"),
+    };
+  } catch (error) {
+    console.error("Error generating blog post metadata:", error);
+
+    // Fallback metadata if data fetching fails
+    return {
+      title: "Spiritual Blog Post | GSF UI",
+      description:
+        "Read inspiring spiritual content from Gofamint Students' Fellowship, University of Ibadan.",
+      keywords: [
+        "GSF UI blog",
+        "spiritual articles",
+        "Christian blog",
+        "Gofamint Students Fellowship",
+      ],
+      openGraph: {
+        title: "Spiritual Blog Post | GSF UI",
+        description:
+          "Read inspiring spiritual content from Gofamint Students' Fellowship, University of Ibadan.",
+        type: "article",
+        url: "https://gofamintui.org/blog",
+        siteName: "GSF UI",
+      },
+      twitter: {
+        card: "summary",
+        title: "Spiritual Blog Post | GSF UI",
+        description:
+          "Read inspiring spiritual content from Gofamint Students' Fellowship, University of Ibadan.",
+      },
+    };
+  }
+}
+
+export const dynamic = "force-dynamic";
 export default async function BlogPage({
   params,
 }: {
@@ -37,7 +217,7 @@ export default async function BlogPage({
 
   const post = await getBlogPost(slug);
 
-  console.log(post);
+  
 
   if (!post) {
     notFound();

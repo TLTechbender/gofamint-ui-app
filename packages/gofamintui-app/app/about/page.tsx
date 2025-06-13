@@ -12,6 +12,13 @@ import Image from "next/image";
 // ==========================================
 
 // Light theme component for white/light backgrounds
+
+// Reusable components
+interface PortableTextProps {
+  value: any;
+  className?: string;
+}
+
 const lightTextComponents: PortableTextReactComponents = {
   types: {
     image: ({ value }) => {
@@ -269,11 +276,6 @@ const darkTextComponents: PortableTextReactComponents = {
   ),
 };
 
-// Reusable components
-interface PortableTextProps {
-  value: any;
-  className?: string;
-}
 
 const LightPortableText = ({ value, className = "" }: PortableTextProps) => (
   <div className={`prose max-w-none ${className}`}>
@@ -322,7 +324,7 @@ const getPaddingClass = (paddingSize: string) => {
 // ==========================================
 
 export async function generateMetadata(
-  parent: ResolvingMetadata
+ 
 ): Promise<Metadata> {
   const dynamicMetaData = await sanityFetchWrapper<AboutPage>(
     aboutPageMetadataQuery
@@ -416,9 +418,8 @@ export async function generateMetadata(
   };
 }
 
-// ==========================================
-// MAIN COMPONENT
-// ==========================================
+
+export const dynamic = "force-dynamic";
 
 export default async function About() {
   const aboutPage = await sanityFetchWrapper<AboutPage>(aboutPageQuery);
