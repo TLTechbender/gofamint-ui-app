@@ -5,6 +5,8 @@ export default defineType({
   title: 'Giving Information',
   type: 'document',
   fields: [
+
+    
     defineField({
       name: 'title',
       title: 'Page Title',

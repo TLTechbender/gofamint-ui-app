@@ -8,6 +8,7 @@ export default defineType({
   title: 'Live Streams',
   type: 'document',
   fields: [
+    
     defineField({
       name: 'title',
       title: 'Stream Title',

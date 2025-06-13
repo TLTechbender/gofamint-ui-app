@@ -300,8 +300,8 @@
 import { defineType, defineField } from 'sanity'
 
 export default defineType({
-  name: 'project',
-  title: 'Project',
+  name: 'gallery',
+  title: 'Gallery',
   type: 'document',
   fields: [
     defineField({

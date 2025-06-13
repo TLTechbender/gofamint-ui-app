@@ -5,6 +5,7 @@ export default defineType({
   title: 'Contact Information',
   type: 'document',
   fields: [
+    
     defineField({
       name: 'fellowshipName',
       title: 'Fellowship Name',

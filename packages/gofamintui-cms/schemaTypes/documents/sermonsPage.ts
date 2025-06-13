@@ -6,6 +6,7 @@ export default defineType({
   title: 'Sermons',
   type: 'document',
   fields: [
+    
     defineField({
       name: 'seo',
       title: 'SEO Settings',
