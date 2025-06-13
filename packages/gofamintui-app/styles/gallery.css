@@ -1,0 +1,143 @@
+.masonry-grid {
+  display: flex;
+  margin-left: -16px;
+  width: auto;
+}
+
+.masonry-column {
+  padding-left: 16px;
+  background-clip: padding-box;
+}
+
+.masonry-item {
+  margin-bottom: 16px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.masonry-item:hover {
+  transform: scale(1.02);
+}
+
+.masonry-image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+/* Download button - always visible */
+.download-btn {
+  opacity: 0.8 !important;
+  transition: opacity 0.3s ease, background-color 0.3s ease !important;
+}
+
+.download-btn:hover {
+  opacity: 1 !important;
+  background-color: rgba(0, 0, 0, 0.9) !important;
+}
+
+/* Gallery Overlay Styles */
+.gallery-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gallery-container {
+  position: relative;
+  width: 90%;
+  max-width: 1200px;
+  height: 90%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Close Button */
+.gallery-close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  color: #333;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.gallery-close-btn:hover {
+  background: rgba(255, 255, 255, 1);
+}
+
+/* Override react-image-gallery styles to ensure proper display */
+.gallery-overlay .image-gallery {
+  width: 100%;
+  height: 100%;
+}
+
+.gallery-overlay .image-gallery-content {
+  height: calc(100% - 100px); /* Account for thumbnails */
+}
+
+.gallery-overlay .image-gallery-slide-wrapper {
+  height: 100%;
+}
+
+.gallery-overlay .image-gallery-image {
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Ensure navigation buttons are visible */
+.gallery-overlay .image-gallery-left-nav,
+.gallery-overlay .image-gallery-right-nav {
+  color: white;
+  font-size: 60px;
+  opacity: 0.8;
+}
+
+.gallery-overlay .image-gallery-left-nav:hover,
+.gallery-overlay .image-gallery-right-nav:hover {
+  opacity: 1;
+}
+
+/* Style the fullscreen button */
+.gallery-overlay .image-gallery-fullscreen-button {
+  color: white;
+  opacity: 0.8;
+}
+
+.gallery-overlay .image-gallery-fullscreen-button:hover {
+  opacity: 1;
+}
+
+/* Thumbnail styling */
+.gallery-overlay .image-gallery-thumbnails-wrapper {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.gallery-overlay .image-gallery-thumbnail {
+  border: 2px solid transparent;
+}
+
+.gallery-overlay .image-gallery-thumbnail.active,
+.gallery-overlay .image-gallery-thumbnail:hover {
+  border: 2px solid white;
+}

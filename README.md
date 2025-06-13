@@ -1,6 +1,6 @@
 # GoFamint - Wrting the Lord's code
 
-This contains all the code for the
+This contains all the code for the Lord's web app, I would most likely document it too bro.
 
 ## 🏗️ Architecture Overview
 
