@@ -151,7 +151,7 @@ export default async function Footer() {
                   href={link.url}
                   target={link.openInNewTab ? "_blank" : "_self"}
                   rel={link.openInNewTab ? "noopener noreferrer" : undefined}
-                  className="text-gray-300 hover:text-blue-400 transition-colors duration-200 text-sm py-1 hover:translate-x-1 transform transition-transform flex items-center"
+                  className="text-gray-300 hover:text-blue-400  duration-200 text-sm py-1 hover:translate-x-1 transform transition-transform flex items-center"
                 >
                   {link.name}
                   {link.openInNewTab && (
@@ -234,12 +234,12 @@ export default async function Footer() {
         </div>
       </div>
 
-      {/* Newsletter Section - Enhanced */}
+      {/* Newsletter Section - Fixed for mobile responsiveness */}
       <div className="border-t border-gray-700 bg-gray-750">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="flex flex-col md:flex-row items-center justify-between">
-            <div className="mb-6 md:mb-0 text-center md:text-left">
-              <h3 className="text-white font-bold text-xl mb-2 flex items-center justify-center md:justify-start">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-6 lg:space-y-0">
+            <div className="text-center lg:text-left lg:flex-shrink-0">
+              <h3 className="text-white font-bold text-xl mb-2 flex items-center justify-center lg:justify-start">
                 <Mail className="w-5 h-5 mr-2 text-blue-400" />
                 Stay Connected
               </h3>
@@ -248,15 +248,17 @@ export default async function Footer() {
                 your inbox.
               </p>
             </div>
-            <div className="flex md:w-auto max-w-md">
-              <input
-                type="email"
-                placeholder="Enter your email address"
-                className="flex-1 px-4 py-3 bg-gray-700 border border-gray-600 rounded-l-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50 transition-all duration-200"
-              />
-              <button className="px-8 py-3 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700 transition-colors duration-200 font-semibold shadow-lg hover:shadow-xl">
-                Subscribe
-              </button>
+            <div className="w-full lg:w-auto lg:max-w-md lg:min-w-0 lg:flex-shrink">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-0">
+                <input
+                  type="email"
+                  placeholder="Enter your email address"
+                  className="flex-1 px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg sm:rounded-l-lg sm:rounded-r-none text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50 transition-all duration-200 min-w-0"
+                />
+                <button className="px-6 sm:px-8 py-3 bg-blue-600 text-white rounded-lg sm:rounded-l-none sm:rounded-r-lg hover:bg-blue-700 transition-colors duration-200 font-semibold shadow-lg hover:shadow-xl whitespace-nowrap">
+                  Subscribe
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -1,6 +1,10 @@
 import { Metadata } from "next";
 import FellowshipCalendar from "@/components/calendarComponent";
 
+
+
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   try {
     // Static metadata for events page
@@ -125,7 +129,6 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-export const dynamic = "force-dynamic";
 
 export default async function Events() {
   return (

@@ -206,6 +206,7 @@ const FellowshipCalendar: React.FC = () => {
     refetch,
   } = useFellowshipEvents(activeYear, activeMonth);
 
+
   // Transform events for React Big Calendar
   const calendarEvents: CalendarEvent[] = useMemo(() => {
     if (!eventsData?.events) return [];
