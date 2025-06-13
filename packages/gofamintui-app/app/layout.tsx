@@ -8,10 +8,10 @@ import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
 import { logoQuery } from "@/sanity/queries/footerContent";
 import { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://yourdomain.com"),
- 
 };
 
 async function getSiteSettings(): Promise<LogoOnly | null> {
