@@ -508,7 +508,7 @@ const DirectionsRenderer = ({
 }: {
   origin: string;
   destination: string;
-  travelMode: google.maps.TravelMode | null;
+  travelMode: "WALKING" | "DRIVING" | "TRANSIT" | "BICYCLING";
 }) => {
   const map = useMap();
   const routesLibrary = useMapsLibrary("routes");
