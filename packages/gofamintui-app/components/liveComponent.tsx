@@ -470,7 +470,7 @@ const LiveStreamComponent = ({
 
                   {/* Chat Section */}
                   {isChatOpen && (
-                    <div className="border-t p-6">
+                    <div className="border-t p-6 max-w-full">
                       <h3 className="font-bold text-lg mb-4">Live Chat</h3>
                       <div className="bg-gray-50 rounded-lg p-4 h-64 overflow-y-auto">
                         {/* Chat messages would go here */}

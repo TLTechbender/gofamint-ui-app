@@ -135,7 +135,7 @@ const ContactInformationComponent = ({
       {/* Navigation Tabs */}
       <div className="bg-white shadow-sm sticky top-0 z-40">
         <div className="max-w-4xl mx-auto px-6">
-          <div className="flex justify-center md:justify-start space-x-4 md:space-x-8 overflow-x-auto hide-scrollbar">
+          <div className="flex justify-center md:justify-start md:space-x-8 overflow-x-auto hide-scrollbar">
             {tabConfig.map(({ key, label, icon: Icon }) => (
               <button
                 key={key}

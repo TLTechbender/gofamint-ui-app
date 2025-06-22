@@ -368,12 +368,15 @@ const JourneyPlanner: React.FC = () => {
                       fullscreenControl={false}
                       mapId={process.env.NEXT_PUBLIC_MAP_ID}
                     >
+                    </Map>
+                    </div>
+
+                    <div>
                       <DirectionsRenderer
                         origin={origin}
                         destination={destination}
                         travelMode={selectedTransport.travelMode}
                       />
-                    </Map>
                   </div>
 
                   <div className="bg-blue-50 rounded-lg p-4 border border-blue-100 mb-6">
@@ -568,7 +571,7 @@ const DirectionsRenderer = ({
   if (!leg) return null;
 
   return (
-    <div className="absolute bottom-4 left-4 bg-white p-4 rounded-lg shadow-lg z-10 max-w-md mx-auto">
+    <div className="w-full bg-gray-50 p-4 my-4 rounded-lg shadow-sm z-10 mx-auto">
       <div className="space-y-2">
         <h3 className="font-bold text-lg">{selected.summary}</h3>
         <div className="flex items-center gap-2 text-sm text-gray-600">
