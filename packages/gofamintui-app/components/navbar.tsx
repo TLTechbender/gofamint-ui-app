@@ -137,7 +137,7 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
               <div className="flex items-center space-x-8">
                 {navigationItems.map((item) => (
                   <div key={item.name} className="relative group">
-                    <div className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-gray-600">
+                    <div className="flex items-center space-x-1 px-3 py-4 text-sm font-medium text-gray-600">
                       <item.icon className="w-4 h-4" />
                       <span>{item.name}</span>
                       {item.dropdown && <ChevronDown className="w-3 h-3" />}
@@ -183,7 +183,7 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
                     {item.dropdown ? (
                       <div>
                         <button
-                          className={`flex items-center space-x-1 px-3 py-2 text-sm font-medium transition-colors duration-200 relative ${
+                          className={`flex items-center space-x-1 px-3 py-6 text-sm font-medium transition-colors duration-200 relative ${
                             isActive
                               ? "text-blue-600"
                               : "text-gray-600 hover:text-gray-900"
@@ -194,7 +194,7 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
                           <span>{item.name}</span>
                           <ChevronDown className="w-3 h-3" />
                           {isActive && (
-                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full" />
+                            <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-blue-600 rounded-t-full" />
                           )}
                         </button>
 
@@ -230,16 +230,20 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
                     ) : (
                       <Link
                         href={item.href!}
-                        className={`flex items-center space-x-1 px-3 py-2 text-sm font-medium transition-colors duration-200 relative ${
+                        className={`flex items-center space-x-1 px-3 py-6 text-sm font-medium transition-colors duration-200 relative ${
                           isActive
                             ? "text-blue-600"
                             : "text-gray-600 hover:text-gray-900"
                         }`}
                       >
                         <item.icon className="w-4 h-4" />
-                        <span>{item.name}</span>
+                        <span
+                          className={`${isActive ? "font-bold" : "font-medium"}`}
+                        >
+                          {item.name}
+                        </span>
                         {isActive && (
-                          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full" />
+                          <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-blue-600 rounded-t-full" />
                         )}
                       </Link>
                     )}

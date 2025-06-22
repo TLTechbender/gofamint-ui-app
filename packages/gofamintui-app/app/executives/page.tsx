@@ -4,6 +4,8 @@ import { excecutivesPageQuery } from "@/sanity/queries/excecutivesPage";
 import { urlFor } from "@/sanity/sanityClient";
 import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
 import Image from "next/image";
+import { motion } from "framer-motion";
+import { fadeIn, staggerContainer } from "@/lib/motion";
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
@@ -196,18 +198,18 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 export const dynamic = "force-dynamic";
-export default async function Excecutives() {
+export default async function Executives() {
   const excosPageData =
     await sanityFetchWrapper<ExcecutivesPageData>(excecutivesPageQuery);
 
   // Handle empty or null data
   if (!excosPageData || Object.keys(excosPageData).length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center px-4">
-          <div className="w-24 h-24 mx-auto mb-6 bg-gray-200 rounded-full flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 animate-fade-in">
+        <div className="text-center px-4 max-w-md animate-slide-up">
+          <div className="w-24 h-24 mx-auto mb-6 bg-white rounded-full flex items-center justify-center shadow-lg">
             <svg
-              className="w-12 h-12 text-gray-400"
+              className="w-12 h-12 text-blue-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -221,11 +223,11 @@ export default async function Excecutives() {
             </svg>
           </div>
           <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            No Executive Data Available
+            Executive Team Coming Soon
           </h2>
-          <p className="text-gray-600 max-w-md mx-auto">
-            We're currently updating our executives information. Please check
-            back later or contact us for more details.
+          <p className="text-gray-600">
+            We're currently finalizing our executive team information. Please
+            check back soon or contact us for details.
           </p>
         </div>
       </div>
@@ -233,11 +235,11 @@ export default async function Excecutives() {
   }
 
   return (
-    <div>
-      {/* Hero Section - Keep as is */}
-      <section id="hero">
+    <div className="overflow-hidden">
+      {/* Hero Section */}
+      <section id="hero" className="relative">
         <div
-          className="relative min-h-[90vh] bg-fixed bg-center bg-cover flex items-center justify-center md:justify-start"
+          className="relative min-h-[90vh] bg-fixed bg-center bg-cover flex items-center justify-center"
           style={{
             backgroundImage: `url(${urlFor(
               excosPageData.heroSection?.image as any
@@ -250,28 +252,28 @@ export default async function Excecutives() {
           }}
         >
           <div className="absolute inset-0 bg-black/60 z-0"></div>
-          <div className="relative z-10 w-full px-4 md:ml-6 lg:ml-16 flex flex-col gap-3 h-full text-center justify-center items-center">
-            <h1 className="text-white text-3xl md:text-4xl lg:text-6xl font-bold mb-4">
+          <div className="relative z-10 w-full px-4 text-center animate-slide-up">
+            <h1 className="text-white text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
               {excosPageData.heroSection?.title}
             </h1>
-            <h3 className="text-white text-xl lg:text-2xl">
+            <h3 className="text-white text-xl lg:text-2xl max-w-2xl mx-auto">
               {excosPageData.heroSection?.subtitle}
             </h3>
           </div>
         </div>
       </section>
 
-      {/* Info Section - Light Gray Background */}
-      <section id="info" className="bg-gray-50">
-        <div className="container mx-auto px-4 py-16 lg:py-24">
-          <div className="flex flex-col gap-8 lg:gap-12 lg:flex-row lg:items-center max-w-6xl mx-auto">
-            <div className="lg:basis-1/2">
-              <h2 className="text-gray-900 font-bold text-3xl md:text-4xl lg:text-5xl xl:text-6xl leading-tight text-center lg:text-left mb-6">
+      {/* Info Section */}
+      <section id="info" className="bg-gray-50 py-20">
+        <div className="container mx-auto px-4 animate-fade-in">
+          <div className="flex flex-col lg:flex-row lg:items-center max-w-6xl mx-auto gap-12">
+            <div className="lg:basis-1/2 animate-slide-right">
+              <h2 className="text-gray-900 font-bold text-4xl lg:text-5xl leading-tight mb-6">
                 {excosPageData.infoSection?.title}
               </h2>
             </div>
-            <div className="lg:basis-1/2">
-              <p className="text-lg text-gray-700 leading-relaxed text-center lg:text-left">
+            <div className="lg:basis-1/2 animate-slide-left">
+              <p className="text-lg text-gray-700 leading-relaxed">
                 {excosPageData.infoSection?.subTitle}
               </p>
             </div>
@@ -279,18 +281,18 @@ export default async function Excecutives() {
         </div>
       </section>
 
-      {/* Overall Head Section - White Background with Subtle Shadow */}
-      <section id="boss" className="bg-white">
-        <div className="container mx-auto px-4 py-16 lg:py-24">
+      {/* Overall Head Section */}
+      <section id="boss" className="bg-white py-20">
+        <div className="container mx-auto px-4 animate-fade-in">
           <div className="max-w-6xl mx-auto">
             <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
               {/* Image Container */}
-              <div className="lg:basis-2/5">
-                <div className="relative overflow-hidden rounded-2xl shadow-2xl bg-gradient-to-br from-gray-100 to-gray-200">
+              <div className="lg:basis-2/5 animate-slide-right">
+                <div className="relative overflow-hidden rounded-2xl shadow-2xl hover:shadow-3xl transition-shadow duration-300">
                   <Image
                     width={500}
                     height={600}
-                    className="w-full h-auto object-cover"
+                    className="w-full h-auto object-cover hover:scale-105 transition-transform duration-500"
                     alt="Overall Head"
                     src={urlFor(excosPageData.overallHead.posterImage as any)
                       ?.width(500)
@@ -303,25 +305,25 @@ export default async function Excecutives() {
               </div>
 
               {/* Content Container */}
-              <div className="lg:basis-3/5 text-center lg:text-left">
+              <div className="lg:basis-3/5 animate-slide-left">
                 <div className="space-y-6">
                   <div>
-                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+                    <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
                       Leadership Excellence
                     </h2>
-                    <h3 className="text-xl md:text-2xl text-gray-600 font-medium">
+                    <h3 className="text-2xl text-blue-600 font-medium">
                       Guiding Our Organization Forward
                     </h3>
                   </div>
 
-                  <p className="text-lg text-gray-700 leading-relaxed max-w-2xl">
+                  <p className="text-lg text-gray-700 leading-relaxed">
                     Our leadership team brings decades of combined experience
                     and unwavering commitment to excellence, driving innovation
                     and success across all organizational levels.
                   </p>
 
                   <div className="pt-4">
-                    <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl">
+                    <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
                       Learn More
                     </button>
                   </div>
@@ -332,16 +334,16 @@ export default async function Excecutives() {
         </div>
       </section>
 
-      {/* Executives Grid Section - Light Blue Background */}
+      {/* Executives Grid Section */}
       <section
         id="executives"
-        className="bg-gradient-to-br from-blue-50 to-indigo-50"
+        className="bg-gradient-to-br from-blue-50 to-indigo-50 py-20"
       >
-        <div className="container mx-auto px-4 py-16 lg:py-24">
+        <div className="container mx-auto px-4 animate-fade-in">
           <div className="max-w-6xl mx-auto">
             {/* Section Header */}
-            <div className="text-center mb-16">
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+            <div className="text-center mb-16 animate-slide-up">
+              <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
                 {excosPageData.excosSection?.title || "Our Executive Team"}
               </h1>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
@@ -357,14 +359,15 @@ export default async function Excecutives() {
                 {excosPageData.excosSection.excos.map((exco, index) => (
                   <div
                     key={index}
-                    className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden max-w-sm w-full transform hover:-translate-y-2"
+                    className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden max-w-sm w-full transform hover:-translate-y-2 animate-fade-in"
+                    style={{ animationDelay: `${index * 0.1}s` }}
                   >
-                    {/* Image Container - Passport Style */}
-                    <div className="relative overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
+                    {/* Image Container */}
+                    <div className="relative overflow-hidden h-80">
                       <Image
                         width={300}
                         height={400}
-                        className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         alt={`${exco.name} - ${exco.operatingCapacity}`}
                         src={urlFor(exco.picture as any)
                           ?.width(300)
@@ -373,12 +376,12 @@ export default async function Excecutives() {
                           .quality(95)
                           .url()}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </div>
 
                     {/* Content */}
                     <div className="p-6 text-center">
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">
+                      <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors duration-300">
                         {exco.name}
                       </h3>
                       <p className="text-blue-600 font-medium text-sm uppercase tracking-wide">
@@ -389,10 +392,10 @@ export default async function Excecutives() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-16">
-                <div className="w-16 h-16 mx-auto mb-6 bg-gray-300 rounded-full flex items-center justify-center">
+              <div className="text-center py-16 animate-slide-up">
+                <div className="w-16 h-16 mx-auto mb-6 bg-white rounded-full flex items-center justify-center shadow-md">
                   <svg
-                    className="w-8 h-8 text-gray-500"
+                    className="w-8 h-8 text-blue-500"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"

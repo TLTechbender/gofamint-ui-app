@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import BlogsPageClient from "@/components/blogsPageClient";
 import { Suspense } from "react";
+import { Search } from "lucide-react";
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
@@ -131,9 +132,91 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const dynamic = "force-dynamic";
+const BlogPostSkeleton = () => {
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden h-full flex flex-col animate-pulse">
+      {/* Image Skeleton */}
+      <div className="relative aspect-[16/9] bg-gray-200"></div>
+
+      {/* Content Skeleton */}
+      <div className="p-6 flex-1 flex flex-col">
+        {/* Meta Information Skeleton */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-3">
+            <div className="h-4 bg-gray-200 rounded w-24"></div>
+            <div className="h-4 bg-gray-200 rounded w-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-16"></div>
+          </div>
+          <div className="flex items-center space-x-3">
+            <div className="h-4 bg-gray-200 rounded w-8"></div>
+            <div className="h-4 bg-gray-200 rounded w-8"></div>
+          </div>
+        </div>
+
+        {/* Title Skeleton */}
+        <div className="space-y-3 mb-4">
+          <div className="h-6 bg-gray-200 rounded w-full"></div>
+          <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+        </div>
+
+        {/* Excerpt Skeleton */}
+        <div className="space-y-2 mb-6 flex-1">
+          <div className="h-4 bg-gray-200 rounded w-full"></div>
+          <div className="h-4 bg-gray-200 rounded w-full"></div>
+          <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+        </div>
+
+        {/* Author Skeleton */}
+        <div className="flex items-center justify-between pt-5 border-t border-gray-100 mt-auto">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+            <div className="h-4 bg-gray-200 rounded w-24"></div>
+          </div>
+          <div className="h-5 bg-gray-200 rounded w-5"></div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Fallback component for the Suspense boundary during initial load
+const BlogsPageLoadingFallback = () => {
+  return (
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="container mx-auto px-4 max-w-7xl">
+        {/* Search Input Skeleton */}
+        <div className="mb-10 max-w-xl mx-auto">
+          <div className="relative h-12 bg-gray-200 rounded-lg animate-pulse shadow-sm">
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 text-gray-400">
+              <Search className="w-5 h-5" />
+            </div>
+          </div>
+        </div>
+
+        {/* Skeleton grid for blog posts */}
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mx-auto w-full">
+            {[...Array(6)].map((_, index) => (
+              <BlogPostSkeleton key={index} />
+            ))}
+          </div>
+        </div>
+
+        {/* Loading text for infinite scroll */}
+        <div className="flex justify-center items-center py-12">
+          <div className="flex items-center space-x-3 text-gray-600 font-medium">
+            <div className="animate-spin rounded-full h-7 w-7 border-b-3 border-blue-500"></div>
+            <span>Loading initial posts...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default async function BlogsPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<BlogsPageLoadingFallback />}>
       <div>
         <BlogsPageClient />
       </div>
