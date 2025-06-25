@@ -1,11 +1,12 @@
 "use client";
 import { Sermon } from "@/sanity/interfaces/sermonsPage";
 import Image from "next/image";
-import { Calendar, Clock, Download } from "lucide-react";
+import { Calendar, Clock, Download, Play } from "lucide-react";
 import { SiTelegram } from "react-icons/si";
 import { urlFor } from "@/sanity/sanityClient";
 import { memo } from "react";
 import { usePathname } from "next/navigation";
+import { motion } from "framer-motion";
 
 const formatDuration = (duration: string | number): string => {
   if (typeof duration === "string") {
@@ -66,56 +67,93 @@ const formatMinutesAndSeconds = (
 const SermonComponent = memo(({ sermon }: { sermon: Sermon }) => {
   const pathname = usePathname();
   const isSermonPage = pathname.includes("/sermons");
+  const isDarkMode = !isSermonPage;
 
   return (
-    <div className="group cursor-pointer">
-      <div className="relative w-full aspect-[4/5] overflow-hidden rounded-2xl shadow-lg transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-black/30 group-hover:scale-[1.02]">
+    <motion.div
+      className="group cursor-pointer"
+      whileHover={{ y: -5 }}
+      transition={{ duration: 0.2 }}
+    >
+      <div className="relative w-full aspect-[4/5] overflow-hidden rounded-xl shadow-lg transition-all duration-300 group-hover:shadow-xl">
+        {/* Poster Image */}
         <Image
           src={urlFor(sermon.posterImage as any)
-            .width(345)
-            .height(443)
+            .width(400)
+            .height(500)
             .format("webp")
-            .quality(85)
+            .quality(90)
             .url()}
-          width={345}
-          height={443}
-          alt="poster image"
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          width={400}
+          height={500}
+          alt={sermon.title || "Sermon poster"}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          priority
         />
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300" />
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
 
-        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center backdrop-blur-sm">
-          <div className="flex flex-col gap-4 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+        {/* Hover Actions */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/30 backdrop-blur-sm">
+          <div className="flex gap-4 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+            {/* Play Button (if video available) */}
+            {/* {sermon?.videoLink && (
+              <a
+                href={sermon?.videoLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-blue-600 text-white p-4 rounded-full hover:bg-blue-700 transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
+                aria-label="Watch sermon video"
+              >
+                <Play className="w-6 h-6 fill-current" />
+              </a>
+            )} */}
+
+            {/* Download Button */}
             <a
               href={sermon.googleDriveLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-white text-black p-4 rounded-full hover:bg-gray-100 transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-110 active:scale-95"
-              aria-label="Download from Google Drive"
+              className="bg-white text-gray-900 p-4 rounded-full hover:bg-gray-100 transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
+              aria-label="Download sermon"
             >
               <Download className="w-6 h-6" />
             </a>
+
+            {/* Telegram Button */}
             <a
               href={sermon.telegramLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="border-2 border-white text-white p-4 rounded-full hover:bg-white hover:text-black transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-110 active:scale-95"
-              aria-label="Open Telegram link"
+              className="bg-[#0088cc] text-white p-4 rounded-full hover:bg-[#0077b5] transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
+              aria-label="Share on Telegram"
             >
               <SiTelegram className="w-6 h-6" />
             </a>
           </div>
         </div>
 
-        <div className="md:hidden absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 to-transparent">
+        {/* Mobile Actions */}
+        <div className="md:hidden absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 to-transparent">
           <div className="flex gap-3 justify-center">
+            {/* {sermon.videoLink && (
+              <a
+                href={sermon.videoLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-blue-600 text-white p-3 rounded-full transition-all duration-200 active:scale-95"
+                aria-label="Watch sermon video"
+              >
+                <Play className="w-5 h-5 fill-current" />
+              </a>
+            )} */}
             <a
               href={sermon.googleDriveLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-white text-black p-3 rounded-full transition-all duration-300 active:scale-95"
-              aria-label="Download from Google Drive"
+              className="bg-white text-gray-900 p-3 rounded-full transition-all duration-200 active:scale-95"
+              aria-label="Download sermon"
             >
               <Download className="w-5 h-5" />
             </a>
@@ -123,8 +161,8 @@ const SermonComponent = memo(({ sermon }: { sermon: Sermon }) => {
               href={sermon.telegramLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="border-2 border-white text-white p-3 rounded-full transition-all duration-300 active:scale-95"
-              aria-label="Open Telegram link"
+              className="bg-[#0088cc] text-white p-3 rounded-full transition-all duration-200 active:scale-95"
+              aria-label="Share on Telegram"
             >
               <SiTelegram className="w-5 h-5" />
             </a>
@@ -132,28 +170,48 @@ const SermonComponent = memo(({ sermon }: { sermon: Sermon }) => {
         </div>
       </div>
 
-      <div className="mt-6 space-y-4">
+      {/* Sermon Info */}
+      <div className="mt-4 space-y-2">
         <h3
-          className={`${isSermonPage ? "text-black group-hover:text-gray-800" : "text-white group-hover:text-gray-200"} text-lg font-semibold leading-tight line-clamp-2 transition-colors duration-300`}
+          className={`${
+            isDarkMode ? "text-white" : "text-gray-900"
+          } text-lg font-semibold leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors duration-200`}
         >
           {sermon.title}
         </h3>
 
         <div
-          className={`flex items-center gap-4 ${isSermonPage ? "text-gray-700" : "text-gray-400"} text-sm`}
+          className={`flex items-center gap-4 ${
+            isDarkMode ? "text-gray-300" : "text-gray-600"
+          } text-sm`}
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <Calendar className="w-4 h-4" />
-            <span>{sermon.date.substring(0, 10)}</span>
+            <span>
+              {new Date(sermon.date).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })}
+            </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <Clock className="w-4 h-4" />
             <span>{formatDuration(sermon.duration)}</span>
           </div>
         </div>
+
+        {/* {sermon.preacher && (
+          <p
+            className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-500"} mt-1`}
+          >
+            By {sermon.preacher}
+          </p>
+        )} */}
       </div>
-    </div>
+    </motion.div>
   );
 });
 
+SermonComponent.displayName = "SermonComponent";
 export default SermonComponent;

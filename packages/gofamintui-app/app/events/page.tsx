@@ -1,9 +1,6 @@
 import { Metadata } from "next";
-import FellowshipCalendar from "@/components/calendarComponent";
-
-
-
-export const dynamic = "force-dynamic";
+import React, { Suspense } from "react";
+import dynamic from "next/dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
@@ -129,11 +126,40 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
+const DynamicFellowshipCalendar = dynamic(
+  () => import("@/components/calendarComponent"), // Adjust path as per your project structure
+  {
+    // ssr: false, // This is the key: disable server-side rendering for this component
+    loading: () => (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-8 rounded-2xl shadow-2xl">
+        <div className="text-center">
+          {/* A simple loading indicator for the calendar */}
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-lg text-gray-700">Loading Calendar...</p>
+        </div>
+      </div>
+    ),
+  }
+);
 
 export default async function Events() {
   return (
-    <div>
-      <FellowshipCalendar />
-    </div>
+    // Wrap the dynamic component in Suspense for better loading fallback
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-8 rounded-2xl shadow-2xl">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-lg text-gray-700">
+              Preparing Events Calendar...
+            </p>
+          </div>
+        </div>
+      }
+    >
+      <div>
+        <DynamicFellowshipCalendar />
+      </div>
+    </Suspense>
   );
 }

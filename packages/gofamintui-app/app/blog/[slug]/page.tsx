@@ -2,7 +2,7 @@ import { getBlogPost, incrementViews } from "@/actions/blogPage";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PortableText, PortableTextComponents } from "@portabletext/react";
-import { Calendar, Clock, Eye, Tag } from "lucide-react";
+import { ArrowUp, Calendar, Clock, Eye, Tag } from "lucide-react";
 
 // React Icons imports
 import {
@@ -214,10 +214,7 @@ export default async function BlogPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-
   const post = await getBlogPost(slug);
-
-  
 
   if (!post) {
     notFound();
@@ -225,6 +222,14 @@ export default async function BlogPage({
 
   // Increment views on render
   incrementViews(post._id);
+
+  // Scroll to top function
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
 
   const portableTextComponents: PortableTextComponents = {
     block: {
@@ -429,205 +434,206 @@ export default async function BlogPage({
   };
 
   return (
-    <div>
-      <div className="min-h-screen bg-white">
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          {/* Header Section */}
-          <header className="mb-12">
-            {/* Meta Information */}
-            <div className="flex items-center gap-4 text-sm text-gray-600 mb-6">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                <span>{formatDate(post?.publishedAt || "")}</span>
-              </div>
-              {post.readingTime && (
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  <span>{post.readingTime} min read</span>
-                </div>
-              )}
-              <div className="flex items-center gap-2">
-                <Eye className="w-4 h-4" />
-                <span>{(post?.views || 0).toLocaleString()} views</span>
-              </div>
+    <div className="min-h-screen bg-white">
+      {/* Back to Top Button */}
+      <button
+        // onClick={() => scrollToTop()}
+        className="fixed bottom-8 right-8 z-50 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-all duration-300 opacity-0 group-hover:opacity-100"
+        aria-label="Back to top"
+      >
+        <ArrowUp className="w-5 h-5" />
+      </button>
+
+      <div className="max-w-4xl mx-auto px-4 py-8 animate-fade-in">
+        {/* Header Section */}
+        <header className="mb-12 animate-slide-up">
+          {/* Meta Information */}
+          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-6">
+            <div className="flex items-center gap-2 transition-all duration-300 hover:text-blue-600">
+              <Calendar className="w-4 h-4" />
+              <span>{formatDate(post?.publishedAt || "")}</span>
             </div>
-
-            {/* Title */}
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-6">
-              {post.title}
-            </h1>
-
-            {/* Excerpt */}
-            {post.excerpt && (
-              <p className="text-xl text-gray-700 leading-relaxed mb-8 border-l-4 border-blue-500 pl-6">
-                {post.excerpt}
-              </p>
-            )}
-
-            {/* Enhanced Author Info Section */}
-
-            {/* Featured Image - Updated to use new structure */}
-            {post.featuredImage && (
-              <div className="mb-12">
-                <Image
-                  src={post.featuredImage.asset.url}
-                  alt={post.featuredImage.alt || post.title}
-                  className="w-full h-64 md:h-96 object-cover rounded-2xl shadow-xl"
-                  width={
-                    post.featuredImage.asset.metadata?.dimensions?.width || 800
-                  }
-                  height={
-                    post.featuredImage.asset.metadata?.dimensions?.height || 400
-                  }
-                  priority
-                />
-                {post.featuredImage.alt && (
-                  <p className="text-sm text-gray-600 mt-3 text-center italic">
-                    {post.featuredImage.alt}
-                  </p>
-                )}
+            {post.readingTime && (
+              <div className="flex items-center gap-2 transition-all duration-300 hover:text-blue-600">
+                <Clock className="w-4 h-4" />
+                <span>{post.readingTime} min read</span>
               </div>
             )}
+            <div className="flex items-center gap-2 transition-all duration-300 hover:text-blue-600">
+              <Eye className="w-4 h-4" />
+              <span>{(post?.views || 0).toLocaleString()} views</span>
+            </div>
+          </div>
 
-            {/* Tags */}
-            {post.tags && post.tags.length > 0 && (
-              <div className="flex items-center gap-2 mb-8">
-                <Tag className="w-4 h-4 text-gray-500" />
-                <div className="flex flex-wrap gap-2">
-                  {post.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full font-medium"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </header>
+          {/* Title */}
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-6 transition-all duration-300 hover:text-blue-700">
+            {post.title}
+          </h1>
 
-          {/* Divider */}
-          <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent mb-12"></div>
+          {/* Excerpt */}
+          {post.excerpt && (
+            <p className="text-xl text-gray-700 leading-relaxed mb-8 border-l-4 border-blue-500 pl-6 transition-all duration-500 hover:border-blue-700 hover:pl-8">
+              {post.excerpt}
+            </p>
+          )}
 
-          {/* Main Content with Portable Text */}
-          <article className="mb-16 prose prose-lg max-w-none">
-            <PortableText
-              value={post.content}
-              components={portableTextComponents}
-            />
-          </article>
+          {/* Featured Image */}
+          {post.featuredImage && (
+            <div className="mb-12 overflow-hidden rounded-2xl shadow-xl transition-all duration-500 hover:shadow-2xl">
+              <Image
+                src={post.featuredImage.asset.url}
+                alt={post.featuredImage.alt || post.title}
+                className="w-full h-64 md:h-96 object-cover transition-transform duration-500 hover:scale-105"
+                width={
+                  post.featuredImage.asset.metadata?.dimensions?.width || 800
+                }
+                height={
+                  post.featuredImage.asset.metadata?.dimensions?.height || 400
+                }
+                priority
+              />
+              {post.featuredImage.alt && (
+                <p className="text-sm text-gray-600 mt-3 text-center italic">
+                  {post.featuredImage.alt}
+                </p>
+              )}
+            </div>
+          )}
 
-          {/* SEO Keywords (if you want to display them) */}
-          {post.seo?.keywords && post.seo.keywords.length > 0 && (
-            <div className="mb-8 p-4 bg-gray-50 rounded-lg">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">
-                Topics:
-              </h3>
+          {/* Tags */}
+          {post.tags && post.tags.length > 0 && (
+            <div className="flex items-center gap-2 mb-8">
+              <Tag className="w-4 h-4 text-gray-500 transition-all duration-300 hover:text-blue-600" />
               <div className="flex flex-wrap gap-2">
-                {post.seo.keywords.map((keyword) => (
+                {post.tags.map((tag, _) => (
                   <span
-                    key={keyword}
-                    className="px-2 py-1 bg-gray-200 text-gray-700 text-xs rounded"
+                    key={_}
+                    className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full font-medium transition-all duration-300 hover:bg-blue-200 hover:text-blue-900"
                   >
-                    {keyword}
+                    {tag}
                   </span>
                 ))}
               </div>
             </div>
           )}
+        </header>
 
-          {/* Action Bar */}
-          <div className="flex items-center justify-between py-6 border-t border-b border-gray-200 mb-12">
-            <ShareButton
-              url={`${process.env.NEXT_PUBLIC_SITE_URL}/blog/${slug}`}
-              title={post.title}
-            />
+        {/* Divider with animation */}
+        <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent mb-12 transition-all duration-500 hover:via-blue-400"></div>
+
+        {/* Main Content */}
+        <article className="mb-16 prose prose-lg max-w-none">
+          <PortableText
+            value={post.content}
+            components={portableTextComponents}
+          />
+        </article>
+
+        {/* SEO Keywords */}
+        {post.seo?.keywords && post.seo.keywords.length > 0 && (
+          <div className="mb-8 p-4 bg-gray-50 rounded-lg transition-all duration-300 hover:bg-gray-100">
+            <h3 className="text-sm font-semibold text-gray-700 mb-2">
+              Topics:
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {post.seo.keywords.map((keyword) => (
+                <span
+                  key={keyword}
+                  className="px-2 py-1 bg-gray-200 text-gray-700 text-xs rounded transition-all duration-300 hover:bg-gray-300"
+                >
+                  {keyword}
+                </span>
+              ))}
+            </div>
           </div>
+        )}
 
-          <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl p-6 mb-8 border border-gray-100">
-            <div className="flex items-start gap-6">
-              {/* Author Profile Image */}
-              <div className="flex-shrink-0">
-                {post.author.profileImage?.asset?.url ? (
+        {/* Action Bar */}
+        <div className="flex items-center justify-between py-6 border-t border-b border-gray-200 mb-12 transition-all duration-300 hover:border-blue-300">
+          <ShareButton
+            url={`${process.env.NEXT_PUBLIC_SITE_URL}/blog/${slug}`}
+            title={post.title}
+          />
+        </div>
+
+        {/* Author Section */}
+        <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl p-6 mb-8 border border-gray-100 transition-all duration-500 hover:shadow-lg hover:border-blue-200">
+          <div className="flex flex-col md:flex-row items-start gap-6">
+            {/* Author Profile Image */}
+            <div className="flex-shrink-0">
+              {post.author.profileImage?.asset?.url ? (
+                <div className="overflow-hidden rounded-full border-4 border-white shadow-lg transition-all duration-500 hover:shadow-xl hover:border-blue-200">
                   <Image
                     src={post.author.profileImage.asset.url}
                     alt={
                       post.author.profileImage.alt ||
                       `${post.author.firstName} ${post.author.lastName}`
                     }
-                    className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg"
+                    className="w-20 h-20 object-cover transition-transform duration-500 hover:scale-110"
                     width={80}
                     height={80}
                   />
-                ) : (
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center border-4 border-white shadow-lg">
-                    <FaUser className="w-8 h-8 text-white" />
-                  </div>
+                </div>
+              ) : (
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center border-4 border-white shadow-lg transition-all duration-500 hover:shadow-xl hover:from-blue-500 hover:to-blue-700">
+                  <FaUser className="w-8 h-8 text-white" />
+                </div>
+              )}
+            </div>
+
+            {/* Author Details */}
+            <div className="flex-1">
+              <h4 className="text-gray-700 text-xl mb-2">Written by</h4>
+              <div className="mb-3">
+                <h3 className="text-xl font-bold text-gray-900 mb-1 transition-all duration-300 hover:text-blue-700">
+                  {post.author.firstName} {post.author.lastName}
+                </h3>
+                {post.author.jobTitle && (
+                  <p className="text-blue-600 font-semibold text-sm transition-all duration-300 hover:text-blue-800">
+                    {post.author.jobTitle}
+                  </p>
                 )}
               </div>
 
-              {/* Author Details */}
-              <div>
-                <h4 className="text-gray-700 text-xl">Written by</h4>
-                <div className="flex-1 min-w-0">
-                  {/* Author Name and Title */}
-                  <div className="mb-3">
-                    <h3 className="text-xl font-bold text-gray-900 mb-1">
-                      {post.author.firstName} {post.author.lastName}
-                    </h3>
-                    {post.author.jobTitle && (
-                      <p className="text-blue-600 font-semibold text-sm">
-                        {post.author.jobTitle}
-                      </p>
-                    )}
-                  </div>
+              {post.author.bio && (
+                <p className="text-gray-700 text-sm leading-relaxed mb-4 line-clamp-3">
+                  {post.author.bio}
+                </p>
+              )}
 
-                  {/* Author Bio */}
-                  {post.author.bio && (
-                    <p className="text-gray-700 text-sm leading-relaxed mb-4 line-clamp-3">
-                      {post.author.bio}
+              {post.author.socialLinks &&
+                Object.entries(post.author.socialLinks).some(
+                  ([_, url]) => url
+                ) && (
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                      Connect with {post.author.firstName}
                     </p>
-                  )}
+                    <div className="flex gap-2 flex-wrap">
+                      {Object.entries(post.author.socialLinks).map(
+                        ([platform, url]) => {
+                          if (!url) return null;
 
-                  {/* Social Links */}
-                  {post.author.socialLinks &&
-                    Object.entries(post.author.socialLinks).some(
-                      ([_, url]) => url
-                    ) && (
-                      <div>
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                          Connect with {post.author.firstName}
-                        </p>
-                        <div className="flex gap-2 flex-wrap">
-                          {Object.entries(post.author.socialLinks).map(
-                            ([platform, url]) => {
-                              if (!url) return null;
-
-                              return (
-                                <a
-                                  key={platform}
-                                  href={formatSocialUrl(platform, url)}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className={`flex items-center gap-2 px-3 py-2 rounded-full border transition-all duration-200 text-sm font-medium ${getSocialColor(platform)}`}
-                                  title={`Follow on ${platform.charAt(0).toUpperCase() + platform.slice(1)}`}
-                                >
-                                  {getSocialIcon(platform)}
-                                  <span className="capitalize hidden sm:inline">
-                                    {platform === "website"
-                                      ? "Website"
-                                      : platform}
-                                  </span>
-                                </a>
-                              );
-                            }
-                          )}
-                        </div>
-                      </div>
-                    )}
-                </div>
-              </div>
+                          return (
+                            <a
+                              key={platform}
+                              href={formatSocialUrl(platform, url)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`flex items-center gap-2 px-3 py-2 rounded-full border transition-all duration-200 text-sm font-medium ${getSocialColor(platform)} hover:scale-105`}
+                              title={`Follow on ${platform.charAt(0).toUpperCase() + platform.slice(1)}`}
+                            >
+                              {getSocialIcon(platform)}
+                              <span className="capitalize hidden sm:inline">
+                                {platform === "website" ? "Website" : platform}
+                              </span>
+                            </a>
+                          );
+                        }
+                      )}
+                    </div>
+                  </div>
+                )}
             </div>
           </div>
         </div>

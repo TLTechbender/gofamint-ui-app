@@ -121,3 +121,159 @@ docker run -p 3333:3333 gofamint-cms
 ## 🚀 Deployment
 
 This is most likely gonna be on vercel, but I'm gonna do it in a way that I'm not locked into vercel in case we decide to use another provider in future
+
+```
+gofamint-ui-app
+├─ .turbo
+│  ├─ cache
+│  │  ├─ 0896b7dab5d9604e-meta.json
+│  │  ├─ 0896b7dab5d9604e.tar.zst
+│  │  ├─ 1e0bce54616ec91b-meta.json
+│  │  └─ 1e0bce54616ec91b.tar.zst
+│  ├─ cookies
+│  │  └─ 1.cookie
+│  └─ daemon
+├─ feature-guide.jpg
+├─ package-lock.json
+├─ package.json
+├─ packages
+│  ├─ gofamintui-app
+│  │  ├─ actions
+│  │  │  ├─ blogPage.ts
+│  │  │  └─ footer.ts
+│  │  ├─ app
+│  │  │  ├─ about
+│  │  │  │  └─ page.tsx
+│  │  │  ├─ blog
+│  │  │  │  ├─ page.tsx
+│  │  │  │  └─ [slug]
+│  │  │  │     └─ page.tsx
+│  │  │  ├─ contact
+│  │  │  │  └─ page.tsx
+│  │  │  ├─ events
+│  │  │  │  └─ page.tsx
+│  │  │  ├─ executives
+│  │  │  │  └─ page.tsx
+│  │  │  ├─ favicon.ico
+│  │  │  ├─ gallery
+│  │  │  │  └─ page.tsx
+│  │  │  ├─ giving
+│  │  │  │  └─ page.tsx
+│  │  │  ├─ globals.css
+│  │  │  ├─ layout.tsx
+│  │  │  ├─ live
+│  │  │  │  └─ page.tsx
+│  │  │  ├─ page.tsx
+│  │  │  └─ sermons
+│  │  │     └─ page.tsx
+│  │  ├─ components
+│  │  │  ├─ blogsPageClient.tsx
+│  │  │  ├─ calendarComponent.tsx
+│  │  │  ├─ contactInformationComponent.tsx
+│  │  │  ├─ footer.tsx
+│  │  │  ├─ galleryClient.tsx
+│  │  │  ├─ galleryListClient.tsx
+│  │  │  ├─ infiniteScrollContainer.tsx
+│  │  │  ├─ journeyPlanner.tsx
+│  │  │  ├─ liveComponent.tsx
+│  │  │  ├─ navbar.tsx
+│  │  │  ├─ onlineGivingComponent.tsx
+│  │  │  ├─ reactQueryProvider.tsx
+│  │  │  ├─ reactToastifyProvider.tsx
+│  │  │  ├─ sermonComponent.tsx
+│  │  │  ├─ sermonsPageClient.tsx
+│  │  │  └─ shareButtonComponent.tsx
+│  │  ├─ eslint.config.mjs
+│  │  ├─ hooks
+│  │  │  ├─ useBlogPages.tsx
+│  │  │  ├─ useCalendar.tsx
+│  │  │  ├─ useGalleryList.tsx
+│  │  │  ├─ useGalleryPage.tsx
+│  │  │  └─ useInfiniteSermons.tsx
+│  │  ├─ lib
+│  │  │  └─ dateFormatters.ts
+│  │  ├─ next-env.d.ts
+│  │  ├─ next.config.ts
+│  │  ├─ package.json
+│  │  ├─ postcss.config.mjs
+│  │  ├─ public
+│  │  │  ├─ file.svg
+│  │  │  ├─ globe.svg
+│  │  │  ├─ gsf-ui-logo.png
+│  │  │  ├─ hero-img.jpg
+│  │  │  ├─ message.png
+│  │  │  ├─ next.svg
+│  │  │  ├─ vercel.svg
+│  │  │  └─ window.svg
+│  │  ├─ README.md
+│  │  ├─ sanity
+│  │  │  ├─ api.ts
+│  │  │  ├─ interfaces
+│  │  │  │  ├─ aboutPage.ts
+│  │  │  │  ├─ blogComments.ts
+│  │  │  │  ├─ blogPost.ts
+│  │  │  │  ├─ blogPosts.ts
+│  │  │  │  ├─ contact.ts
+│  │  │  │  ├─ events.ts
+│  │  │  │  ├─ excecutivesPage.ts
+│  │  │  │  ├─ footerContent.ts
+│  │  │  │  ├─ galleryListPage.ts
+│  │  │  │  ├─ galleryPage.ts
+│  │  │  │  ├─ homePage.ts
+│  │  │  │  ├─ onlineGiving.ts
+│  │  │  │  ├─ sanityImage.ts
+│  │  │  │  ├─ sermonsPage.ts
+│  │  │  │  └─ streaming.ts
+│  │  │  ├─ queries
+│  │  │  │  ├─ aboutPage.ts
+│  │  │  │  ├─ aboutPageMetaData.ts
+│  │  │  │  ├─ blogPage.ts
+│  │  │  │  ├─ blogPageMetaData.ts
+│  │  │  │  ├─ blogsPage.ts
+│  │  │  │  ├─ contact.ts
+│  │  │  │  ├─ events.ts
+│  │  │  │  ├─ excecutivesPage.ts
+│  │  │  │  ├─ footerContent.ts
+│  │  │  │  ├─ galleryListPage.ts
+│  │  │  │  ├─ galleryPage.ts
+│  │  │  │  ├─ homePage.ts
+│  │  │  │  ├─ homePageMetaData.ts
+│  │  │  │  ├─ onlingGiving.ts
+│  │  │  │  ├─ sermonsPage.ts
+│  │  │  │  └─ streaming.ts
+│  │  │  ├─ sanityClient.ts
+│  │  │  └─ sanityCRUDHandlers.ts
+│  │  ├─ styles
+│  │  │  └─ gallery.css
+│  │  └─ tsconfig.json
+│  └─ gofamintui-cms
+│     ├─ .sanity
+│     │  └─ runtime
+│     │     ├─ app.js
+│     │     └─ index.html
+│     ├─ eslint.config.mjs
+│     ├─ package.json
+│     ├─ README.md
+│     ├─ sanity.cli.ts
+│     ├─ sanity.config.ts
+│     ├─ schemaTypes
+│     │  ├─ documents
+│     │  │  ├─ aboutPage.ts
+│     │  │  ├─ author.ts
+│     │  │  ├─ blogs.ts
+│     │  │  ├─ contact.ts
+│     │  │  ├─ events.ts
+│     │  │  ├─ excecutives.ts
+│     │  │  ├─ footerContent.ts
+│     │  │  ├─ gallery.ts
+│     │  │  ├─ homePage.ts
+│     │  │  ├─ onlineGiving.ts
+│     │  │  ├─ sermonsPage.ts
+│     │  │  └─ streaming.ts
+│     │  └─ index.ts
+│     ├─ static
+│     └─ tsconfig.json
+├─ README.md
+└─ turbo.json
+
+```
