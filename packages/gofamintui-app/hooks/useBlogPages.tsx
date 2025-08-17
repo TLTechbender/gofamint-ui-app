@@ -55,6 +55,8 @@ const createBlogPostsQueryFunction =
 
     const hasMore = end < totalCount;
 
+    console.log("kuronbe");
+    console.log(blogPostsResponse);
 
     return {
       blogPostsResponse,

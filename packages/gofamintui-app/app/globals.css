@@ -150,3 +150,13 @@ html {
 .back-to-top.visible {
   opacity: 1;
 }
+
+
+ @keyframes slideLeftWelcomeSection {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
+        }

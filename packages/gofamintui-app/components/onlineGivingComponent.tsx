@@ -67,13 +67,13 @@ const OnlineGivingComponent = ({
         if (onClick) onClick(e);
         copyToClipboard(text, fieldName);
       }}
-      className="ml-2 p-1.5 rounded-md bg-blue-50 hover:bg-blue-100 transition-colors group"
+      className="ml-3 p-2 hover:bg-gray-50 transition-colors group"
       aria-label={`Copy ${fieldName}`}
     >
       {copiedField === fieldName ? (
-        <Check size={16} className="text-green-600" />
+        <Check size={16} className="text-blue-400" />
       ) : (
-        <Copy size={16} className="text-blue-600 group-hover:text-blue-700" />
+        <Copy size={16} className="text-gray-400 group-hover:text-blue-400" />
       )}
     </button>
   );
@@ -84,12 +84,12 @@ const OnlineGivingComponent = ({
     value,
     copyKey,
   }) => (
-    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-100">
-      <div className="flex items-center space-x-3">
-        <Icon size={18} className="text-gray-500 flex-shrink-0" />
+    <div className="flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors">
+      <div className="flex items-center space-x-4">
+        <Icon size={18} className="text-gray-400 flex-shrink-0" />
         <div className="min-w-0">
-          <p className="text-sm font-medium text-gray-900 truncate">{label}</p>
-          <p className="text-sm text-gray-600 font-mono truncate">{value}</p>
+          <p className="text-sm font-medium text-black mb-1">{label}</p>
+          <p className="text-sm text-black font-mono">{value}</p>
         </div>
       </div>
       <CopyButton text={value} fieldName={copyKey} />
@@ -110,13 +110,13 @@ const OnlineGivingComponent = ({
     };
 
     return (
-      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 hover:border-blue-300 transition-all max-w-md w-full mx-auto">
-        <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-          <Banknote className="w-5 h-5 text-blue-600 mr-2" />
-          {bank.bankName}
-        </h4>
+      <div className="bg-white border border-gray-200 p-8 hover:border-blue-400 transition-all max-w-lg w-full mx-auto">
+        <div className="flex items-center space-x-3 mb-8">
+          <div className="w-8 h-px bg-blue-400"></div>
+          <h4 className="text-xl font-light text-black">{bank.bankName}</h4>
+        </div>
 
-        <div className="space-y-3">
+        <div className="space-y-0">
           {isNigerianBank(bank) ? (
             <>
               <BankDetailCard
@@ -186,46 +186,71 @@ const OnlineGivingComponent = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen ">
+      {/**Again a lot of stupid code */}
+      <div className="pt-20 mb-2 bg-black h-16 w-full" />
       {givingDetails.map((giving: OnlineGiving) => (
-        <div key={giving._id} className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
-          {/* Header Section */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-6">
-              <Heart className="w-8 h-8 text-white" />
+        <div
+          key={giving._id}
+          className="max-w-6xl mx-auto px-6 md:px-8 py-20 md:py-24"
+        >
+          {/* Header Section - Clean and Minimal */}
+          <div className="mb-20 md:mb-24">
+            <div className="flex items-center justify-center space-x-3 mb-8">
+              <div className="w-8 h-px bg-blue-400"></div>
+              <span className="text-sm font-medium text-blue-400 tracking-widest uppercase">
+                Give Generously
+              </span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-black mb-8 leading-tight text-center tracking-tight">
               {giving.title}
             </h1>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-lg md:text-xl text-black font-light leading-relaxed max-w-4xl mx-auto text-center">
               {giving.description}
             </p>
           </div>
 
-          {/* Inspiration Quote */}
-          <div className="bg-blue-600 rounded-xl p-6 sm:p-8 mb-12 text-white text-center">
-            <Gift className="w-10 h-10 mx-auto mb-4 opacity-90" />
-            <blockquote className="text-xl font-medium mb-4">
-              "Each of you should give what you have decided in your heart to
-              give, not reluctantly or under compulsion, for God loves a
-              cheerful giver."
-            </blockquote>
-            <cite className="text-blue-100">— 2 Corinthians 9:7</cite>
+          {/* Scripture Quote - Minimalist */}
+          <div className="bg-gray-50 py-16 md:py-20 mb-20 md:mb-24">
+            <div className="max-w-4xl mx-auto text-center">
+              <div className="flex items-center justify-center space-x-3 mb-8">
+                <div className="w-6 h-px bg-blue-400"></div>
+                <Gift className="w-6 h-6 text-blue-400" />
+                <div className="w-6 h-px bg-blue-400"></div>
+              </div>
+              <blockquote className="text-2xl md:text-3xl font-light text-black mb-8 leading-relaxed italic">
+                "Each of you should give what you have decided in your heart to
+                give, not reluctantly or under compulsion, for God loves a
+                cheerful giver."
+              </blockquote>
+              <cite className="text-base text-gray-600 font-light tracking-wide">
+                — 2 Corinthians 9:7
+              </cite>
+            </div>
           </div>
 
-          {/* Giving Options */}
-          <div className="mb-12">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6 text-center">
-              Choose Your Giving Method
-            </h2>
+          {/* Giving Method Selection - Clean Tabs */}
+          <div className="mb-20 md:mb-24">
+            <div className="text-center mb-12">
+              <div className="flex items-center justify-center space-x-3 mb-6">
+                <div className="w-8 h-px bg-blue-400"></div>
+                <span className="text-sm font-medium text-blue-400 tracking-widest uppercase">
+                  Choose Method
+                </span>
+              </div>
+              <h2 className="text-2xl md:text-3xl font-light text-black">
+                Select Your Preferred Giving Method
+              </h2>
+            </div>
 
-            <div className="flex flex-wrap justify-center gap-4 mb-8">
+            {/* Tab Buttons - Minimal Design */}
+            <div className="flex flex-wrap justify-center gap-2 mb-12 border-b border-gray-200">
               <button
                 onClick={() => setSelectedBankType("nigerian")}
-                className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-all ${
+                className={`flex items-center space-x-3 px-8 py-4 font-light transition-all border-b-2 ${
                   selectedBankType === "nigerian"
-                    ? "bg-blue-600 text-white shadow-md"
-                    : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                    ? "border-blue-400 text-black"
+                    : "border-transparent text-gray-600 hover:text-black hover:border-gray-300"
                 }`}
               >
                 <MapPin size={18} />
@@ -235,10 +260,10 @@ const OnlineGivingComponent = ({
               {giving?.foreignBankDetails && (
                 <button
                   onClick={() => setSelectedBankType("foreign")}
-                  className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-all ${
+                  className={`flex items-center space-x-3 px-8 py-4 font-light transition-all border-b-2 ${
                     selectedBankType === "foreign"
-                      ? "bg-blue-600 text-white shadow-md"
-                      : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                      ? "border-blue-400 text-black"
+                      : "border-transparent text-gray-600 hover:text-black hover:border-gray-300"
                   }`}
                 >
                   <Globe size={18} />
@@ -246,31 +271,31 @@ const OnlineGivingComponent = ({
                 </button>
               )}
 
-              {/* Placeholder for future online payment integration */}
               <button
                 onClick={() => setSelectedBankType("online")}
-                className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-all ${
+                className={`flex items-center space-x-3 px-8 py-4 font-light transition-all border-b-2 ${
                   selectedBankType === "online"
-                    ? "bg-blue-600 text-white shadow-md"
-                    : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                    ? "border-blue-400 text-black"
+                    : "border-transparent text-gray-600 hover:text-black hover:border-gray-300"
                 }`}
-                // disabled
               >
                 <CreditCard size={18} />
-                <span>Online Payment (Coming Soon)</span>
+                <span>Online Payment</span>
               </button>
             </div>
 
-            {/* Bank Details Section */}
+            {/* Bank Details Section - Clean Cards */}
             {selectedBankType !== "online" ? (
-              <div className="space-y-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center">
-                  {selectedBankType === "nigerian"
-                    ? "Nigerian Bank Details"
-                    : "International Bank Details"}
-                </h3>
+              <div className="space-y-8">
+                <div className="text-center mb-12">
+                  <h3 className="text-xl md:text-2xl font-light text-black">
+                    {selectedBankType === "nigerian"
+                      ? "Nigerian Bank Transfer Details"
+                      : "International Wire Transfer Details"}
+                  </h3>
+                </div>
 
-                <div className="flex flex-wrap justify-center gap-6">
+                <div className="flex justify-center">
                   {selectedBankType === "nigerian"
                     ? giving?.nigerianBankDetails && (
                         <BankCard
@@ -289,69 +314,78 @@ const OnlineGivingComponent = ({
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-xl p-8 text-center border border-gray-200">
-                <div className="max-w-md mx-auto">
-                  <CreditCard className="w-12 h-12 mx-auto text-blue-500 mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    Online Payments Coming Soon
-                  </h3>
-                  <p className="text-gray-600 mb-6">
-                    We're working on integrating secure online payment options
-                    for your convenience.
-                  </p>
-                  <button
-                    onClick={() => setSelectedBankType("nigerian")}
-                    className="inline-flex items-center px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Use Bank Transfer Instead
-                    <ArrowRight className="ml-2 w-4 h-4" />
-                  </button>
+              <div className="bg-white border border-gray-200 p-12 text-center max-w-2xl mx-auto">
+                <div className="flex items-center justify-center space-x-3 mb-6">
+                  <div className="w-6 h-px bg-blue-400"></div>
+                  <CreditCard className="w-6 h-6 text-blue-400" />
+                  <div className="w-6 h-px bg-blue-400"></div>
                 </div>
+                <h3 className="text-2xl font-light text-black mb-4">
+                  Online Payments Coming Soon
+                </h3>
+                <p className="text-black font-light mb-8 leading-relaxed">
+                  We're working on integrating secure online payment options for
+                  your convenience.
+                </p>
+                <button
+                  onClick={() => setSelectedBankType("nigerian")}
+                  className="inline-flex items-center px-8 py-3 bg-blue-400 text-white font-light hover:bg-blue-500 transition-colors"
+                >
+                  Use Bank Transfer Instead
+                  <ArrowRight className="ml-3 w-4 h-4" />
+                </button>
               </div>
             )}
           </div>
 
-          {/* Receipt Submission */}
-          <div className="max-w-3xl mx-auto mb-12">
-            <div className="bg-white rounded-xl shadow-sm p-6 sm:p-8 border border-gray-200">
-              <div className="flex items-center mb-6">
-                <Mail className="w-6 h-6 text-green-600 mr-3" />
-                <h3 className="text-xl font-semibold text-gray-900">
-                  Submit Your Payment Receipt
+          {/* Receipt Submission - Clean Design */}
+          <div className="mb-20 md:mb-24">
+            <div className="max-w-4xl mx-auto">
+              <div className="text-center mb-12">
+                <div className="flex items-center justify-center space-x-3 mb-6">
+                  <div className="w-8 h-px bg-blue-400"></div>
+                  <span className="text-sm font-medium text-blue-400 tracking-widest uppercase">
+                    Submit Receipt
+                  </span>
+                </div>
+                <h3 className="text-2xl md:text-3xl font-light text-black mb-6">
+                  Send Your Payment Receipt
                 </h3>
+                <p className="text-black font-light leading-relaxed">
+                  After making your donation, please send your payment receipt
+                  through one of the following channels for proper
+                  documentation.
+                </p>
               </div>
 
-              <p className="text-gray-600 mb-6">
-                After making your donation, please send your payment receipt to
-                one of the following channels for proper documentation:
-              </p>
-
-              <div className="space-y-4 mb-6">
+              <div className="grid md:grid-cols-2 gap-6 mb-12">
                 {giving.receiptSubmission.email && (
                   <a
                     href={`mailto:${giving.receiptSubmission.email}`}
-                    className="block"
+                    className="block group"
                   >
-                    <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors border border-green-100 cursor-pointer">
-                      <div className="flex items-center space-x-3">
-                        <Mail
-                          size={18}
-                          className="text-green-600 flex-shrink-0"
-                        />
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-gray-900">
-                            Email
-                          </p>
-                          <p className="text-sm text-green-600 truncate">
-                            {giving.receiptSubmission.email}
-                          </p>
+                    <div className="bg-white border border-gray-200 p-6 hover:border-blue-400 transition-all">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <Mail
+                            size={20}
+                            className="text-gray-400 flex-shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-black mb-1">
+                              Email
+                            </p>
+                            <p className="text-sm text-black font-light">
+                              {giving.receiptSubmission.email}
+                            </p>
+                          </div>
                         </div>
+                        <CopyButton
+                          text={giving.receiptSubmission.email}
+                          fieldName="email"
+                          onClick={(e) => e.stopPropagation()}
+                        />
                       </div>
-                      <CopyButton
-                        text={giving.receiptSubmission.email}
-                        fieldName="email"
-                        onClick={(e) => e.stopPropagation()} // Prevent mailto when copying
-                      />
                     </div>
                   </a>
                 )}
@@ -361,48 +395,54 @@ const OnlineGivingComponent = ({
                     href={`https://wa.me/${giving.receiptSubmission.whatsappNumber.replace(/\D/g, "")}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block"
+                    className="block group"
                   >
-                    <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors border border-green-100 cursor-pointer">
-                      <div className="flex items-center space-x-3">
-                        <MessageCircle
-                          size={18}
-                          className="text-green-600 flex-shrink-0"
-                        />
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-gray-900">
-                            WhatsApp
-                          </p>
-                          <p className="text-sm text-green-600 truncate">
-                            {giving.receiptSubmission.whatsappNumber}
-                          </p>
+                    <div className="bg-white border border-gray-200 p-6 hover:border-blue-400 transition-all">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <MessageCircle
+                            size={20}
+                            className="text-gray-400 flex-shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-black mb-1">
+                              WhatsApp
+                            </p>
+                            <p className="text-sm text-black font-light">
+                              {giving.receiptSubmission.whatsappNumber}
+                            </p>
+                          </div>
                         </div>
+                        <CopyButton
+                          text={giving.receiptSubmission.whatsappNumber}
+                          fieldName="whatsapp"
+                          onClick={(e) => e.stopPropagation()}
+                        />
                       </div>
-                      <CopyButton
-                        text={giving.receiptSubmission.whatsappNumber}
-                        fieldName="whatsapp"
-                        onClick={(e) => e.stopPropagation()} // Prevent WhatsApp redirect when copying
-                      />
                     </div>
                   </a>
                 )}
               </div>
 
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
-                <p className="text-sm text-blue-800 leading-relaxed">
+              <div className="bg-blue-50 border-l-2 border-blue-400 p-6">
+                <p className="text-sm text-black font-light leading-relaxed">
                   {giving.receiptSubmission.instructions}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Thank You Message */}
-          <div className="text-center bg-white rounded-xl shadow-sm p-8 border border-gray-200">
-            <Heart className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+          {/* Thank You Section - Minimal */}
+          <div className="text-center bg-gray-50 py-16 md:py-20">
+            <div className="flex items-center justify-center space-x-3 mb-8">
+              <div className="w-6 h-px bg-blue-400"></div>
+              <Heart className="w-6 h-6 text-blue-400" />
+              <div className="w-6 h-px bg-blue-400"></div>
+            </div>
+            <h3 className="text-3xl md:text-4xl font-light text-black mb-8 leading-tight">
               Thank You for Your Generosity
             </h3>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-black font-light max-w-3xl mx-auto leading-relaxed">
               Your donation is more than a gift—it's a seed of hope that will
               grow into blessings for our community. We are deeply grateful for
               your heart of giving and your partnership in our mission.

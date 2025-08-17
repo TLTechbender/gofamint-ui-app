@@ -42,11 +42,45 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
-  const [isClient, setIsClient] = useState<boolean>(false);
   const pathname = usePathname();
 
+  // Handle mobile menu effects
   useEffect(() => {
-    setIsClient(true);
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsMobileMenuOpen(false);
+    };
+
+    if (isMobileMenuOpen) {
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden"; // Prevent background scroll
+    } else {
+      document.body.style.overflow = "unset";
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "unset";
+    };
+  }, [isMobileMenuOpen]);
+
+  const [isScrolled, setIsScrolled] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      setIsScrolled(scrollY > 50);
+    };
+
+    // Set initial state
+    handleScroll();
+
+    // Add scroll listener
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    // Cleanup
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const navigationItems: NavigationItem[] = [
@@ -75,7 +109,6 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
   ];
 
   const toggleDropdown = (index: number): void => {
-    if (!isClient) return;
     setActiveDropdown(activeDropdown === index ? null : index);
   };
 
@@ -85,7 +118,6 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
   };
 
   const isActiveLink = (href: string): boolean => {
-    if (!isClient) return false;
     if (href === "/") {
       return pathname === "/";
     }
@@ -93,13 +125,12 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
   };
 
   const isDropdownActive = (dropdown: DropdownItem[]): boolean => {
-    if (!isClient) return false;
     return dropdown.some((item) => isActiveLink(item.href));
   };
 
   const LogoComponent = () => (
     <div className="flex items-center">
-      {logo && isClient ? (
+      {logo ? (
         <Link href={`/`} className="flex items-center space-x-3">
           <div className="relative">
             <Image
@@ -119,53 +150,22 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
         </Link>
       ) : (
         <Link href="/" className="flex items-center">
-          <div className="text-2xl font-bold text-gray-900 lg:text-2xl sm:text-xl">
-            {siteName}
-          </div>
+          <div className="bg-gray-200 w-5 h-5 rounded-full " />
         </Link>
       )}
     </div>
   );
 
-  if (!isClient) {
-    return (
-      <div className="bg-white">
-        <nav className="hidden lg:block bg-white shadow-sm border-b border-gray-100">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <LogoComponent />
-              <div className="flex items-center space-x-8">
-                {navigationItems.map((item) => (
-                  <div key={item.name} className="relative group">
-                    <div className="flex items-center space-x-1 px-3 py-4 text-sm font-medium text-gray-600">
-                      <item.icon className="w-4 h-4" />
-                      <span>{item.name}</span>
-                      {item.dropdown && <ChevronDown className="w-3 h-3" />}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </nav>
-
-        <nav className="lg:hidden bg-white shadow-sm border-b border-gray-100">
-          <div className="px-4 sm:px-6">
-            <div className="flex justify-between items-center h-16">
-              <LogoComponent />
-              <button className="text-gray-600 p-2">
-                <Menu className="w-6 h-6" />
-              </button>
-            </div>
-          </div>
-        </nav>
-      </div>
-    );
-  }
-
   return (
-    <div className="bg-white">
-      <nav className="hidden lg:block bg-white shadow-sm border-b border-gray-100">
+    <div className="bg-transparent ">
+      {/* Desktop Navigation */}
+      <nav
+        className={`hidden lg:block shadow-sm transition-all duration-300 ${
+          isScrolled
+            ? "bg-[rgba(255,255,255,0.72)] py-3"
+            : "bg-transparent shadow-2xl"
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <LogoComponent />
@@ -186,7 +186,9 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
                           className={`flex items-center space-x-1 px-3 py-6 text-sm font-medium transition-colors duration-200 relative ${
                             isActive
                               ? "text-blue-600"
-                              : "text-gray-600 hover:text-gray-900"
+                              : isScrolled
+                                ? "text-black hover:text-gray-700"
+                                : "text-white hover:text-gray-300"
                           }`}
                           onMouseEnter={() => setActiveDropdown(index)}
                         >
@@ -194,37 +196,77 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
                           <span>{item.name}</span>
                           <ChevronDown className="w-3 h-3" />
                           {isActive && (
-                            <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-blue-600 rounded-t-full" />
+                            <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-orange-600 rounded-t-full" />
                           )}
                         </button>
 
                         <div
-                          className={`absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50 transition-all duration-200 ${
+                          style={{
+                            left: "50%",
+                            transform: "translateX(-50%)",
+                          }}
+                          className={`fixed top-20 mt-1 w-full min-w-[60vw] max-w-[70vw] bg-white rounded-lg shadow-xl border border-gray-100 z-50 transition-all duration-500 ease-out ${
                             activeDropdown === index
-                              ? "opacity-100 visible"
-                              : "opacity-0 invisible"
+                              ? "opacity-100 visible translate-y-0"
+                              : "opacity-0 invisible -translate-y-4"
                           }`}
                           onMouseLeave={() => setActiveDropdown(null)}
                         >
-                          {item.dropdown.map((dropdownItem) => {
-                            const isDropdownItemActive = isActiveLink(
-                              dropdownItem.href
-                            );
-                            return (
-                              <Link
-                                key={dropdownItem.name}
-                                href={dropdownItem.href}
-                                className={`flex items-center space-x-3 px-4 py-3 text-sm transition-colors duration-150 ${
-                                  isDropdownItemActive
-                                    ? "bg-blue-50 text-blue-700 border-r-2 border-blue-600"
-                                    : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                                }`}
-                              >
-                                <dropdownItem.icon className="w-4 h-4" />
-                                <span>{dropdownItem.name}</span>
-                              </Link>
-                            );
-                          })}
+                          {/* Flex container for horizontal layout */}
+                          <div className="flex divide-x divide-gray-200">
+                            {item.dropdown.map(
+                              (dropdownItem, dropdownIndex) => {
+                                const isDropdownItemActive = isActiveLink(
+                                  dropdownItem.href
+                                );
+                                return (
+                                  <Link
+                                    key={dropdownItem.name}
+                                    href={dropdownItem.href}
+                                    className={`flex-1 flex flex-col items-center justify-center gap-3 px-6 py-4 text-sm transition-all duration-200 ease-in-out group hover:bg-gray-50 ${
+                                      dropdownIndex === 0 ? "rounded-l-lg" : ""
+                                    } ${
+                                      dropdownIndex ===
+                                      item.dropdown!.length - 1
+                                        ? "rounded-r-lg"
+                                        : ""
+                                    } ${
+                                      isDropdownItemActive
+                                        ? "bg-blue-50 text-blue-700 shadow-inner"
+                                        : "hover:text-gray-700 text-black"
+                                    }`}
+                                  >
+                                    {/* Icon with animation */}
+                                    <div
+                                      className={`p-2 rounded-full transition-all duration-200 ${
+                                        isDropdownItemActive
+                                          ? "bg-blue-100 text-blue-700 scale-110"
+                                          : "bg-gray-100 text-gray-600 group-hover:bg-gray-200 group-hover:scale-105"
+                                      }`}
+                                    >
+                                      <dropdownItem.icon className="w-5 h-5" />
+                                    </div>
+
+                                    {/* Text */}
+                                    <span
+                                      className={`font-medium transition-all duration-200 ${
+                                        isDropdownItemActive
+                                          ? "text-blue-700"
+                                          : "text-gray-700 group-hover:text-gray-900"
+                                      }`}
+                                    >
+                                      {dropdownItem.name}
+                                    </span>
+
+                                    {/* Active indicator pill */}
+                                    {isDropdownItemActive && (
+                                      <div className="w-8 h-1 bg-blue-600 rounded-full animate-pulse" />
+                                    )}
+                                  </Link>
+                                );
+                              }
+                            )}
+                          </div>
                         </div>
                       </div>
                     ) : (
@@ -233,7 +275,9 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
                         className={`flex items-center space-x-1 px-3 py-6 text-sm font-medium transition-colors duration-200 relative ${
                           isActive
                             ? "text-blue-600"
-                            : "text-gray-600 hover:text-gray-900"
+                            : isScrolled
+                              ? "text-black hover:text-gray-700"
+                              : "text-white hover:text-gray-300"
                         }`}
                       >
                         <item.icon className="w-4 h-4" />
@@ -243,7 +287,7 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
                           {item.name}
                         </span>
                         {isActive && (
-                          <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-blue-600 rounded-t-full" />
+                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-blue-600 rounded-full transition-all duration-300" />
                         )}
                       </Link>
                     )}
@@ -255,109 +299,148 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
         </div>
       </nav>
 
-      <nav className="lg:hidden bg-white shadow-sm border-b border-gray-100">
-        <div className="px-4 sm:px-6">
+      {/* Mobile Navigation */}
+      <nav
+        className={`lg:hidden  shadow-sm relative  z-60 transition-all duration-300 ${
+          isScrolled
+            ? "bg-[rgba(255,255,255,0.72)]  shadow-2xl"
+            : "bg-transparent shadow-2xl"
+        }`}
+      >
+        <div className="px-4 sm:px-6 relative z-60">
           <div className="flex justify-between items-center h-16">
             <LogoComponent />
 
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-gray-600 hover:text-gray-900 p-2"
+              className="relative w-8 h-8 flex flex-col justify-center items-center space-y-1 focus:outline-none p-1 "
+              aria-label="Toggle menu"
             >
-              {isMobileMenuOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
+              <span
+                className={`block w-6 h-0.5 bg-gray-600 transform transition-all duration-300 ease-in-out ${
+                  isMobileMenuOpen ? "rotate-45 translate-y-1.5" : "rotate-0"
+                }`}
+              />
+              <span
+                className={`block w-6 h-0.5 bg-gray-600 transform transition-all duration-300 ease-in-out ${
+                  isMobileMenuOpen ? "opacity-0" : "opacity-100"
+                }`}
+              />
+              <span
+                className={`block w-6 h-0.5 bg-gray-600 transform transition-all duration-300 ease-in-out ${
+                  isMobileMenuOpen ? "-rotate-45 -translate-y-1.5" : "rotate-0"
+                }`}
+              />
             </button>
           </div>
         </div>
 
+        {/* Mobile Menu Full Screen Overlay */}
         <div
-          className={`${isMobileMenuOpen ? "block" : "hidden"} border-t border-gray-100 bg-white`}
+          className={`lg:hidden fixed inset-0 z-40 transform transition-transform duration-300 ease-out ${
+            isMobileMenuOpen ? "translate-y-0" : "translate-y-full"
+          }`}
+          style={{
+            background: "rgba(255, 255, 255, 0.95)",
+            backdropFilter: "blur(12px)",
+          }}
         >
-          <div className="px-2 pt-2 pb-3 space-y-1">
-            {navigationItems.map((item, index) => {
-              const isActive = item.href
-                ? isActiveLink(item.href)
-                : item.dropdown
-                  ? isDropdownActive(item.dropdown)
-                  : false;
+          {/* Scrollable Container */}
+          <div className="h-full overflow-y-auto">
+            {/* Top padding to clear the header - using pt-20 for 80px (16*5) to clear h-16 header + extra space */}
+            <div className="min-h-full pt-20 pb-8 px-8">
+              {/* Centered Menu Content */}
+              <div className="flex flex-col justify-center min-h-[calc(100%-5rem)]">
+                <nav className="text-center">
+                  <ul className="space-y-8">
+                    {navigationItems.map((item, index) => {
+                      const isActive = item.href
+                        ? isActiveLink(item.href)
+                        : item.dropdown
+                          ? isDropdownActive(item.dropdown)
+                          : false;
 
-              return (
-                <div key={item.name}>
-                  {item.dropdown ? (
-                    <div>
-                      <button
-                        onClick={() => toggleDropdown(index)}
-                        className={`flex items-center justify-between w-full text-left px-3 py-3 rounded-md transition-colors duration-150 relative ${
-                          isActive
-                            ? "bg-blue-50 text-blue-700"
-                            : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                        }`}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <item.icon className="w-5 h-5" />
-                          <span className="font-medium">{item.name}</span>
-                        </div>
-                        <ChevronDown
-                          className={`w-4 h-4 transition-transform duration-200 ${
-                            activeDropdown === index ? "rotate-180" : ""
-                          }`}
-                        />
-                        {isActive && (
-                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-600 rounded-r" />
-                        )}
-                      </button>
-
-                      {activeDropdown === index && (
-                        <div className="ml-8 mt-1 space-y-1">
-                          {item.dropdown.map((dropdownItem) => {
-                            const isDropdownItemActive = isActiveLink(
-                              dropdownItem.href
-                            );
-                            return (
-                              <Link
-                                key={dropdownItem.name}
-                                href={dropdownItem.href}
-                                onClick={closeMobileMenu}
-                                className={`flex items-center space-x-3 px-3 py-2 text-sm rounded-md transition-colors duration-150 relative ${
-                                  isDropdownItemActive
-                                    ? "bg-blue-100 text-blue-800"
-                                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      return (
+                        <li key={item.name}>
+                          {item.dropdown ? (
+                            <div>
+                              <button
+                                onClick={() => toggleDropdown(index)}
+                                className={`block w-full text-gray-900 text-2xl leading-[36px] transition-all duration-200 relative ${
+                                  isActive
+                                    ? "font-semibold"
+                                    : "font-normal hover:text-blue-600 hover:scale-105"
+                                } ${
+                                  isActive
+                                    ? "after:content-[''] after:absolute after:left-1/2 after:bottom-[-8px] after:transform after:-translate-x-1/2 after:w-12 after:h-0.5 after:bg-blue-600 after:rounded-full"
+                                    : ""
                                 }`}
                               >
-                                <dropdownItem.icon className="w-4 h-4" />
-                                <span>{dropdownItem.name}</span>
-                                {isDropdownItemActive && (
-                                  <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-blue-600 rounded-r" />
-                                )}
-                              </Link>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <Link
-                      href={item.href!}
-                      onClick={closeMobileMenu}
-                      className={`flex items-center space-x-3 px-3 py-3 rounded-md transition-colors duration-150 relative ${
-                        isActive
-                          ? "bg-blue-50 text-blue-700"
-                          : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                      }`}
-                    >
-                      <item.icon className="w-5 h-5" />
-                      <span className="font-medium">{item.name}</span>
-                      {isActive && (
-                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-600 rounded-r" />
-                      )}
-                    </Link>
-                  )}
-                </div>
-              );
-            })}
+                                <div className="flex items-center justify-center space-x-2">
+                                  <item.icon className="w-6 h-6" />
+                                  <span>{item.name}</span>
+                                  <ChevronDown
+                                    className={`w-4 h-4 transition-transform duration-200 ${
+                                      activeDropdown === index
+                                        ? "rotate-180"
+                                        : ""
+                                    }`}
+                                  />
+                                </div>
+                              </button>
+
+                              {activeDropdown === index && (
+                                <div className="mt-4 space-y-4">
+                                  {item.dropdown.map((dropdownItem) => {
+                                    const isDropdownItemActive = isActiveLink(
+                                      dropdownItem.href
+                                    );
+                                    return (
+                                      <Link
+                                        key={dropdownItem.name}
+                                        href={dropdownItem.href}
+                                        onClick={closeMobileMenu}
+                                        className={`flex items-center justify-center space-x-2 text-lg transition-all duration-200 ${
+                                          isDropdownItemActive
+                                            ? "text-blue-600 font-medium"
+                                            : "text-gray-600 hover:text-blue-600 hover:scale-105"
+                                        }`}
+                                      >
+                                        <dropdownItem.icon className="w-5 h-5" />
+                                        <span>{dropdownItem.name}</span>
+                                      </Link>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <Link
+                              href={item.href!}
+                              onClick={closeMobileMenu}
+                              className={`block text-gray-900 text-2xl leading-[36px] transition-all duration-200 relative ${
+                                isActive
+                                  ? "font-semibold"
+                                  : "font-normal hover:text-blue-600 hover:scale-105"
+                              } ${
+                                isActive
+                                  ? "after:content-[''] after:absolute after:left-1/2 after:bottom-[-8px] after:transform after:-translate-x-1/2 after:w-12 after:h-0.5 after:bg-blue-600 after:rounded-full"
+                                  : ""
+                              }`}
+                            >
+                              <div className="flex items-center justify-center space-x-2">
+                                <item.icon className="w-6 h-6" />
+                                <span>{item.name}</span>
+                              </div>
+                            </Link>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </nav>
+              </div>
+            </div>
           </div>
         </div>
       </nav>

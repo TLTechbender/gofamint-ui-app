@@ -2,26 +2,7 @@ export const homepageQuery = `
   *[_type == "homepage"][0] {
     _id,
     _type,
-    seo {
-      title,
-      description,
-      keywords,
-      ogImage {
-        asset->{
-          _id,
-          url,
-          metadata {
-            lqip,
-            dimensions {
-              width,
-              height
-            }
-          }
-        },
-        hotspot,
-        crop
-      }
-    },
+
     heroSection {
       backgroundImage {
         asset->{
@@ -38,6 +19,21 @@ export const homepageQuery = `
         hotspot,
         crop
       },
+
+       backgroundVideo {
+        asset->{
+          _id,
+          url,
+          metadata {
+            lqip,
+            dimensions {
+              width,
+              height
+            }
+          }
+        },
+      
+      },
       title,
       subtitle,
       primaryButton {
@@ -49,10 +45,27 @@ export const homepageQuery = `
         link
       }
     },
-    welcomeSection {
-      title,
-      description
-    },
+  welcomeSection {
+  title,
+  description,
+  imageSlider[] {
+    image {
+      asset-> {
+        _id,
+        url,
+        metadata {
+          lqip,
+          dimensions {
+            width,
+            height
+          }
+        }
+      },
+      hotspot,
+      crop
+    }
+  }
+},
     servicesSection {
       title,
       subtitle,
@@ -138,14 +151,21 @@ export const homepageQuery = `
     ctaSection {
       title,
       description,
-      primaryButton {
-        text,
-        link
+     ctaBigImage {
+        asset->{
+          _id,
+          url,
+          metadata {
+            lqip,
+            dimensions {
+              width,
+              height
+            }
+          }
+        },
+        hotspot,
+        crop
       },
-      secondaryButton {
-        text,
-        link
-      }
     },
     journeyPlannerSection {
       isEnabled,

@@ -6,49 +6,35 @@ export const blogPostQuery = `
     excerpt,
     content,
     featuredImage {
-      asset-> {
-        _id,
-        url,
-        metadata {
-          dimensions {
-            width,
-            height
-          }
-        }
-      },
+      asset,
       alt
     },
     author-> {
       _id,
       firstName,
       lastName,
+      image,
+      bio
+    },
+    authorInfo {
       bio,
       jobTitle,
-      profileImage {
-        asset-> {
-          _id,
-          url
-        },
-        alt
-      },
-      socialLinks {
-        instagram,
-        whatsapp,
-        linkedin,
-        twitter,
-        facebook,
-        website
-      }
+      socialLinks
     },
     tags,
     publishedAt,
     readingTime,
+    allowComments,
+    likes[]-> {
+      _id,
+      firstName,
+      lastName
+    },
     views,
     seo {
       metaTitle,
       metaDescription,
       keywords
     },
-    createdAt,
-    updatedAt
+    "commentCount": count(*[_type == "comment" && references(^._id) && approved == true])
   }`;

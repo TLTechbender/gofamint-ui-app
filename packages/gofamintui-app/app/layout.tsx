@@ -9,6 +9,10 @@ import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
 import { logoQuery } from "@/sanity/queries/footerContent";
 import { Metadata } from "next";
 import { GoogleMapProvider } from "@/providers/google-map-provider";
+import WhatsAppContactWidget from "@/components/whatsappContactWidget";
+import AuthSessionProvider from "@/components/authSessionProvider";
+import { whatsappContactWidgetQuery } from "@/sanity/queries/whatsappContactWidget";
+import { WhatsAppWidgetData } from "@/sanity/interfaces/whatsappContactWidget";
 
 export const dynamic = "force-dynamic";
 
@@ -16,9 +20,22 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://yourdomain.com"),
 };
 
-async function getSiteSettings(): Promise<LogoOnly | null> {
+interface SiteSettings{
+  logoData: LogoOnly;
+  whatsappWidgetData: WhatsAppWidgetData
+}
+
+async function getSiteSettings(): Promise< SiteSettings| null> {
   try {
-    return await sanityFetchWrapper(logoQuery);
+    const [logoData, whatsappWidgetData] = await Promise.all([
+      sanityFetchWrapper(logoQuery),
+      sanityFetchWrapper(whatsappContactWidgetQuery),
+    ]);
+
+    return {
+      logoData,
+      whatsappWidgetData,
+    };
   } catch (error) {
     console.error("Failed to fetch site settings:", error);
     return null;
@@ -45,7 +62,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   // Fetch site settings on the server
-  const logoData = await getSiteSettings();
+  const siteSettings = await getSiteSettings();
 
   return (
     <html
@@ -56,20 +73,23 @@ export default async function RootLayout({
       <body className="antialiased bg-white">
         <ReactQueryProviders>
           <ReactToastifyProvider>
-            <GoogleMapProvider
-              apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
-            >
-              <div className="min-h-screen flex flex-col">
-                <div className="fixed top-0 left-0 right-0 z-50">
-                  <Navbar
-                    logo={logoData?.logo}
-                    siteName={logoData?.logo?.fellowshipName || "Fellowship"}
-                  />
+            <AuthSessionProvider>
+              <GoogleMapProvider
+                apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
+              >
+                <div className="min-h-screen flex flex-col">
+                  <div className="fixed top-0 left-0 right-0 z-50">
+                    <Navbar
+                      logo={siteSettings?.logoData?.logo}
+                      siteName={siteSettings?.logoData?.logo?.fellowshipName || "Fellowship"}
+                    />
+                  </div>
+                  <main className="flex-1 overflow-y-auto ">{children}</main>
+                  <WhatsAppContactWidget phoneNumber={siteSettings?.whatsappWidgetData.phoneNumber} message={siteSettings?.whatsappWidgetData.message} title={siteSettings?.whatsappWidgetData.title} subtitle={siteSettings?.whatsappWidgetData.subtitle} buttonText={siteSettings?.whatsappWidgetData.buttonText} />
+                  <Footer />
                 </div>
-                <main className="flex-1 overflow-y-auto pt-16">{children}</main>
-                <Footer />
-              </div>
-            </GoogleMapProvider>
+              </GoogleMapProvider>
+            </AuthSessionProvider>
           </ReactToastifyProvider>
         </ReactQueryProviders>
       </body>

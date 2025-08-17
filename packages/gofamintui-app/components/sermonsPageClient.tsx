@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import useInfiniteSermons from "@/hooks/useInfiniteSermons";
 import InfiniteScrollContainer from "./infiniteScrollContainer";
-import SermonComponent from "./sermonComponent";
+import SermonComponent from "./sermonCard";
 import { Sermon } from "@/sanity/interfaces/sermonsPage";
 import { FiSearch, FiX, FiAlertTriangle, FiHeadphones } from "react-icons/fi";
 import { motion } from "framer-motion";
@@ -108,9 +108,9 @@ export default function SermonsPageClient() {
 
   if (isError) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-white">
         <PageHeader />
-        <div className="container mx-auto px-4 py-12">
+        <div className="container mx-auto px-6 md:px-8 py-20">
           <ErrorState />
         </div>
       </div>
@@ -119,11 +119,11 @@ export default function SermonsPageClient() {
 
   if (isInitialLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-white">
         <PageHeader />
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-6 md:px-8 py-16">
           <SearchBarSkeleton />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-16">
             {[...Array(6)].map((_, index) => (
               <SermonSkeleton key={index} />
             ))}
@@ -134,10 +134,10 @@ export default function SermonsPageClient() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <PageHeader />
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-6 md:px-8 py-16">
         <SearchBar
           searchInput={searchInput}
           onChange={handleInputChange}
@@ -172,7 +172,7 @@ export default function SermonsPageClient() {
               return;
             }}
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
               {allSermons.map((sermon: Sermon, index: number) => (
                 <motion.div
                   key={index}
@@ -195,23 +195,26 @@ export default function SermonsPageClient() {
 }
 
 const PageHeader = () => (
-  <div className="bg-white py-16 text-black">
-    <div className="container mx-auto px-4 text-center">
-      <motion.h1
+  <div className="bg-white py-24 md:py-32 border-b border-gray-100">
+    <div className="container mx-auto px-6 md:px-8 max-w-4xl">
+      <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-4xl font-bold mb-4"
+        className="text-center space-y-6"
       >
-        Sermons
-      </motion.h1>
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.1 }}
-        className="text-lg max-w-2xl mx-auto text-gray-600"
-      >
-        Explore our collection of inspiring sermons and teachings
-      </motion.p>
+        <div className="flex items-center justify-center space-x-3">
+          <div className="w-8 h-px bg-blue-400"></div>
+          <span className="text-sm font-medium text-blue-400 tracking-widest uppercase">
+            Audio Messages
+          </span>
+        </div>
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-black leading-tight tracking-tight">
+          Sermons
+        </h1>
+        <p className="text-lg md:text-xl text-black font-light leading-relaxed max-w-2xl mx-auto">
+          Explore our collection of inspiring sermons and teachings
+        </p>
+      </motion.div>
     </div>
   </div>
 );
@@ -235,7 +238,7 @@ const SearchBar = ({
   hasSearchTerm: boolean;
   inputRef: React.RefObject<HTMLInputElement | null>;
 }) => (
-  <div className="mb-8 max-w-2xl mx-auto">
+  <div className="mb-16 max-w-2xl mx-auto">
     <form onSubmit={onSubmit} className="relative">
       <div className="relative">
         <input
@@ -245,15 +248,15 @@ const SearchBar = ({
           value={searchInput}
           onChange={onChange}
           onKeyPress={onKeyPress}
-          className="w-full px-5 py-3 pr-12 border border-gray-200 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+          className="w-full px-6 py-4 pr-16 border border-gray-200 focus:ring-2 focus:ring-blue-400 focus:border-transparent outline-none transition-all font-light text-black placeholder-gray-500"
           disabled={isLoading}
         />
-        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center">
+        <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
           {hasSearchTerm && (
             <button
               type="button"
               onClick={onClear}
-              className="p-1 text-gray-400 hover:text-gray-600 mr-1"
+              className="p-1 text-gray-400 hover:text-black transition-colors duration-200"
               aria-label="Clear search"
             >
               <FiX className="w-5 h-5" />
@@ -261,7 +264,7 @@ const SearchBar = ({
           )}
           <button
             type="submit"
-            className="p-1 text-blue-600 hover:text-blue-800 disabled:opacity-50"
+            className="p-1 text-blue-400 hover:text-blue-500 disabled:opacity-50 transition-colors duration-200"
             title="Search"
             disabled={isLoading}
           >
@@ -285,15 +288,15 @@ const SearchResultsInfo = ({
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
-    className="mb-8 text-center"
+    className="mb-12 text-center"
   >
-    <p className="text-gray-600">
-      Showing <span className="font-semibold">{count}</span> sermon
+    <p className="text-black font-light mb-4">
+      Showing <span className="font-medium">{count}</span> sermon
       {count !== 1 ? "s" : ""} for "{term}"
     </p>
     <button
       onClick={onClear}
-      className="mt-2 text-blue-600 hover:text-blue-800 underline text-sm"
+      className="text-blue-400 hover:text-blue-500 underline text-sm font-light transition-colors duration-200"
     >
       Clear search and show all sermons
     </button>
@@ -304,20 +307,26 @@ const ErrorState = () => (
   <motion.div
     initial={{ opacity: 0, scale: 0.95 }}
     animate={{ opacity: 1, scale: 1 }}
-    className="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6 text-center"
+    className="max-w-md mx-auto text-center"
   >
-    <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-      <FiAlertTriangle className="w-8 h-8 text-red-600" />
+    <div className="flex items-center justify-center space-x-3 mb-8">
+      <div className="w-8 h-px bg-blue-400"></div>
+      <span className="text-sm font-medium text-blue-400 tracking-widest uppercase">
+        Error
+      </span>
     </div>
-    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+    <div className="w-16 h-16 mx-auto mb-6 bg-red-50 flex items-center justify-center">
+      <FiAlertTriangle className="w-8 h-8 text-red-500" />
+    </div>
+    <h3 className="text-2xl font-light text-black mb-4">
       Unable to Load Sermons
     </h3>
-    <p className="text-gray-600 mb-4">
+    <p className="text-black font-light mb-8 leading-relaxed">
       We encountered an error while loading the sermons. Please try again later.
     </p>
     <button
       onClick={() => window.location.reload()}
-      className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+      className="bg-blue-400 text-white px-6 py-3 hover:bg-blue-500 transition-colors duration-200 font-light"
     >
       Try Again
     </button>
@@ -328,25 +337,31 @@ const NoResultsState = ({ onClear }: { onClear: () => void }) => (
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
-    className="text-center py-12 max-w-md mx-auto"
+    className="text-center py-20 max-w-md mx-auto"
   >
-    <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+    <div className="flex items-center justify-center space-x-3 mb-8">
+      <div className="w-8 h-px bg-blue-400"></div>
+      <span className="text-sm font-medium text-blue-400 tracking-widest uppercase">
+        No Results
+      </span>
+    </div>
+    <div className="w-16 h-16 mx-auto mb-6 bg-gray-50 flex items-center justify-center">
       <FiSearch className="w-8 h-8 text-gray-400" />
     </div>
-    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+    <h3 className="text-2xl font-light text-black mb-4">
       No matching sermons found
     </h3>
-    <p className="text-gray-600 mb-4">
+    <p className="text-black font-light mb-8 leading-relaxed">
       We couldn't find any sermons matching your search criteria.
     </p>
-    <div className="space-y-2">
+    <div className="space-y-4">
       <button
         onClick={onClear}
-        className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+        className="bg-blue-400 text-white px-6 py-3 hover:bg-blue-500 transition-colors duration-200 font-light"
       >
         Browse All Sermons
       </button>
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-gray-500 font-light">
         Try different keywords or broader search terms
       </p>
     </div>
@@ -357,51 +372,58 @@ const EmptyState = () => (
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
-    className="text-center py-12"
+    className="text-center py-20"
   >
-    <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+    <div className="flex items-center justify-center space-x-3 mb-8">
+      <div className="w-8 h-px bg-blue-400"></div>
+      <span className="text-sm font-medium text-blue-400 tracking-widest uppercase">
+        Coming Soon
+      </span>
+    </div>
+    <div className="w-16 h-16 mx-auto mb-6 bg-gray-50 flex items-center justify-center">
       <FiHeadphones className="w-8 h-8 text-gray-400" />
     </div>
-    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+    <h3 className="text-2xl font-light text-black mb-4">
       No sermons available yet
     </h3>
-    <p className="text-gray-600">
+    <p className="text-black font-light leading-relaxed">
       New sermons will be added soon. Please check back later!
     </p>
   </motion.div>
 );
 
 const LoadingMoreIndicator = () => (
-  <div className="flex justify-center items-center py-8">
-    <div className="flex items-center space-x-2 text-gray-600">
-      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-      <span>Loading more sermons...</span>
+  <div className="flex justify-center items-center py-12">
+    <div className="flex items-center space-x-3">
+      <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-400 border-t-transparent"></div>
+      <span className="text-black font-light">Loading more sermons...</span>
     </div>
   </div>
 );
 
 const EndOfResults = () => (
-  <div className="text-center py-8">
-    <p className="text-gray-500 text-sm">
+  <div className="text-center py-12">
+    <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent mb-6"></div>
+    <p className="text-gray-500 text-sm font-light">
       You've reached the end of our sermon collection
     </p>
   </div>
 );
 
 const SearchBarSkeleton = () => (
-  <div className="mb-8 max-w-2xl mx-auto">
-    <div className="w-full h-12 bg-gray-200 rounded-lg animate-pulse"></div>
+  <div className="mb-16 max-w-2xl mx-auto">
+    <div className="w-full h-14 bg-gray-100 animate-pulse"></div>
   </div>
 );
 
 const SermonSkeleton = () => (
-  <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden animate-pulse">
-    <div className="aspect-[4/5] bg-gray-200"></div>
-    <div className="p-6">
-      <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+  <div className="bg-white border border-gray-100 overflow-hidden animate-pulse hover:shadow-md transition-shadow duration-300">
+    <div className="aspect-[4/5] bg-gray-100"></div>
+    <div className="p-6 space-y-4">
+      <div className="h-5 bg-gray-100 w-3/4"></div>
       <div className="flex items-center space-x-4">
-        <div className="h-4 bg-gray-200 rounded w-20"></div>
-        <div className="h-4 bg-gray-200 rounded w-16"></div>
+        <div className="h-4 bg-gray-100 w-20"></div>
+        <div className="h-4 bg-gray-100 w-16"></div>
       </div>
     </div>
   </div>
