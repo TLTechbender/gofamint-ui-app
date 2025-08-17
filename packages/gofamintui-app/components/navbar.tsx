@@ -45,7 +45,6 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
   const [isClient, setIsClient] = useState<boolean>(false);
   const pathname = usePathname();
 
-  // Ensure client-side rendering consistency
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -80,7 +79,11 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
     setActiveDropdown(activeDropdown === index ? null : index);
   };
 
-  // Helper function to check if a link is active
+  const closeMobileMenu = (): void => {
+    setIsMobileMenuOpen(false);
+    setActiveDropdown(null);
+  };
+
   const isActiveLink = (href: string): boolean => {
     if (!isClient) return false;
     if (href === "/") {
@@ -89,7 +92,6 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
     return pathname.startsWith(href);
   };
 
-  // Helper function to check if any dropdown item is active
   const isDropdownActive = (dropdown: DropdownItem[]): boolean => {
     if (!isClient) return false;
     return dropdown.some((item) => isActiveLink(item.href));
@@ -125,7 +127,6 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
     </div>
   );
 
-  // Show loading state during hydration
   if (!isClient) {
     return (
       <div className="bg-white">
@@ -136,7 +137,7 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
               <div className="flex items-center space-x-8">
                 {navigationItems.map((item) => (
                   <div key={item.name} className="relative group">
-                    <div className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-gray-600">
+                    <div className="flex items-center space-x-1 px-3 py-4 text-sm font-medium text-gray-600">
                       <item.icon className="w-4 h-4" />
                       <span>{item.name}</span>
                       {item.dropdown && <ChevronDown className="w-3 h-3" />}
@@ -164,7 +165,6 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
 
   return (
     <div className="bg-white">
-      {/* Desktop Navigation */}
       <nav className="hidden lg:block bg-white shadow-sm border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -183,7 +183,7 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
                     {item.dropdown ? (
                       <div>
                         <button
-                          className={`flex items-center space-x-1 px-3 py-2 text-sm font-medium transition-colors duration-200 relative ${
+                          className={`flex items-center space-x-1 px-3 py-6 text-sm font-medium transition-colors duration-200 relative ${
                             isActive
                               ? "text-blue-600"
                               : "text-gray-600 hover:text-gray-900"
@@ -194,7 +194,7 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
                           <span>{item.name}</span>
                           <ChevronDown className="w-3 h-3" />
                           {isActive && (
-                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full" />
+                            <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-blue-600 rounded-t-full" />
                           )}
                         </button>
 
@@ -230,16 +230,20 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
                     ) : (
                       <Link
                         href={item.href!}
-                        className={`flex items-center space-x-1 px-3 py-2 text-sm font-medium transition-colors duration-200 relative ${
+                        className={`flex items-center space-x-1 px-3 py-6 text-sm font-medium transition-colors duration-200 relative ${
                           isActive
                             ? "text-blue-600"
                             : "text-gray-600 hover:text-gray-900"
                         }`}
                       >
                         <item.icon className="w-4 h-4" />
-                        <span>{item.name}</span>
+                        <span
+                          className={`${isActive ? "font-bold" : "font-medium"}`}
+                        >
+                          {item.name}
+                        </span>
                         {isActive && (
-                          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full" />
+                          <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-blue-600 rounded-t-full" />
                         )}
                       </Link>
                     )}
@@ -251,7 +255,6 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
         </div>
       </nav>
 
-      {/* Mobile Navigation */}
       <nav className="lg:hidden bg-white shadow-sm border-b border-gray-100">
         <div className="px-4 sm:px-6">
           <div className="flex justify-between items-center h-16">
@@ -317,6 +320,7 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
                               <Link
                                 key={dropdownItem.name}
                                 href={dropdownItem.href}
+                                onClick={closeMobileMenu}
                                 className={`flex items-center space-x-3 px-3 py-2 text-sm rounded-md transition-colors duration-150 relative ${
                                   isDropdownItemActive
                                     ? "bg-blue-100 text-blue-800"
@@ -337,6 +341,7 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
                   ) : (
                     <Link
                       href={item.href!}
+                      onClick={closeMobileMenu}
                       className={`flex items-center space-x-3 px-3 py-3 rounded-md transition-colors duration-150 relative ${
                         isActive
                           ? "bg-blue-50 text-blue-700"

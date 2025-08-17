@@ -190,7 +190,10 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export const dynamic = "force-dynamic";
 
+
+
 export default async function ContactInformation() {
+  // Fetch contact information data using your Sanity fetch wrapper and query
   const contactInfo: ContactInfo = await sanityFetchWrapper(
     getFellowshipContactInfo
   );

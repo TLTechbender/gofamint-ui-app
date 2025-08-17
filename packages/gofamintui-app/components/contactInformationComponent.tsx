@@ -28,6 +28,7 @@ import {
   FaYoutube,
 } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
+import GoogleMap from "./googleMap";
 
 type TabType = "contact" | "location" | "services";
 
@@ -37,6 +38,7 @@ const ContactInformationComponent = ({
   contactInfo: ContactInfo;
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>("contact");
+  const [mapLoaded, setMapLoaded] = useState(false);
 
   const handleWhatsAppContact = (): void => {
     if (contactInfo?.socialMedia?.whatsapp) {
@@ -55,21 +57,22 @@ const ContactInformationComponent = ({
   };
 
   const getSocialIcon = (platform: keyof SocialMedia): JSX.Element => {
+    const iconClass = "w-5 h-5";
     switch (platform) {
       case "facebook":
-        return <FaFacebook size={20} />;
+        return <FaFacebook className={`${iconClass} text-blue-600`} />;
       case "instagram":
-        return <FaInstagram size={20} />;
+        return <FaInstagram className={`${iconClass} text-pink-600`} />;
       case "twitter":
-        return <FaXTwitter size={20} />;
+        return <FaXTwitter className={`${iconClass} text-blue-400`} />;
       case "youtube":
-        return <FaYoutube size={20} />;
+        return <FaYoutube className={`${iconClass} text-red-600`} />;
       case "tiktok":
-        return <FaTiktok size={20} />;
+        return <FaTiktok className={`${iconClass} text-gray-800`} />;
       case "whatsapp":
-        return <FaWhatsapp size={20} />;
+        return <FaWhatsapp className={`${iconClass} text-green-600`} />;
       default:
-        return <ExternalLink size={20} />;
+        return <ExternalLink className={`${iconClass} text-blue-500`} />;
     }
   };
 
@@ -101,27 +104,29 @@ const ContactInformationComponent = ({
     { key: "services" as const, label: "Service Hours", icon: Calendar },
   ];
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      {/* Hero Section */}
+  // Construct the full address for Google Maps
+  const fullAddress = `${contactInfo.address.street}, ${contactInfo.address.city}, ${contactInfo.address.state}, ${contactInfo.address.country}`;
 
-      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white py-16 px-6">
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <div className="bg-blue-700 text-white py-16 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full mb-6 backdrop-blur-sm">
-            <Heart className="w-10 h-10" />
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 rounded-full mb-6 backdrop-blur-sm">
+            <Heart className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
             {contactInfo.fellowshipName}
           </h1>
-          <p className="text-xl md:text-2xl text-blue-100 mb-8">
+          <p className="text-xl text-blue-100 mb-8">
             Welcome to our spiritual family
           </p>
           <button
             onClick={handleWhatsAppContact}
-            className="inline-flex items-center px-8 py-4 bg-green-500 hover:bg-green-600 rounded-full text-lg font-semibold transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+            className="inline-flex items-center px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg text-lg font-medium transition-colors shadow-md hover:shadow-lg"
             type="button"
           >
-            <MessageCircle className="mr-3" size={24} />
+            <MessageCircle className="mr-3" size={20} />
             Connect on WhatsApp
           </button>
         </div>
@@ -130,19 +135,24 @@ const ContactInformationComponent = ({
       {/* Navigation Tabs */}
       <div className="bg-white shadow-sm sticky top-0 z-40">
         <div className="max-w-4xl mx-auto px-6">
-          <div className="flex space-x-8">
+          <div className="flex justify-center md:justify-start md:space-x-8 overflow-x-auto hide-scrollbar">
             {tabConfig.map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
                 onClick={() => setActiveTab(key)}
-                className={`flex items-center px-4 py-6 border-b-2 transition-all ${
+                className={`flex items-center px-4 py-6 border-b-2 transition-colors whitespace-nowrap ${
                   activeTab === key
-                    ? "border-purple-500 text-purple-600"
-                    : "border-transparent text-gray-600 hover:text-purple-500"
+                    ? "border-blue-600 text-blue-700"
+                    : "border-transparent text-gray-600 hover:text-blue-600"
                 }`}
                 type="button"
               >
-                <Icon size={20} className="mr-2" />
+                <Icon
+                  size={18}
+                  className={`mr-2 ${
+                    activeTab === key ? "text-blue-600" : "text-gray-500"
+                  }`}
+                />
                 {label}
               </button>
             ))}
@@ -154,32 +164,34 @@ const ContactInformationComponent = ({
       <div className="max-w-4xl mx-auto px-6 py-12">
         {/* Contact Tab */}
         {activeTab === "contact" && (
-          <div className="space-y-8 animate-fade-in">
-            <div className="text-center mb-12">
+          <div className="space-y-12 animate-fade-in">
+            <div className="text-center">
               <h2 className="text-3xl font-bold text-gray-800 mb-4">
                 Get In Touch
               </h2>
-              <p className="text-lg text-gray-600">
+              <p className="text-gray-600 max-w-2xl mx-auto">
                 We'd love to hear from you and welcome you to our fellowship
               </p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-8">
               {/* Contact Information */}
-              <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow">
-                <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                  <Phone className="mr-3 text-blue-500" size={28} />
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                  <Phone className="mr-3 text-blue-500" size={22} />
                   Contact Details
                 </h3>
-                <div className="space-y-6">
+                <div className="space-y-4">
                   {contactInfo.contactPhone && (
-                    <div className="flex items-center p-4 bg-gray-50 rounded-xl">
-                      <Phone className="text-blue-500 mr-4" size={20} />
+                    <div className="flex items-start gap-4 p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                      <div className="bg-blue-50 p-2 rounded-lg">
+                        <Phone className="text-blue-600" size={18} />
+                      </div>
                       <div>
-                        <p className="font-semibold text-gray-800">Phone</p>
+                        <p className="font-medium text-gray-700">Phone</p>
                         <a
                           href={`tel:${contactInfo.contactPhone}`}
-                          className="text-blue-600 hover:underline"
+                          className="text-blue-600 hover:underline text-sm"
                         >
                           {contactInfo.contactPhone}
                         </a>
@@ -187,13 +199,15 @@ const ContactInformationComponent = ({
                     </div>
                   )}
                   {contactInfo.contactEmail && (
-                    <div className="flex items-center p-4 bg-gray-50 rounded-xl">
-                      <Mail className="text-purple-500 mr-4" size={20} />
+                    <div className="flex items-start gap-4 p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                      <div className="bg-blue-50 p-2 rounded-lg">
+                        <Mail className="text-blue-600" size={18} />
+                      </div>
                       <div>
-                        <p className="font-semibold text-gray-800">Email</p>
+                        <p className="font-medium text-gray-700">Email</p>
                         <a
                           href={`mailto:${contactInfo.contactEmail}`}
-                          className="text-purple-600 hover:underline"
+                          className="text-blue-600 hover:underline text-sm"
                         >
                           {contactInfo.contactEmail}
                         </a>
@@ -201,16 +215,15 @@ const ContactInformationComponent = ({
                     </div>
                   )}
                   {contactInfo.socialMedia?.whatsapp && (
-                    <div className="flex items-center p-4 bg-green-50 rounded-xl">
-                      <MessageCircle
-                        className="text-green-500 mr-4"
-                        size={20}
-                      />
+                    <div className="flex items-start gap-4 p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                      <div className="bg-green-50 p-2 rounded-lg">
+                        <MessageCircle className="text-green-600" size={18} />
+                      </div>
                       <div>
-                        <p className="font-semibold text-gray-800">WhatsApp</p>
+                        <p className="font-medium text-gray-700">WhatsApp</p>
                         <button
                           onClick={handleWhatsAppContact}
-                          className="text-green-600 hover:underline font-medium"
+                          className="text-green-600 hover:underline text-sm font-medium"
                           type="button"
                         >
                           Start a conversation
@@ -222,12 +235,12 @@ const ContactInformationComponent = ({
               </div>
 
               {/* Social Media */}
-              <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow">
-                <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                  <Users className="mr-3 text-purple-500" size={28} />
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                  <Users className="mr-3 text-blue-500" size={22} />
                   Follow Us
                 </h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   {contactInfo.socialMedia &&
                     (
                       Object.entries(contactInfo.socialMedia) as [
@@ -242,10 +255,10 @@ const ContactInformationComponent = ({
                           href={url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl hover:from-purple-50 hover:to-blue-50 transition-all transform hover:scale-105"
+                          className="flex items-center gap-3 p-3 bg-gray-50 hover:bg-blue-50 rounded-lg transition-colors"
                         >
                           {getSocialIcon(platform)}
-                          <span className="ml-3 font-medium capitalize text-gray-700">
+                          <span className="font-medium text-gray-700 text-sm capitalize">
                             {platform === "tiktok" ? "TikTok" : platform}
                           </span>
                         </a>
@@ -256,26 +269,50 @@ const ContactInformationComponent = ({
           </div>
         )}
 
-        {/* Location Tab */}
+        {/* Location Tab with Google Maps */}
         {activeTab === "location" && (
-          <div className="space-y-8 animate-fade-in">
-            <div className="text-center mb-12">
+          <div className="space-y-12 animate-fade-in">
+            <div className="text-center">
               <h2 className="text-3xl font-bold text-gray-800 mb-4">Find Us</h2>
-              <p className="text-lg text-gray-600">
+              <p className="text-gray-600 max-w-2xl mx-auto">
                 Come worship with us at our beautiful location
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 shadow-lg">
-              <div className="grid md:grid-cols-2 gap-8">
+            {/* Google Maps Section */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="h-64 sm:h-80 md:h-96 w-full">
+                <GoogleMap
+                  address={fullAddress}
+                  className="w-full h-full"
+                  mapId={process.env.NEXT_PUBLIC_MAP_ID}
+                  onLoad={() => setMapLoaded(true)}
+                />
+              </div>
+              <div className="p-6">
+                <button
+                  onClick={handleDirections}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                  type="button"
+                >
+                  <ExternalLink size={16} />
+                  Open in Google Maps
+                </button>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
                 <div className="space-y-6">
-                  <div className="flex items-start">
-                    <MapPin className="text-red-500 mr-4 mt-1" size={24} />
+                  <div className="flex items-start gap-4">
+                    <div className="bg-red-50 p-2 rounded-lg">
+                      <MapPin className="text-red-600" size={18} />
+                    </div>
                     <div>
-                      <h3 className="text-xl font-bold text-gray-800 mb-2">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">
                         Address
                       </h3>
-                      <p className="text-gray-600 leading-relaxed">
+                      <p className="text-gray-600 text-sm leading-relaxed">
                         {contactInfo.address.street}
                         <br />
                         {contactInfo.address.city}, {contactInfo.address.state}
@@ -286,44 +323,33 @@ const ContactInformationComponent = ({
                   </div>
 
                   {contactInfo.directions && (
-                    <div className="flex items-start">
-                      <Navigation
-                        className="text-blue-500 mr-4 mt-1"
-                        size={24}
-                      />
+                    <div className="flex items-start gap-4">
+                      <div className="bg-blue-50 p-2 rounded-lg">
+                        <Navigation className="text-blue-600" size={18} />
+                      </div>
                       <div>
-                        <h3 className="text-xl font-bold text-gray-800 mb-2">
+                        <h3 className="text-lg font-semibold text-gray-800 mb-2">
                           Directions
                         </h3>
-                        <p className="text-gray-600 leading-relaxed mb-4">
+                        <p className="text-gray-600 text-sm leading-relaxed mb-4">
                           {contactInfo.directions}
                         </p>
-                        {contactInfo.googleMapsLink && (
-                          <button
-                            onClick={handleDirections}
-                            className="inline-flex items-center px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                            type="button"
-                          >
-                            <ExternalLink className="mr-2" size={18} />
-                            Open in Maps
-                          </button>
-                        )}
                       </div>
                     </div>
                   )}
                 </div>
-
-                {contactInfo.landmarks && (
-                  <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6">
-                    <h3 className="text-xl font-bold text-gray-800 mb-4">
-                      Nearby Landmarks
-                    </h3>
-                    <p className="text-gray-600 leading-relaxed">
-                      {contactInfo.landmarks}
-                    </p>
-                  </div>
-                )}
               </div>
+
+              {contactInfo.landmarks && (
+                <div className="bg-blue-50 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                    Nearby Landmarks
+                  </h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    {contactInfo.landmarks}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -331,13 +357,35 @@ const ContactInformationComponent = ({
         {/* Services Tab */}
         {activeTab === "services" && (
           <div className="space-y-8 animate-fade-in">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-800 mb-4">
-                Service Times
+            <div className="text-center">
+              <h2 className="text-3xl font-bold text-gray-800 mb-3">
+                Service Times & Locations
               </h2>
-              <p className="text-lg text-gray-600">
-                Join us for worship, prayer, and fellowship
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                Join us for worship, prayer, and fellowship across our locations
               </p>
+            </div>
+
+            {/* Service Day Navigation */}
+            <div className="flex overflow-x-auto pb-2 hide-scrollbar gap-2">
+              {dayOrder.map((day) => {
+                const hasServices = groupServicesByDay()[day];
+                return hasServices ? (
+                  <button
+                    key={day}
+                    onClick={() => {
+                      const element = document.getElementById(`day-${day}`);
+                      element?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                      });
+                    }}
+                    className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-blue-50 hover:border-blue-200 transition-colors whitespace-nowrap"
+                  >
+                    {day}
+                  </button>
+                ) : null;
+              })}
             </div>
 
             <div className="space-y-6">
@@ -348,68 +396,132 @@ const ContactInformationComponent = ({
                 return (
                   <div
                     key={day}
-                    className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow"
+                    id={`day-${day}`}
+                    className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
                   >
-                    <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                      <Calendar className="mr-3 text-purple-500" size={24} />
-                      {day}
-                    </h3>
-                    <div className="grid gap-6">
+                    <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                      <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-3">
+                        <Calendar className="text-blue-500" size={20} />
+                        {day}
+                      </h3>
+                      <span className="text-sm text-gray-500">
+                        {dayServices.length} service
+                        {dayServices.length > 1 ? "s" : ""}
+                      </span>
+                    </div>
+
+                    <div className="divide-y divide-gray-100">
                       {dayServices.map(
                         (service: ServiceHour, index: number) => (
                           <div
                             key={index}
-                            className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+                            className="p-6 hover:bg-gray-50 transition-colors group"
                           >
-                            <div className="md:flex">
+                            <div className="md:flex gap-6">
                               {/* Service Poster Image */}
                               {service.posterImage && (
-                                <div className="md:w-1/3 relative">
-                                  <Image
-                                    src={urlFor(
-                                      service.posterImage as any
-                                    ).url()}
-                                    alt={
-                                      service.posterImage.alt ||
-                                      service.serviceType ||
-                                      "Service poster"
-                                    }
-                                    width={400}
-                                    height={300}
-                                    className="w-full h-48 md:h-full object-cover"
-                                    sizes="(max-width: 768px) 100vw, 33vw"
-                                    placeholder="blur"
-                                    blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyejN5oVH0clHU3ttanBoHePdPidOvUuRuuLa0AZqLRNPEwOl2lPZ5Vo4mCgv6LWlXh7bBSFVJqBQA2RnGF8pNPEqPG0fpWPxdJoHd/MhHd/MhQD//Z"
-                                  />
+                                <div className="md:w-1/3 mb-4 md:mb-0">
+                                  <div className="relative aspect-video rounded-lg overflow-hidden shadow-sm">
+                                    <Image
+                                      src={urlFor(
+                                        service.posterImage as any
+                                      ).url()}
+                                      alt={
+                                        service.posterImage.alt ||
+                                        service.serviceType ||
+                                        "Service poster"
+                                      }
+                                      fill
+                                      className="object-cover group-hover:scale-105 transition-transform"
+                                      sizes="(max-width: 768px) 100vw, 33vw"
+                                      placeholder="blur"
+                                      blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyejN5oVH0clHU3ttanBoHePdPidOvUuRuuLa0AZqLRNPEwOl2lPZ5Vo4mCgv6LWlXh7bBSFVJqBQA2RnGF8pNPEqPG0fpWPxdJoHd/MhHd/MhQD//Z"
+                                    />
+                                  </div>
                                 </div>
                               )}
 
                               {/* Service Content */}
                               <div
-                                className={`p-6 ${service.posterImage ? "md:w-2/3" : "w-full"}`}
+                                className={`flex-1 ${service.posterImage ? "md:pt-0" : ""}`}
                               >
-                                <div className="flex items-center justify-between mb-4">
-                                  <div className="flex items-center">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+                                  <div className="flex items-center gap-2">
                                     <Clock
-                                      className="text-blue-500 mr-3"
-                                      size={20}
+                                      className="text-blue-500"
+                                      size={18}
                                     />
-                                    <span className="font-semibold text-gray-800 text-lg">
+                                    <span className="font-medium text-gray-800">
                                       {service.time}
                                     </span>
                                   </div>
-                                  <span className="px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
-                                    {service.serviceType}
-                                  </span>
+                                  {service.serviceType && (
+                                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium self-start">
+                                      {service.serviceType}
+                                    </span>
+                                  )}
                                 </div>
 
                                 {service.description && (
-                                  <p className="text-gray-600 leading-relaxed">
+                                  <p className="text-gray-600 text-sm mb-4">
                                     {service.description}
                                   </p>
                                 )}
+
+                                {/* Action Buttons */}
+                                <div className="flex flex-wrap gap-3 mt-4 pt-3 border-t border-gray-100">
+                                  <button
+                                    onClick={handleWhatsAppContact}
+                                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-50 text-green-700 rounded-lg text-sm font-medium hover:bg-green-100 transition-colors"
+                                  >
+                                    <MessageCircle size={16} />
+                                    Ask questions
+                                  </button>
+                                  <button className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors">
+                                    <Calendar size={16} />
+                                    Add to calendar
+                                  </button>
+                                </div>
+
                               </div>
                             </div>
+                                {/* Location Section */}
+                                <div className="mt-4 space-y-3">
+                                  <div className="flex items-start gap-3">
+                                    <MapPin
+                                      className="text-red-500 mt-0.5 flex-shrink-0"
+                                      size={18}
+                                    />
+                                    <div>
+                                      <h4 className="font-medium text-gray-800 text-sm">
+                                        Location
+                                      </h4>
+                                      <p className="text-gray-600 text-sm">
+                                        {fullAddress}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  {/* Mini Map Preview */}
+                                  <div className="h-40 rounded-lg overflow-hidden border border-gray-200 mt-2">
+                                    <GoogleMap
+                                      address={fullAddress}
+                                      className="h-full"
+                                      mapId={process.env.NEXT_PUBLIC_MAP_ID}
+                                    />
+                                  </div>
+
+                                  <button
+                                    onClick={() => {
+                                      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress || "")}`;
+                                      window.open(mapsUrl, "_blank");
+                                    }}
+                                    className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm font-medium mt-2"
+                                  >
+                                    <ExternalLink size={14} />
+                                    Get directions
+                                  </button>
+                                </div>
                           </div>
                         )
                       )}
@@ -419,19 +531,29 @@ const ContactInformationComponent = ({
               })}
             </div>
 
-            <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl p-8 text-center">
-              <h3 className="text-2xl font-bold mb-4">Ready to Join Us?</h3>
-              <p className="text-lg mb-6 text-purple-100">
-                Experience the love of Christ in our welcoming community
+            {/* Call to Action */}
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl p-8 text-center">
+              <h3 className="text-2xl font-bold mb-3">Need Help Finding Us?</h3>
+              <p className="text-blue-100 mb-6 max-w-2xl mx-auto">
+                Our team is ready to assist you with directions or any questions
+                about our services
               </p>
-              <button
-                onClick={handleWhatsAppContact}
-                className="inline-flex items-center px-8 py-4 bg-white text-purple-600 rounded-full font-semibold hover:bg-gray-100 transition-colors transform hover:scale-105"
-                type="button"
-              >
-                <Send className="mr-2" size={20} />
-                Let us know you're coming
-              </button>
+              <div className="flex flex-wrap justify-center gap-4">
+                <button
+                  onClick={handleWhatsAppContact}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-white text-blue-700 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                >
+                  <MessageCircle size={18} />
+                  Chat with us
+                </button>
+                <a
+                  href={`tel:${contactInfo.contactPhone}`}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors"
+                >
+                  <Phone size={18} />
+                  Call us
+                </a>
+              </div>
             </div>
           </div>
         )}

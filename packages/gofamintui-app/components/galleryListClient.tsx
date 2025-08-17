@@ -2,16 +2,15 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
-
 import { urlFor } from "@/sanity/sanityClient";
 import useInfiniteGalleryList from "@/hooks/useGalleryList";
 import InfiniteScrollContainer from "./infiniteScrollContainer";
 import { GalleryListPageData } from "@/sanity/interfaces/galleryListPage";
 
-
 const GalleryListClient = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [searchTerm, setSearchTerm] = useState(
     searchParams.get("search") || ""
   );
@@ -34,203 +33,233 @@ const GalleryListClient = () => {
 
   const allGalleryListItems = useMemo(() => {
     if (!data?.pages) return [];
-
     return data.pages.flatMap((page: any) => page.galleryListResponse || []);
   }, [data?.pages]);
 
+  // Focus the input on mount and after search
+  useEffect(() => {
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [searchTerm]);
+
   const debouncedSearch = useCallback(
     (searchValue: string) => {
-      // Clear existing timeout
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
       }
 
-      // Set new timeout
       debounceRef.current = setTimeout(() => {
         const trimmedSearch = searchValue.trim();
         if (trimmedSearch === searchTerm) return;
 
         setSearchTerm(trimmedSearch);
-
-        // Update URL (reset to page 1 for new search)
         const params = new URLSearchParams();
         if (trimmedSearch) {
           params.set("search", trimmedSearch);
         }
-        router.push(
+        router.replace(
           `/gallery${params.toString() ? `?${params.toString()}` : ""}`
         );
-      }, 500); // 500ms delay
+      }, 300);
     },
     [searchTerm, router]
   );
 
-  // Handle search form submission (immediate search)
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Clear any pending debounced search
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
-
     const trimmedSearch = searchInput.trim();
-    if (trimmedSearch === searchTerm) return;
-
     setSearchTerm(trimmedSearch);
 
-    // Update URL (reset to page 1 for new search)
     const params = new URLSearchParams();
     if (trimmedSearch) {
       params.set("search", trimmedSearch);
     }
-    router.push(`/gallery${params.toString() ? `?${params.toString()}` : ""}`);
+    router.replace(
+      `/gallery${params.toString() ? `?${params.toString()}` : ""}`
+    );
   };
 
-  // Handle input change with debouncing
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setSearchInput(newValue);
-
-    // Trigger debounced search
     debouncedSearch(newValue);
   };
 
-  // Handle Enter key press (immediate search)
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleSearchSubmit(e as any);
     }
   };
 
-  // Clear search function
   const clearSearch = () => {
     setSearchInput("");
     setSearchTerm("");
-    router.push("/gallery");
+    router.replace("/gallery");
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Search */}
-      <div className="mb-8">
-        <form onSubmit={handleSearchSubmit} className="max-w-md mx-auto">
-          <div className="relative">
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      {/* Search Section */}
+      <div className="mb-10">
+        <form onSubmit={handleSearchSubmit} className="max-w-2xl mx-auto">
+          <div className="relative shadow-sm rounded-lg">
             <input
+              ref={searchInputRef}
               type="text"
-              placeholder="Search galleries..."
+              placeholder="Search galleries by title, date, or description..."
               value={searchInput}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
-              className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+              className="w-full px-5 py-3 pr-12 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 hover:shadow-md focus:shadow-lg"
               disabled={isLoading && allGalleryListItems.length === 0}
             />
-            <button
-              type="submit"
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 disabled:opacity-50"
-              title="Search now"
-              disabled={isLoading && allGalleryListItems.length === 0}
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center">
+              {searchInput && (
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  className="p-1 text-gray-400 hover:text-gray-600 mr-1 transition-colors"
+                  aria-label="Clear search"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              )}
+              <button
+                type="submit"
+                className="p-2 text-blue-600 hover:text-blue-800 transition-colors"
+                disabled={isLoading && allGalleryListItems.length === 0}
+                aria-label="Search"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </button>
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
         </form>
       </div>
 
       {/* Error State */}
       {isError && (
-        <div className="max-w-md mx-auto mb-8">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-            <div className="w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-              <svg
-                className="w-6 h-6 text-red-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-red-900 mb-2">
-              Something went wrong
-            </h3>
-            <p className="text-red-700 mb-4">
-              We couldn't load the galleries. Please check your connection and
-              try again.
-            </p>
+        <div className="max-w-2xl mx-auto mb-10 bg-white rounded-xl shadow-sm border border-red-200 p-6 text-center">
+          <div className="w-14 h-14 mx-auto mb-4 bg-red-50 rounded-full flex items-center justify-center">
+            <svg
+              className="w-8 h-8 text-red-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+              />
+            </svg>
           </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-3">
+            Unable to Load Galleries
+          </h3>
+          <p className="text-gray-600 mb-5">
+            We encountered an issue while loading the galleries. This might be a
+            temporary problem.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          >
+            Try Again
+          </button>
         </div>
       )}
 
-      {/* First Load Loading State */}
+      {/* Loading State */}
       {isLoading && allGalleryListItems.length === 0 && !isError && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-[repeat(auto-fit,minmax(350px,400px))] gap-9 mx-auto items-start justify-center w-full px-4">
-            {[...Array(6)].map((_, index) => (
-              <GallerySkeleton key={index} />
-            ))}
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {[...Array(6)].map((_, index) => (
+            <GallerySkeleton key={index} />
+          ))}
         </div>
       )}
 
-      {/* Content - Only show when not in initial loading state */}
+      {/* Content Section */}
       {!isLoading || allGalleryListItems.length > 0 ? (
         <>
-          {/* Search Results Info */}
+          {/* Search Results Header */}
           {searchTerm && !isError && (
-            <div className="mb-6 text-center">
+            <div className="mb-8 text-center">
+              <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+                {allGalleryListItems.length > 0
+                  ? `Search Results (${allGalleryListItems.length})`
+                  : "No Results Found"}
+              </h2>
               <p className="text-gray-600">
-                {allGalleryListItems.length > 0 ? (
-                  <>
-                    Found{" "}
-                    <span className="font-semibold">
-                      {allGalleryListItems.length}
-                    </span>{" "}
-                    result
-                    {allGalleryListItems.length !== 1 ? "s" : ""} for "
-                    {searchTerm}"
-                  </>
-                ) : (
-                  <>No results found for "{searchTerm}"</>
-                )}
+                {allGalleryListItems.length > 0
+                  ? `Showing galleries matching "${searchTerm}"`
+                  : `No galleries found for "${searchTerm}"`}
               </p>
               {searchTerm && (
                 <button
                   onClick={clearSearch}
-                  className="mt-2 text-blue-600 hover:text-blue-800 underline text-sm"
+                  className="mt-3 text-blue-600 hover:text-blue-800 font-medium flex items-center justify-center mx-auto"
                 >
+                  <svg
+                    className="w-4 h-4 mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
                   Clear search
                 </button>
               )}
             </div>
           )}
 
+          {/* Gallery Grid */}
           <InfiniteScrollContainer
             onBottomReached={() => {
               if (hasNextPage && !isFetchingNextPage) {
-                return fetchNextPage();
+                fetchNextPage();
               }
-              return;
             }}
           >
-            <div className="grid grid-cols-1 md:grid-cols-[repeat(auto-fit,minmax(350px,400px))] gap-9 mx-auto items-start justify-center w-full px-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {allGalleryListItems.map(
                 (listItem: GalleryListPageData, index: number) => (
                   <GalleryCard
@@ -242,97 +271,65 @@ const GalleryListClient = () => {
             </div>
           </InfiniteScrollContainer>
 
-          {/* Next Page Loading State */}
+          {/* Loading More Indicator */}
           {isFetchingNextPage && (
-            <div className="flex justify-center items-center py-8">
-              <div className="flex items-center space-x-2 text-gray-600">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-                <span>Loading more galleries...</span>
+            <div className="flex justify-center my-10">
+              <div className="inline-flex items-center px-4 py-2 bg-blue-50 text-blue-700 rounded-full">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mr-2"></div>
+                Loading more galleries...
               </div>
             </div>
           )}
 
-          {/* Empty State for Search */}
-          {!isLoading &&
-            allGalleryListItems.length === 0 &&
-            searchTerm &&
-            !isError && (
-              <div className="text-center py-12 max-w-md mx-auto">
-                <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                  <svg
-                    className="w-8 h-8 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  No galleries found
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  We couldn't find any galleries matching your search. Try using
-                  different keywords or browse all galleries.
-                </p>
-                <div className="space-y-2">
-                  <button
-                    onClick={clearSearch}
-                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Browse All Galleries
-                  </button>
-                  <p className="text-sm text-gray-500">
-                    Suggestions: Try shorter keywords, check spelling, or use
-                    broader terms
-                  </p>
-                </div>
+          {/* Empty States */}
+          {!isLoading && allGalleryListItems.length === 0 && (
+            <div className="text-center py-12 max-w-2xl mx-auto bg-white rounded-xl shadow-sm p-8">
+              <div className="w-20 h-20 mx-auto mb-5 bg-blue-50 rounded-full flex items-center justify-center">
+                <svg
+                  className="w-10 h-10 text-blue-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
               </div>
-            )}
+              <h3 className="text-2xl font-semibold text-gray-900 mb-3">
+                {searchTerm
+                  ? "No matching galleries"
+                  : "No galleries available"}
+              </h3>
+              <p className="text-gray-600 mb-6">
+                {searchTerm
+                  ? "Try different search terms or browse all galleries."
+                  : "Check back later for new gallery additions."}
+              </p>
+              {searchTerm ? (
+                <button
+                  onClick={clearSearch}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                  View All Galleries
+                </button>
+              ) : null}
+            </div>
+          )}
 
-          {/* Empty State for No Galleries at All */}
-          {!isLoading &&
-            allGalleryListItems.length === 0 &&
-            !searchTerm &&
-            !isError && (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                  <svg
-                    className="w-8 h-8 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  No galleries yet
-                </h3>
-                <p className="text-gray-600">
-                  Check back later for new galleries!
-                </p>
-              </div>
-            )}
-
-          {/* End of Results Indicator */}
+          {/* End of Results */}
           {!hasNextPage &&
             allGalleryListItems.length > 0 &&
             !isFetchingNextPage && (
-              <div className="text-center py-8">
-                <p className="text-gray-500 text-sm">
-                  You've reached the end of the galleries
-                </p>
+              <div className="text-center py-10">
+                <div className="inline-flex items-center text-gray-500">
+                  <span className="h-px w-16 bg-gray-300 mr-3"></span>
+                  <span className="text-sm">End of results</span>
+                  <span className="h-px w-16 bg-gray-300 ml-3"></span>
+                </div>
               </div>
             )}
         </>
@@ -341,52 +338,29 @@ const GalleryListClient = () => {
   );
 };
 
-// Skeleton component for loading state
-const GallerySkeleton = () => {
-  return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse">
-      {/* Image Skeleton */}
-      <div className="relative aspect-[4/3] bg-gray-200"></div>
-
-      {/* Content Skeleton */}
-      <div className="p-6">
-        {/* Date Skeleton */}
-        <div className="text-center mb-4">
-          <div className="h-8 bg-gray-200 rounded w-24 mx-auto mb-2"></div>
-          <div className="h-4 bg-gray-200 rounded w-32 mx-auto"></div>
-        </div>
-
-        {/* Location Skeleton */}
-        <div className="flex items-center justify-center mb-3">
-          <div className="h-4 bg-gray-200 rounded w-20"></div>
-        </div>
-
-        {/* Description Skeleton */}
-        <div className="space-y-2 mb-4">
-          <div className="h-4 bg-gray-200 rounded w-full"></div>
-          <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto"></div>
-        </div>
-
-        {/* Tags Skeleton */}
-        <div className="flex flex-wrap gap-1 justify-center">
-          {[...Array(3)].map((_, index) => (
-            <div
-              key={index}
-              className="h-6 bg-gray-200 rounded-full w-16"
-            ></div>
-          ))}
-        </div>
+// Skeleton Loader Component
+const GallerySkeleton = () => (
+  <div className="bg-white rounded-xl shadow-sm overflow-hidden animate-pulse">
+    <div className="aspect-[4/3] bg-gray-100"></div>
+    <div className="p-6">
+      <div className="h-6 bg-gray-100 rounded w-3/4 mx-auto mb-4"></div>
+      <div className="h-4 bg-gray-100 rounded w-1/2 mx-auto mb-6"></div>
+      <div className="space-y-2">
+        <div className="h-3 bg-gray-100 rounded w-full"></div>
+        <div className="h-3 bg-gray-100 rounded w-5/6 mx-auto"></div>
+      </div>
+      <div className="flex justify-center gap-2 mt-6">
+        <div className="h-6 bg-gray-100 rounded-full w-16"></div>
+        <div className="h-6 bg-gray-100 rounded-full w-16"></div>
       </div>
     </div>
-  );
-};
+  </div>
+);
 
-interface GalleryCardProps {
-  gallery: GalleryListPageData;
-}
-
-const GalleryCard: React.FC<GalleryCardProps> = ({ gallery }) => {
-  // Format the date
+// Gallery Card Component
+const GalleryCard: React.FC<{ gallery: GalleryListPageData }> = ({
+  gallery,
+}) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -397,50 +371,42 @@ const GalleryCard: React.FC<GalleryCardProps> = ({ gallery }) => {
   };
 
   return (
-    <a href={gallery.googleDriveFolder} className="block group">
-      <div className="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg">
-        {/* Image Section */}
+    <a
+      href={gallery.googleDriveFolder}
+      className="block group transform hover:-translate-y-1 transition-transform duration-300"
+    >
+      <div className="bg-white rounded-xl shadow-sm overflow-hidden h-full border border-gray-100 hover:shadow-md transition-shadow duration-300">
         <div className="relative aspect-[4/3] overflow-hidden">
           <Image
-            src={
-              urlFor(gallery.featuredImage as any)
-                .width(1920)
-                .height(1080)
-                .format("jpg")
-                .quality(85)
-                .url() || ""
-            }
-            alt={ gallery.title}
+            src={urlFor(gallery.featuredImage as any)
+              .width(800)
+              .height(600)
+              .quality(85)
+              .url()}
+            alt={gallery.title}
             fill
-            className="object-cover transition-transform duration-300 group-hover:scale-110"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
-
-       
         </div>
-
-        {/* Content Section */}
         <div className="p-6">
-          {/* Date */}
           <div className="text-center mb-4">
-            <div className="text-2xl font-bold text-gray-800">
-              {formatDate(gallery._createdAt)}
-            </div>
-            <div className="text-sm text-gray-600 uppercase tracking-wider mt-1">
+            <h3 className="text-lg font-semibold text-gray-800 mb-1">
               {gallery.title}
-            </div>
+            </h3>
+            <time className="text-sm text-gray-500">
+              {formatDate(gallery._createdAt)}
+            </time>
           </div>
-
-         
-
-          {/* Description */}
           {gallery.description && (
-            <p className="text-gray-700 text-sm text-center line-clamp-2 mb-4">
+            <p className="text-gray-600 text-sm text-center line-clamp-2 mb-4">
               {gallery.description}
             </p>
           )}
-
-          {/* Tags */}
-       
+          <div className="flex justify-center">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              View Gallery
+            </span>
+          </div>
         </div>
       </div>
     </a>
