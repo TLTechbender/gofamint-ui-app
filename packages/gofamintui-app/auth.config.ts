@@ -7,10 +7,10 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
+      const isOnProfile = nextUrl.pathname.startsWith("/dashboard");
       const isOnAuth = nextUrl.pathname.startsWith("/auth");
 
-      if (isOnDashboard) {
+      if (isOnProfile) {
         if (isLoggedIn) return true;
         return false; // Redirect unauthenticated users to login page
       } else if (isOnAuth && isLoggedIn) {
@@ -22,5 +22,5 @@ export const authConfig = {
       return true;
     },
   },
-  providers: [], // Add providers with an empty array for now
+  providers: [], // Add providers with an empty array for now (nha normal login I wan use abeg, I no get time to dey stress about google and apple for now)
 } satisfies NextAuthConfig;

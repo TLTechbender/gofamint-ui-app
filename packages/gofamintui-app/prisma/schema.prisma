@@ -1,0 +1,123 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String        @id @default(uuid())
+  email       String        @unique
+  userName    String        @unique
+  firstName   String
+  lastName    String
+  phoneNumber String?       // Google auth wahala 
+  password    String?       // For google auth wahala with no password
+  bio         String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  isVerified  Boolean       @default(false)
+  
+  // Author elevation (controlled from Sanity)
+  isAuthor    Boolean       @default(false)
+  author      Author?       // One-to-one relationship
+  
+  // User interactions
+  comments     Comment[]
+  commentLikes CommentLike[]
+  blogReads    BlogRead[]
+  blogLikes    BlogLike[]
+  
+  @@map("users")
+}
+
+model Author {
+  id          String   @id @default(uuid())  // Changed from Int to String with UUID
+  userId      String   @unique
+  authorBio   String?
+  profilePic  String?  // File path reference
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relationships
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  socials     Social[]
+  
+  @@map("authors")
+}
+
+model Social {
+  id        String @id @default(uuid())  // Changed from Int to String with UUID
+  authorId  String                      // Changed from Int to String to match Author.id
+  platform  String                      // "facebook", "twitter", "instagram", etc Which one Pick one.
+  url       String
+  handle    String?
+  
+  author    Author @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  @@unique([authorId, platform])
+  @@map("socials")
+}
+
+model Comment {
+  id           String       @id @default(uuid())  // Changed from Int to String with UUID
+  content      String
+  sanityPostId String       // Reference to Sanity blog post
+  userId       String       // Changed from Int to String to match User.id
+  parentId     String?      // Changed from Int to String for replies (self-referencing)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  
+  // Relationships
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent       Comment?     @relation("CommentReplies", fields: [parentId], references: [id])
+  replies      Comment[]    @relation("CommentReplies")
+  likes        CommentLike[]
+  
+  @@index([sanityPostId])
+  @@map("comments")
+}
+
+model CommentLike {
+  id        String   @id @default(uuid())  // Changed from Int to String with UUID
+  userId    String                         // Changed from Int to String to match User.id
+  commentId String                         // Changed from Int to String to match Comment.id
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, commentId])
+  @@map("comment_likes")
+}
+
+model BlogLike {
+  id           String   @id @default(uuid())  // Changed from Int to String with UUID
+  userId       String                         // Changed from Int to String to match User.id
+  sanityPostId String   // Reference to Sanity blog post
+  createdAt    DateTime @default(now())
+  
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, sanityPostId])
+  @@index([sanityPostId])
+  @@map("blog_likes")
+}
+
+model BlogRead {
+  id           String   @id @default(uuid())  // Changed from Int to String with UUID
+  userId       String                         // Changed from Int to String to match User.id
+  sanityPostId String   // Reference to Sanity blog post
+  readAt       DateTime @default(now())
+  
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, sanityPostId])
+  @@index([sanityPostId])
+  @@map("blog_reads")
+}

@@ -1,285 +1,387 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import verifyEmail from "@/actions/forms/verifyEmail";
+import { VerifyEmailActionState } from "@/lib/formActionStates/verifyEmailActionState";
+import {
+  ArrowRight,
+  CheckCircle,
+  Mail,
+  User,
+  Home,
+  AlertCircle,
+  RefreshCw,
+} from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect, useActionState } from "react";
 
-interface ValidationState {
-  loading: boolean;
-  success: boolean;
-  error: string | null;
-  message: string;
-}
+
+
+const initialState: VerifyEmailActionState= {
+  success: false,
+  status: 0,
+  message: "",
+};
 
 const VerifyTokenComponent = ({ token }: { token: string }) => {
   const router = useRouter();
-  const [state, setState] = useState<ValidationState>({
-    loading: true,
-    success: false,
-    error: null,
-    message: "",
-  });
+  const searchParams = useSearchParams();
 
-  const validateToken = async (tokenValue: string) => {
-    // Ensure we have a valid token before making the request
-    if (!tokenValue || !tokenValue.trim()) {
-      setState({
-        loading: false,
-        success: false,
-        error: "Verification token is required",
-        message:
-          "No verification token was provided. Please check your email link.",
-      });
-      return;
-    }
+  // Animation states
+  const [isVisible, setIsVisible] = useState(false);
+  const [showActions, setShowActions] = useState(false);
 
-    try {
-      const response = await fetch("/api/verify-email", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ token: tokenValue.trim() }),
-      });
+  // useActionState hook for server action
+  const [state, formAction, isPending] = useActionState(
+    verifyEmail,
+    initialState
+  );
 
-      const data = await response.json();
+  // Track if verification has been attempted
+  const [verificationAttempted, setVerificationAttempted] = useState(false);
 
-      if (response.ok) {
-        setState({
-          loading: false,
-          success: true,
-          error: null,
-          message:
-            data.message ||
-            "Email verified successfully! Welcome to our church community.",
-        });
+  // Extract user ID from search params or other source
+  const userId = searchParams.get("id") || searchParams.get("userId");
+  const userEmail = searchParams.get("email"); // Optional: for display
 
-        // Redirect to dashboard after 3 seconds
-        setTimeout(() => {
-          router.push("/dashboard");
-        }, 3000);
-      } else {
-        // Handle specific API error messages
-        let userMessage = "";
-        let errorType = data.error;
-
-        switch (data.error) {
-          case "Verification token is required":
-            userMessage =
-              "No verification token was provided. Please check your email link.";
-            break;
-          case "Invalid or expired verification token":
-            userMessage =
-              "This verification link is invalid or has already been used. Please request a new verification email.";
-            break;
-          case "Verification token has expired":
-            userMessage =
-              "This verification link has expired. Please request a new verification email to continue.";
-            break;
-          case "Email verification failed. Please try again.":
-            userMessage =
-              "Something went wrong during verification. Please try again or contact support.";
-            break;
-          default:
-            userMessage =
-              data.error || "Verification failed. Please try again.";
-        }
-
-        setState({
-          loading: false,
-          success: false,
-          error: errorType,
-          message: userMessage,
-        });
-      }
-    } catch (error) {
-      console.error("Verification error:", error);
-      setState({
-        loading: false,
-        success: false,
-        error: "Network error",
-        message:
-          "Unable to connect to the server. Please check your internet connection and try again.",
-      });
-    }
-  };
-
-  // Run validation on component mount
+  // Trigger verification on component mount
   useEffect(() => {
-    if (token && token.trim()) {
-      validateToken(token);
-    } else {
-      setState({
-        loading: false,
-        success: false,
-        error: "Verification token is required",
-        message:
-          "No verification token was provided. Please check your email link.",
-      });
-    }
-  }, [token]);
+    if (token && userId && !verificationAttempted) {
+      const formData = new FormData();
+      formData.append("token", token.trim());
+      formData.append("id", userId);
 
+      formAction(formData);
+      setVerificationAttempted(true);
+    } else if (!token || !userId) {
+      // Handle missing token or userId
+      setVerificationAttempted(true);
+    }
+  }, [token, userId, formAction, verificationAttempted]);
+
+  // Handle successful verification redirect
+  useEffect(() => {
+    if (state.success) {
+      // Redirect to dashboard after 3 seconds
+      const timer = setTimeout(() => {
+        router.push("/dashboard");
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [state.success, router]);
+
+  // Animation effects
+  useEffect(() => {
+    setIsVisible(true);
+    const timer = setTimeout(() => setShowActions(true), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Action handlers
   const handleRetry = () => {
-    setState((prev) => ({ ...prev, loading: true }));
-    validateToken(token);
+    if (token && userId) {
+      setVerificationAttempted(false); // Reset to trigger re-verification
+      const formData = new FormData();
+      formData.append("token", token.trim());
+      formData.append("id", userId);
+      formAction(formData);
+    }
   };
 
   const handleGoHome = () => {
     router.push("/");
   };
 
-  const handleResendEmail = () => {
-    router.push("/resend-verification");
+  const handleGoToDashboard = () => {
+    router.push("/profile");
   };
 
-  return (
-    <>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-xl shadow-lg overflow-hidden">
-          {/* Loading State */}
-          {state.loading && (
-            <div className="p-8 text-center">
-              <div className="mb-6">
-                <div className="animate-spin mx-auto h-12 w-12 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+
+  //Would be handling this
+  // const handleResendEmail = () => {
+  //   router.push("/auth/resend-verification");
+  // };
+
+  // Loading state
+  if (isPending || (!verificationAttempted && token && userId)) {
+    return (
+      <div>
+        <div className="pt-20 mb-2 bg-black h-16 w-full" />
+        <main className="bg-white flex items-center justify-center px-6 py-12 min-h-screen">
+          <div className="w-full max-w-md">
+            <div className="text-center space-y-8">
+              {/* Loading Animation */}
+              <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-8">
+                <RefreshCw
+                  className="w-12 h-12 text-blue-400 animate-spin"
+                  strokeWidth={1.5}
+                />
               </div>
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">
+
+              {/* Status Indicator */}
+              <div className="flex items-center justify-center space-x-3 mb-6">
+                <div className="w-8 h-px bg-blue-400"></div>
+                <span className="text-sm font-medium text-blue-400 tracking-widest uppercase">
+                  Verifying
+                </span>
+                <div className="w-8 h-px bg-blue-400"></div>
+              </div>
+
+              <h1 className="text-3xl md:text-4xl font-light text-black leading-tight tracking-tight">
                 Verifying Your Email
-              </h2>
-              <p className="text-gray-600">
-                Please wait while we validate your verification token...
+              </h1>
+
+              <p className="text-lg text-black font-light leading-relaxed max-w-sm mx-auto">
+                Please wait while we verify your email address...
               </p>
             </div>
-          )}
-
-          {/* Success State */}
-          {!state.loading && state.success && (
-            <div className="p-8 text-center">
-              <div className="mb-6">
-                <div className="mx-auto h-16 w-16 bg-green-100 rounded-full flex items-center justify-center">
-                  <svg
-                    className="h-8 w-8 text-green-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                </div>
-              </div>
-              <h2 className="text-2xl font-bold text-green-800 mb-4">
-                🎉 Email Verified!
-              </h2>
-              <p className="text-gray-700 mb-6">{state.message}</p>
-              <div className="space-y-3">
-                <p className="text-sm text-gray-500">
-                  Redirecting to your dashboard in a few seconds...
-                </p>
-                <button
-                  onClick={() => router.push("/dashboard")}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200"
-                >
-                  Go to Dashboard Now
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Error State */}
-          {!state.loading && !state.success && (
-            <div className="p-8 text-center">
-              <div className="mb-6">
-                <div className="mx-auto h-16 w-16 bg-red-100 rounded-full flex items-center justify-center">
-                  <svg
-                    className="h-8 w-8 text-red-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </div>
-              </div>
-              <h2 className="text-2xl font-bold text-red-800 mb-4">
-                Verification Failed
-              </h2>
-              <p className="text-gray-700 mb-6">{state.message}</p>
-
-              {/* Error-specific actions */}
-              <div className="space-y-3">
-                {state.error === "Network error" && (
-                  <button
-                    onClick={handleRetry}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200"
-                  >
-                    Try Again
-                  </button>
-                )}
-
-                {(state.error === "Verification token is required" ||
-                  state.error === "Invalid or expired verification token" ||
-                  state.error === "Verification token has expired") && (
-                  <button
-                    onClick={handleResendEmail}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200"
-                  >
-                    Request New Verification Email
-                  </button>
-                )}
-
-                {state.error ===
-                  "Email verification failed. Please try again." && (
-                  <>
-                    <button
-                      onClick={handleRetry}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200"
-                    >
-                      Try Again
-                    </button>
-                    <button
-                      onClick={handleResendEmail}
-                      className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200"
-                    >
-                      Request New Verification Email
-                    </button>
-                  </>
-                )}
-
-                <button
-                  onClick={handleGoHome}
-                  className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200"
-                >
-                  Back to Home
-                </button>
-              </div>
-
-              {/* Additional help */}
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <p className="text-sm text-gray-600 mb-2">
-                  Still having trouble?
-                </p>
-                <button
-                  onClick={() =>
-                    (window.location.href = "mailto:support@gracechurch.com")
-                  }
-                  className="text-blue-600 hover:text-blue-800 text-sm underline"
-                >
-                  Contact Support
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+          </div>
+        </main>
       </div>
-    </>
+    );
+  }
+
+  // Error state - Invalid token or missing parameters
+  if (
+    !token ||
+    !userId ||
+    (!state.success && state.message && verificationAttempted)
+  ) {
+    return (
+      <div>
+        <div className="pt-20 mb-2 bg-black h-16 w-full" />
+        <main className="bg-white flex items-center justify-center px-6 py-12 min-h-screen">
+          <div className="w-full max-w-md">
+            <div
+              className={`text-center space-y-8 transition-all duration-1000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+            >
+              {/* Error Icon */}
+              <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-8">
+                <AlertCircle
+                  className="w-12 h-12 text-red-400"
+                  strokeWidth={1.5}
+                />
+              </div>
+
+              {/* Status Indicator */}
+              <div className="flex items-center justify-center space-x-3 mb-6">
+                <div className="w-8 h-px bg-red-400"></div>
+                <span className="text-sm font-medium text-red-400 tracking-widest uppercase">
+                  Verification Failed
+                </span>
+                <div className="w-8 h-px bg-red-400"></div>
+              </div>
+
+              <h1 className="text-3xl md:text-4xl font-light text-black leading-tight tracking-tight">
+                {!token || !userId
+                  ? "Invalid Verification Link"
+                  : "Verification Failed"}
+              </h1>
+
+              <p className="text-lg text-black font-light leading-relaxed max-w-sm mx-auto">
+                {state.message ||
+                  "The verification link is invalid or has expired. Please request a new verification email."}
+              </p>
+
+              {/* Error Details */}
+              {state.message && (
+                <div className="bg-red-50 p-6 border-l-2 border-red-400">
+                  <div className="flex items-start space-x-3">
+                    <AlertCircle
+                      className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0"
+                      strokeWidth={1.5}
+                    />
+                    <div className="text-left">
+                      <p className="text-sm font-medium text-black mb-1">
+                        Error Details:
+                      </p>
+                      <p className="text-sm text-red-600 font-light">
+                        {state.message}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Error Actions */}
+            <div
+              className={`mt-12 space-y-4 transition-all duration-1000 delay-700 ${showActions ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+            >
+              {/* Retry if we have the necessary params */}
+              {token && userId && (
+                <button
+                  onClick={handleRetry}
+                  disabled={isPending}
+                  className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-blue-400 disabled:cursor-not-allowed text-white py-4 px-6 font-light tracking-wide transition-all duration-300 flex items-center justify-center space-x-3 group"
+                >
+                  <RefreshCw
+                    className={`w-5 h-5 ${isPending ? "animate-spin" : ""}`}
+                    strokeWidth={1.5}
+                  />
+                  <span>{isPending ? "Retrying..." : "Try Again"}</span>
+                </button>
+              )}
+
+              {/* Resend Email */}
+              <button
+                // onClick={handleResendEmail}
+                className="w-full bg-green-500 hover:bg-green-600 text-white py-4 px-6 font-light tracking-wide transition-all duration-300 flex items-center justify-center space-x-3 group"
+              >
+                <Mail className="w-5 h-5" strokeWidth={1.5} />
+                <span>Request New Verification Email</span>
+              </button>
+
+              {/* Go Home */}
+              <button
+                onClick={handleGoHome}
+                className="w-full border border-gray-200 text-black py-4 px-6 font-light tracking-wide transition-all duration-300 hover:border-blue-400 hover:text-blue-500 flex items-center justify-center space-x-3 group"
+              >
+                <Home className="w-5 h-5" strokeWidth={1.5} />
+                <span>Return to Home</span>
+              </button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Success state
+  return (
+    <div>
+      <div className="pt-20 mb-2 bg-black h-16 w-full" />
+
+      <main className="bg-white flex items-center justify-center px-6 py-12 min-h-screen">
+        <div className="w-full max-w-md">
+          {/* Success Icon with Animation */}
+          <div
+            className={`text-center mb-12 transition-all duration-1000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+          >
+            <div className="relative inline-flex items-center justify-center">
+              {/* Background Circle */}
+              <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mb-8">
+                <CheckCircle
+                  className="w-12 h-12 text-blue-400"
+                  strokeWidth={1.5}
+                />
+              </div>
+
+              {/* Small accent dot */}
+              <div className="absolute -top-2 -right-2 w-4 h-4 bg-blue-400 rounded-full opacity-80"></div>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div
+            className={`text-center space-y-8 transition-all duration-1000 delay-300 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+          >
+            {/* Status Indicator */}
+            <div className="flex items-center justify-center space-x-3 mb-6">
+              <div className="w-8 h-px bg-blue-400"></div>
+              <span className="text-sm font-medium text-blue-400 tracking-widest uppercase">
+                Success
+              </span>
+              <div className="w-8 h-px bg-blue-400"></div>
+            </div>
+
+            {/* Main Heading */}
+            <h1 className="text-3xl md:text-4xl font-light text-black leading-tight tracking-tight">
+              Email Verified Successfully
+            </h1>
+
+            {/* Description */}
+            <p className="text-lg text-black font-light leading-relaxed max-w-sm mx-auto">
+              {state.message ||
+                "Your account has been activated. You can now access all features and start your journey with us."}
+            </p>
+
+            {/* Email Confirmation Detail */}
+            <div className="bg-gray-50 p-6 border-l-2 border-blue-400">
+              <div className="flex items-start space-x-3">
+                <Mail
+                  className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0"
+                  strokeWidth={1.5}
+                />
+                <div className="text-left">
+                  <p className="text-sm font-medium text-black mb-1">
+                    Verification completed{userEmail ? " for:" : ""}
+                  </p>
+                  {userEmail && (
+                    <p className="text-sm text-gray-600 font-light">
+                      {userEmail}
+                    </p>
+                  )}
+                  {!userEmail && (
+                    <p className="text-sm text-gray-600 font-light">
+                      Your email has been successfully verified
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Auto-redirect notice */}
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <p className="text-sm text-blue-700 font-light">
+                {`You'll be automatically redirected to your dashboard in a few
+                seconds...`}
+              </p>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div
+            className={`mt-12 space-y-4 transition-all duration-1000 delay-700 ${showActions ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+          >
+            {/* Primary Action */}
+            <button
+              onClick={handleGoToDashboard}
+              className="w-full bg-black text-white py-4 px-6 font-light tracking-wide transition-all duration-300 hover:bg-gray-900 flex items-center justify-center space-x-3 group"
+            >
+              <User className="w-5 h-5" strokeWidth={1.5} />
+              <span>Go to Dashboard</span>
+              <ArrowRight
+                className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1"
+                strokeWidth={1.5}
+              />
+            </button>
+
+            {/* Secondary Action */}
+            <button
+              onClick={handleGoHome}
+              className="w-full border border-gray-200 text-black py-4 px-6 font-light tracking-wide transition-all duration-300 hover:border-blue-400 hover:text-blue-500 flex items-center justify-center space-x-3 group"
+            >
+              <Home className="w-5 h-5" strokeWidth={1.5} />
+              <span>Return to Home</span>
+            </button>
+          </div>
+
+          {/* Additional Info */}
+          <div
+            className={`mt-12 text-center transition-all duration-1000 delay-1000 ${showActions ? "opacity-100" : "opacity-0"}`}
+          >
+            <div className="flex items-center justify-center space-x-3 mb-4">
+              <div className="w-6 h-px bg-gray-200"></div>
+              <span className="text-xs text-gray-500 tracking-widest uppercase">
+                Need Help?
+              </span>
+              <div className="w-6 h-px bg-gray-200"></div>
+            </div>
+
+            <p className="text-sm text-gray-600 font-light">
+              If you have any questions, feel free to{" "}
+              <a
+                href="/contact"
+                className="text-blue-400 hover:text-blue-500 transition-colors duration-200 underline underline-offset-2"
+              >
+                contact our support team
+              </a>
+            </p>
+          </div>
+        </div>
+      </main>
+    </div>
   );
 };
 

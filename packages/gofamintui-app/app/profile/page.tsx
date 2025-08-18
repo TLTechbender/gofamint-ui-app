@@ -37,7 +37,7 @@ const Dashboard = () => {
   const [user, setUser] = useState<UserProfile>({
     id: "user_123",
     name: "John Doe",
-    email: "john.doe@example.com",
+    email: "john.doe@me.co",
     username: "johndoe",
     bio: "Active member of GSF UI. Love sharing thoughts on sermons and community events.",
     location: "Ibadan, Nigeria",

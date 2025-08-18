@@ -1,53 +1,7 @@
 // Single Blog Post Query Interfaces
 
-interface Asset {
-  _id: string;
-  url: string;
-  metadata?: {
-    lqip: string;
-    dimensions: {
-      width: number;
-      height: number;
-    };
-  };
-}
-
-interface FeaturedImage {
-  asset: Asset;
-  alt: string;
-}
-
-interface AuthorImage {
-  asset: Asset;
-  alt?: string;
-}
-
-interface Author {
-  _id: string;
-  firstName: string;
-  lastName: string;
-  image?: AuthorImage;
-  bio?: string;
-}
-
-interface AuthorInfo {
-  bio?: string;
-  jobTitle?: string;
-  socialLinks?: {
-    twitter?: string;
-    linkedin?: string;
-    github?: string;
-    website?: string;
-    instagram?: string;
-    facebook?: string;
-  };
-}
-
-interface LikedUser {
-  _id: string;
-  firstName: string;
-  lastName: string;
-}
+import { Author } from "./blogPosts";
+import { SanityImage } from "./sanityImage";
 
 interface SEO {
   metaTitle?: string;
@@ -61,21 +15,16 @@ interface Slug {
 }
 
 // Main Blog Post interface for single post query
-export interface BlogPost{
+export interface BlogPost {
   _id: string;
   title: string;
   slug: Slug;
   excerpt: string;
-  content: any; // This could be more specific based on your content structure (e.g., PortableText)
-  featuredImage: FeaturedImage;
+  content: any; // Portable text content
+  featuredImage: SanityImage;
   author: Author;
-  authorInfo?: AuthorInfo;
-  tags?: string[]; // Adjust based on your tag structure
   publishedAt: string;
   readingTime: number;
-  allowComments: boolean;
-  likes: LikedUser[];
-  views: number;
+  views: number; // Generic view count from Sanity
   seo?: SEO;
-  commentCount: number;
 }

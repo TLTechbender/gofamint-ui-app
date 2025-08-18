@@ -9,32 +9,15 @@ export const blogPostQuery = `
       asset,
       alt
     },
-    author-> {
-      _id,
-      firstName,
-      lastName,
-      image,
-      bio
-    },
-    authorInfo {
-      bio,
-      jobTitle,
-      socialLinks
-    },
-    tags,
+    
     publishedAt,
     readingTime,
-    allowComments,
-    likes[]-> {
-      _id,
-      firstName,
-      lastName
-    },
-    views,
+   
+   
     seo {
       metaTitle,
       metaDescription,
       keywords
     },
-    "commentCount": count(*[_type == "comment" && references(^._id) && approved == true])
+  
   }`;
