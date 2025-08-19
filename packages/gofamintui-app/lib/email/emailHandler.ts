@@ -1,6 +1,6 @@
-
 import nodemailer from "nodemailer";
 import verifyNewUserEmail from "./verifyNewUserEmail";
+import resetPaswordEmail from "./resetPasswordEmail";
 
 // Create transporter
 const transporter = nodemailer.createTransport({
@@ -17,14 +17,14 @@ export async function sendVerifiyUserEmail(
   token: string,
   firstName: string
 ) {
-  const verificationUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/verify-email/${token}`;
+  const verificationUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/verify-email/${token}?email=${email}`;
 
   const mailOptions = {
     from: `${process.env.NEXT_SMTP_EMAIL_ADDRESS}`,
     to: email,
     subject: "Verify your email address",
 
-    html: verifyNewUserEmail(firstName,verificationUrl),
+    html: verifyNewUserEmail(firstName, verificationUrl),
   };
 
   try {
@@ -36,3 +36,26 @@ export async function sendVerifiyUserEmail(
   }
 }
 
+export async function sendResetPasswordEmail(
+  email: string,
+  token: string,
+  firstName: string
+) {
+  const resetUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/forgot-password/reset/${token}?email=${email}`;
+
+  const mailOptions = {
+    from: `${process.env.NEXT_SMTP_EMAIL_ADDRESS}`,
+    to: email,
+    subject: "Request to change Password",
+
+    html: resetPaswordEmail(firstName, resetUrl),
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log("Reset email sent successfully");
+  } catch (error) {
+    console.error("Error sending reset email:", error);
+    throw new Error("Failed to send reset email");
+  }
+}

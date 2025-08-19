@@ -1,3 +1,4 @@
+"use server";
 import { ResetPasswordActionState } from "@/lib/formActionStates/resetPasswordActionState";
 import { prisma } from "@/lib/prisma/prisma";
 import { resetPasswordSchemaServer } from "@/lib/formSchemas/resetPasswordSchemaServer";
@@ -5,17 +6,17 @@ import verifyToken from "@/lib/tokenHandler/verifyToken";
 import bcrypt from "bcrypt";
 
 export default async function resetPassword(
-  initialState: ResetPasswordActionState,
   formData: FormData
 ): Promise<ResetPasswordActionState> {
   try {
     const rawData = {
       token: formData.get("token") as string,
       password: formData.get("password") as string,
-      userId: formData.get("userId") as string,
+      email: formData.get("email") as string,
     };
 
     const result = resetPasswordSchemaServer.safeParse(rawData);
+    console.log(result.error)
     if (!result.success) {
       return {
         success: false,
@@ -24,11 +25,37 @@ export default async function resetPassword(
       };
     }
 
-    const { token, password, userId } = result.data;
+    const { token, password, email } = result.data;
 
-    const verified = verifyToken(userId, "reset-password", token);
+    const isExistingUser = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
 
-    if (!verified) {
+    if (!isExistingUser) {
+      return {
+        success: false,
+        status: 404,
+        message: "User does not exist",
+      };
+    }
+
+    if (!isExistingUser.isVerified) {
+      return {
+        success: false,
+        status: 404,
+        message: "Account has not been verified",
+      };
+    }
+
+    const verifiedToken = verifyToken(
+      isExistingUser.id,
+      "reset-password",
+      token
+    );
+
+    if (!verifiedToken) {
       return {
         success: false,
         status: 404,
@@ -36,10 +63,9 @@ export default async function resetPassword(
       };
     }
 
-
     const hashedPassword = await bcrypt.hash(password, 12);
     await prisma.user.update({
-      where: { id: userId },
+      where: { email: isExistingUser.email },
       data: { password: hashedPassword },
     });
 

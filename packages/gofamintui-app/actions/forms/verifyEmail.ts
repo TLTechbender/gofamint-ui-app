@@ -1,21 +1,16 @@
 "use server";
 
+import { getUserByEmail } from "@/auth";
+import { VerifyEmailActionState } from "@/lib/formActionStates/verifyEmailActionState";
 import { prisma } from "@/lib/prisma/prisma";
 import verifyToken from "@/lib/tokenHandler/verifyToken";
 
-export type VerifyEmailActionState = {
-  success: boolean;
-  status: number;
-  message: string;
-};
-
 export default async function verifyEmail(
-  prevState: VerifyEmailActionState,
   formData: FormData
 ): Promise<VerifyEmailActionState> {
   try {
     const token = formData.get("token")!.toString();
-    const id = formData.get("id")?.toString();
+    const email = formData.get("email")?.toString();
 
     if (!token || !token.trim()) {
       return {
@@ -25,16 +20,27 @@ export default async function verifyEmail(
       };
     }
 
-    if (!id) {
+    if (!email) {
       return {
         success: false,
         status: 400,
-        message: "User ID is required.",
+        message: "Email is required.",
       };
     }
 
-    // ✅ Verify token
-    const verifyTokenResult = verifyToken(id, "verify-email", token);
+    const isValidUser = await getUserByEmail(email);
+    if (!isValidUser) {
+      return {
+        success: false,
+        status: 400,
+        message: "User not found ",
+      };
+    }
+    const verifyTokenResult = verifyToken(
+      isValidUser.id,
+      "verify-email",
+      token
+    );
     if (!verifyTokenResult) {
       return {
         success: false,
@@ -43,19 +49,9 @@ export default async function verifyEmail(
       };
     }
 
-    // ✅ Check user
-    const user = await prisma.user.findUnique({ where: { id } });
-    if (!user) {
-      return {
-        success: false,
-        status: 404,
-        message: "User not found.",
-      };
-    }
-
     // ✅ Update user
     await prisma.user.update({
-      where: { id },
+      where: { id: isValidUser.id },
       data: { isVerified: true },
     });
 

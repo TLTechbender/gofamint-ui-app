@@ -1,16 +1,19 @@
-import { sendVerifiyUserEmail } from "@/lib/email/emailHandler";
+"use server";
+import { sendResetPasswordEmail } from "@/lib/email/emailHandler";
+
 import { ForgotPasswordActionState } from "@/lib/formActionStates/forgotPasswordActionState";
 import { forgotPasswordSchemaServer } from "@/lib/formSchemas/forgotPasswordSchemaServer";
 import { prisma } from "@/lib/prisma/prisma";
 import generateToken from "@/lib/tokenHandler/generateToken";
 
 export default async function forgotPassword(
-  initialState: ForgotPasswordActionState,
   formData: FormData
-): Promise<ForgotPasswordActionState & { status: number }> {
+): Promise<ForgotPasswordActionState> {
   const email = formData.get("email");
-  const result = forgotPasswordSchemaServer.safeParse(email);
-
+  console.log(email);
+  const result = forgotPasswordSchemaServer.safeParse({ email });
+  console.log(result);
+ 
   if (!result.success) {
     return {
       success: false,
@@ -33,11 +36,8 @@ export default async function forgotPassword(
   }
 
   if (userExists.isVerified) {
-    const verificationToken = generateToken(
-      String(userExists.id),
-      "reset-password"
-    );
-    await sendVerifiyUserEmail(
+    const verificationToken = generateToken(userExists.id, "reset-password");
+    await sendResetPasswordEmail(
       userExists.email,
       verificationToken,
       userExists.firstName

@@ -1,16 +1,19 @@
 "use client";
 
-import { useState, useActionState, useEffect } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, AlertCircle } from "lucide-react";
 
-import { resetPasswordClientSchema, ResetPasswordSchemaClientData } from "@/lib/formSchemas/resetPasswordSchemaClient";
+import {
+  resetPasswordClientSchema,
+  ResetPasswordSchemaClientData,
+} from "@/lib/formSchemas/resetPasswordSchemaClient";
 import resetPassword from "@/actions/forms/resetPassword";
 import { ResetPasswordActionState } from "@/lib/formActionStates/resetPasswordActionState";
-// import { resetPasswordSchemaClient } from "@/lib/formSchemas/resetPasswordSchemaClient"; // Add when ready
+import { toast } from "react-toastify";
 
 // Types
 interface ResetPasswordForm {
@@ -21,7 +24,7 @@ interface ResetPasswordForm {
 const initialState: ResetPasswordActionState = {
   success: false,
   message: "",
-  status: 0
+  status: 0,
 };
 
 // Custom hook for password strength (consistent with your registration component)
@@ -86,11 +89,9 @@ export default function ResetPasswordComponent({ token }: { token: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-
-  const [state, formAction, isPending] = useActionState(
-    resetPassword,
-    initialState
-  );
+  // Replace useActionState with useTransition
+  const [state, setState] = useState(initialState);
+  const [isPending, startTransition] = useTransition();
 
   const {
     register,
@@ -101,21 +102,36 @@ export default function ResetPasswordComponent({ token }: { token: string }) {
     clearErrors,
     reset,
   } = useForm<ResetPasswordSchemaClientData>({
-    
     mode: "onChange",
-    resolver: zodResolver(resetPasswordClientSchema)
+    resolver: zodResolver(resetPasswordClientSchema),
   });
 
   // Watch password for real-time validation and strength checking
   const watchedPassword = watch("password") || "";
 
-
   // Password strength hook
   const { criteria, strength, score, strengthLabel, strengthColor } =
     usePasswordStrength(watchedPassword);
 
+  // Handle server action response
+  useEffect(() => {
+    if (state.success) {
+      setIsSuccess(true);
+      toast.success("Your password has been successfully reset");
 
-  // Form submission handler
+      reset();
+    } else if (state.message && !state.success && state.status !== 0) {
+      // Set server errors on the form (only if we actually got a response)
+      setError("root", {
+        type: "server",
+        message: state.message,
+      });
+
+      toast.error(state.message);
+    }
+  }, [state, setError, reset]);
+
+  // Form submission handler with useTransition
   const onSubmit = (data: ResetPasswordForm) => {
     // Clear any previous server errors
     clearErrors();
@@ -127,16 +143,18 @@ export default function ResetPasswordComponent({ token }: { token: string }) {
     formData.append("password", data.password);
 
     // Extract userId from token or get it from searchParams
-    const userId = searchParams.get("userId"); // Adjust based on your URL structure
-    if (userId) {
-      formData.append("userId", userId);
+    const email = searchParams.get("email"); // Adjust based on your URL structure
+    if (email) {
+      formData.append("email", email);
     }
 
-
-    formAction(formData);
+    startTransition(async () => {
+      const result = await resetPassword(formData);
+      setState(result);
+    });
   };
 
-  // Toggle password visibility
+  //AI suggestion sha, wetin concern me
   const togglePasswordVisibility = (field: keyof typeof showPasswords) => {
     setShowPasswords((prev) => ({
       ...prev,
@@ -145,9 +163,6 @@ export default function ResetPasswordComponent({ token }: { token: string }) {
   };
 
   // Success state
-
-
-  //also call reset when form submits right would test and check soon,, just want to get all the code up bro
   if (isSuccess) {
     return (
       <main className="bg-white min-h-screen">
@@ -189,7 +204,7 @@ export default function ResetPasswordComponent({ token }: { token: string }) {
             </div>
 
             <Link
-              href="/auth/login"
+              href="/auth/signin"
               className="inline-block w-full bg-black hover:bg-gray-900 text-white font-medium py-4 transition-all duration-200 text-center"
             >
               Continue to Login

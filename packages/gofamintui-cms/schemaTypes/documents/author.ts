@@ -1,127 +1,64 @@
 import {defineField, defineType} from 'sanity'
 
-// First, create a separate author document type
 export const author = defineType({
   name: 'author',
   title: 'Authors',
   type: 'document',
   fields: [
     defineField({
-      name: 'firstName',
-      title: 'First Name',
+      name: 'userId',
+      title: 'User ID (from our DB)',
+      type: 'string',
+      description: 'Reference to user in SQLite database (please do not touch this at all)',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'displayName',
+      title: 'Display Name',
       type: 'string',
       validation: (Rule) => Rule.required(),
     }),
     defineField({
-      name: 'lastName',
-      title: 'Last Name',
-      type: 'string',
-      validation: (Rule) => Rule.required(),
+      name: 'isActive',
+      title: 'Active Author',
+      type: 'boolean',
+      initialValue: false,
+      description: 'Toggle to approve/revoke author permissions',
     }),
+
     defineField({
-      name: 'email',
-      title: 'Email',
-      type: 'string',
-      validation: (Rule) => Rule.required().email(),
-    }),
-    defineField({
-      name: 'bio',
-      title: 'Author Bio',
-      type: 'text',
-      description: 'Bio for this author',
-      rows: 4,
-    }),
-    defineField({
-      name: 'jobTitle',
-      title: 'Job Title/Position',
-      type: 'string',
-      description: 'Professional title or position in the church',
-    }),
-    defineField({
-      name: 'profileImage',
-      title: 'Profile Image',
+      name: 'avatar',
+      title: 'Avatar',
       type: 'image',
       options: {
         hotspot: true,
       },
-      fields: [
-        defineField({
-          name: 'alt',
-          title: 'Alternative Text',
-          type: 'string',
-          description: 'Alternative text for profile image',
-        }),
-      ],
+      description: 'Author profile picture',
+    }),
+
+    defineField({
+      name: 'requestedAt',
+      title: 'Requested At',
+      type: 'datetime',
+      initialValue: () => new Date().toISOString(),
     }),
     defineField({
-      name: 'socialLinks',
-      title: 'Social Media Links',
-      type: 'object',
-      fields: [
-        defineField({
-          name: 'instagram',
-          title: 'Instagram',
-          type: 'url',
-          validation: (Rule) =>
-            Rule.uri({
-              scheme: ['http', 'https'],
-            }),
-        }),
-        defineField({
-          name: 'whatsapp',
-          title: 'WhatsApp',
-          type: 'string',
-          description: 'WhatsApp number (include country code)',
-        }),
-        defineField({
-          name: 'linkedin',
-          title: 'LinkedIn',
-          type: 'url',
-          validation: (Rule) =>
-            Rule.uri({
-              scheme: ['http', 'https'],
-            }),
-        }),
-        defineField({
-          name: 'twitter',
-          title: 'Twitter/X',
-          type: 'url',
-          validation: (Rule) =>
-            Rule.uri({
-              scheme: ['http', 'https'],
-            }),
-        }),
-        defineField({
-          name: 'facebook',
-          title: 'Facebook',
-          type: 'url',
-          validation: (Rule) =>
-            Rule.uri({
-              scheme: ['http', 'https'],
-            }),
-        }),
-        defineField({
-          name: 'website',
-          title: 'Personal Website',
-          type: 'url',
-          validation: (Rule) =>
-            Rule.uri({
-              scheme: ['http', 'https'],
-            }),
-        }),
-      ],
+      name: 'approvedAt',
+      title: 'Approved At',
+      type: 'datetime',
     }),
   ],
   preview: {
     select: {
-      firstName: 'firstName',
-      lastName: 'lastName',
-      media: 'profileImage',
+      title: 'displayName',
+      userId: 'userId',
+      isActive: 'isActive',
+      media: 'avatar',
     },
-    prepare(selection) {
-      const {firstName, lastName} = selection
+    prepare({title, userId, isActive}) {
+      const status = isActive ? '✅ Active' : '⏳ Pending'
       return {
-        title: `${firstName} ${lastName}`,
+        title: title,
       }
     },
   },

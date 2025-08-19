@@ -1,6 +1,5 @@
 import aboutPage from './documents/aboutPage'
 import {author} from './documents/author'
-import {comment} from './documents/blogComments'
 
 import {blogPost} from './documents/blogs'
 import contact from './documents/contact'
@@ -15,7 +14,7 @@ import homePage from './documents/homePage'
 import onlineGiving from './documents/onlineGiving'
 import sermonsPage from './documents/sermonsPage'
 import streaming from './documents/streaming'
-import {user} from './documents/user'
+
 import whatsappContactWidget from './documents/whatsappContactWidget'
 
 export const schemaTypes = [
@@ -27,11 +26,9 @@ export const schemaTypes = [
   excecutives,
   contact,
   streaming,
-  author,
   events,
   blogPost,
-  user,
-  comment,
+  author,
   footerContent,
-  whatsappContactWidget
+  whatsappContactWidget,
 ]

@@ -21,94 +21,12 @@ export const blogPost = defineType({
       },
       validation: (Rule) => Rule.required(),
     }),
-   defineField({
-  name: 'author',
-  title: 'Author',
-  type: 'reference',
-  to: [{type: 'user'}],
-  validation: (Rule) => Rule.required(),
-  options: {
-    filter: 'isActive == true',
-    disableNew: true, // Explicitly disable creating new users
-  },
-}),
     defineField({
-      name: 'authorInfo',
-      title: 'Author Information',
-      type: 'object',
-      fields: [
-        defineField({
-          name: 'bio',
-          title: 'Author Bio',
-          type: 'text',
-          description: 'Bio for this specific blog post',
-          rows: 4,
-        }),
-        defineField({
-          name: 'jobTitle',
-          title: 'Job Title/Position',
-          type: 'string',
-          description: 'Professional title or position in the church',
-        }),
-        defineField({
-          name: 'socialLinks',
-          title: 'Social Media Links',
-          type: 'object',
-          fields: [
-            defineField({
-              name: 'instagram',
-              title: 'Instagram',
-              type: 'url',
-              validation: (Rule) =>
-                Rule.uri({
-                  scheme: ['http', 'https'],
-                }),
-            }),
-            defineField({
-              name: 'whatsapp',
-              title: 'WhatsApp',
-              type: 'string',
-              description: 'WhatsApp number (include country code)',
-            }),
-            defineField({
-              name: 'linkedin',
-              title: 'LinkedIn',
-              type: 'url',
-              validation: (Rule) =>
-                Rule.uri({
-                  scheme: ['http', 'https'],
-                }),
-            }),
-            defineField({
-              name: 'twitter',
-              title: 'Twitter/X',
-              type: 'url',
-              validation: (Rule) =>
-                Rule.uri({
-                  scheme: ['http', 'https'],
-                }),
-            }),
-            defineField({
-              name: 'facebook',
-              title: 'Facebook',
-              type: 'url',
-              validation: (Rule) =>
-                Rule.uri({
-                  scheme: ['http', 'https'],
-                }),
-            }),
-            defineField({
-              name: 'website',
-              title: 'Personal Website',
-              type: 'url',
-              validation: (Rule) =>
-                Rule.uri({
-                  scheme: ['http', 'https'],
-                }),
-            }),
-          ],
-        }),
-      ],
+      name: 'author',
+      title: 'Author',
+      type: 'reference',
+      to: [{type: 'author'}],
+      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: 'featuredImage',
@@ -188,16 +106,6 @@ export const blogPost = defineType({
         },
       ],
     }),
- 
-    defineField({
-      name: 'tags',
-      title: 'Tags',
-      type: 'array',
-      of: [{type: 'string'}],
-      options: {
-        layout: 'tags',
-      },
-    }),
     defineField({
       name: 'publishedAt',
       title: 'Published At',
@@ -212,44 +120,19 @@ export const blogPost = defineType({
       description: 'Set to false to publish the post',
     }),
     defineField({
-      name: 'featured',
-      title: 'Featured Post',
-      type: 'boolean',
-      initialValue: false,
-      description: 'Feature this post on homepage',
-    }),
-    defineField({
       name: 'readingTime',
       title: 'Reading Time (minutes)',
       type: 'number',
       description: 'Estimated reading time in minutes',
     }),
     defineField({
-      name: 'allowComments',
-      title: 'Allow Comments',
-      type: 'boolean',
-      initialValue: true,
-      description: 'Enable/disable comments for this post',
-    }),
-    defineField({
-      name: 'likes',
-      title: 'Likes',
-      type: 'array',
-      of: [
-        {
-          type: 'reference',
-          to: [{type: 'user'}],
-        },
-      ],
-      description: 'Users who liked this blog post',
-    }),
-    defineField({
       name: 'views',
       title: 'View Count',
       type: 'number',
       initialValue: 0,
-      description: 'Number of times this post has been viewed',
+      description: 'Generic view count for popularity ranking',
     }),
+
     defineField({
       name: 'seo',
       title: 'SEO Settings',
@@ -304,6 +187,11 @@ export const blogPost = defineType({
       by: [{field: 'publishedAt', direction: 'asc'}],
     },
     {
+      title: 'Most Popular',
+      name: 'viewsDesc',
+      by: [{field: 'views', direction: 'desc'}],
+    },
+    {
       title: 'Title A-Z',
       name: 'titleAsc',
       by: [{field: 'title', direction: 'asc'}],
@@ -312,26 +200,21 @@ export const blogPost = defineType({
   preview: {
     select: {
       title: 'title',
-      author: 'author.firstName',
-      authorLastName: 'author.lastName',
+      author: 'author.displayName',
       media: 'featuredImage',
       publishedAt: 'publishedAt',
       isDraft: 'isDraft',
-      likes: 'likes',
       views: 'views',
     },
     prepare(selection) {
-      const {title, author, authorLastName, publishedAt, isDraft, likes, views} = selection
-      const authorName = author && authorLastName ? `${author} ${authorLastName}` : author
+      const {title, author, publishedAt, isDraft, views} = selection
       const status = isDraft ? '(Draft)' : ''
       const date = publishedAt ? new Date(publishedAt).toLocaleDateString() : ''
-      const likeCount = Array.isArray(likes) ? likes.length : 0
       const viewCount = views || 0
-      const engagement = `${likeCount} ❤️ • ${viewCount} 👁️`
 
       return {
         title: `${title} ${status}`,
-        subtitle: `by ${authorName || 'Unknown Author'} ${date ? `• ${date}` : ''} • ${engagement}`,
+        subtitle: `by ${author || 'Unknown Author'} ${date ? `• ${date}` : ''} • ${viewCount} 👁️`,
       }
     },
   },

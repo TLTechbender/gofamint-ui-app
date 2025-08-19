@@ -1,8 +1,8 @@
 import NextAuth from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
-import GoogleProvider from "next-auth/providers/google";
+import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
 import bcrypt from "bcrypt";
-
+import { PrismaAdapter } from "@auth/prisma-adapter";
 import type { DefaultSession } from "next-auth";
 import { prisma } from "./lib/prisma/prisma";
 
@@ -249,14 +249,14 @@ function parseGoogleUserName(fullName: string | null | undefined): {
 
   return { firstName, lastName };
 }
-
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  adapter: PrismaAdapter(prisma),
   providers: [
-    GoogleProvider({
-      clientId: process.env.NEXT_GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.NEXT_GOOGLE_CLIENT_SECRET!,
+    Google({
+      clientId: process.env.AUTH_GOOGLE_CLIENT_ID!, // Changed env var name
+      clientSecret: process.env.AUTH_GOOGLE_CLIENT_SECRET!,
     }),
-    CredentialsProvider({
+    Credentials({
       name: "credentials",
       credentials: {
         emailOrUsername: {
@@ -267,30 +267,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       authorize: async (credentials) => {
-        if (!credentials?.emailOrUsername || !credentials?.password) {
-          throw new Error("Email/username and password are required.");
-        }
-
-        const emailOrUsername = String(credentials.emailOrUsername);
-        const password = String(credentials.password);
-
         try {
+          if (!credentials?.emailOrUsername || !credentials?.password) {
+            return null; // Return null instead of throwing
+          }
+
+          const emailOrUsername = String(credentials.emailOrUsername);
+          const password = String(credentials.password);
+
           const user =
             (await getUserByEmail(emailOrUsername)) ||
             (await getUserByUsername(emailOrUsername));
-
-          if (!user) {
-            throw new Error("Invalid credentials.");
+console.log(user)
+          if (!user || !user.isVerified || !user.password) {
+            return null;
           }
 
-          if (!user.isVerified) {
-            throw new Error("Account not verified.");
-          }
+          console.log(password, user.password)
 
-          if (!user.password) throw new Error("No password from DB ");
           const isValidPassword = await bcrypt.compare(password, user.password);
           if (!isValidPassword) {
-            throw new Error("Invalid credentials.");
+            console.log(isValidPassword)
+            return null;
           }
 
           return {
@@ -307,7 +305,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           };
         } catch (error) {
           console.error("Authentication error:", error);
-          throw new Error("Invalid credentials.");
+          return null; // Always return null on error
         }
       },
     }),
@@ -320,26 +318,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const existingUser = await getUserByEmail(user.email!);
 
           if (existingUser) {
-            if (!existingUser.isVerified) return false;
-            return true;
-          } else {
-            const userName = await findAvailableUsername(user.email!);
-            const { firstName, lastName } = parseGoogleUserName(user.name);
-
-            await prisma.user.create({
-              data: {
-                email: user.email!,
-                userName,
-                firstName,
-                lastName,
-                password: "",
-                phoneNumber: "",
-                isVerified: true, // verified immediately
-                isAuthor: false,
-              },
-            });
-            return true;
+            return existingUser.isVerified; // Return boolean directly
           }
+
+          // Create new Google user
+          const userName = await findAvailableUsername(user.email!);
+          const { firstName, lastName } = parseGoogleUserName(user.name);
+
+          await prisma.user.create({
+            data: {
+              email: user.email!,
+              userName,
+              firstName,
+              lastName,
+              password: null, // Google users don't have passwords
+              phoneNumber: null,
+              bio: null,
+              isVerified: true,
+              isAuthor: false,
+            },
+          });
+          return true;
         } catch (error) {
           console.error("Google sign-in error:", error);
           return false;
@@ -349,45 +348,57 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
 
     async jwt({ token, trigger, session, user }) {
+      // Handle session updates
       if (trigger === "update" && session?.user) {
-        token.name = session.user.name;
-        token.userName = session.user.userName;
-        token.firstName = session.user.firstName;
-        token.lastName = session.user.lastName;
-        token.phoneNumber = session.user.phoneNumber;
-        token.isAuthor = session.user.isAuthor;
-        token.isVerified = session.user.isVerified;
+        Object.assign(token, {
+          name: session.user.name,
+          userName: session.user.userName,
+          firstName: session.user.firstName,
+          lastName: session.user.lastName,
+          phoneNumber: session.user.phoneNumber,
+          isAuthor: session.user.isAuthor,
+          isVerified: session.user.isVerified,
+        });
+        return token;
       }
 
-      if (user && user.id) {
-        token.id = user.id;
-        token.userName = user.userName || "";
-        token.firstName = user.firstName || "";
-        token.lastName = user.lastName || "";
-        token.phoneNumber = user.phoneNumber || "";
-        token.bio = user.bio || "";
-        token.isAuthor = user.isAuthor || false;
-        token.isVerified = user.isVerified || false;
+      // Handle initial sign-in
+      if (user?.id) {
+        Object.assign(token, {
+          id: user.id,
+          userName: user.userName || "",
+          firstName: user.firstName || "",
+          lastName: user.lastName || "",
+          phoneNumber: user.phoneNumber || "",
+          bio: user.bio || "",
+          isAuthor: user.isAuthor || false,
+          isVerified: user.isVerified || false,
+        });
+        return token;
       }
 
+      // Fetch missing user data if needed
       if (token.id && !token.userName) {
         try {
           const dbUser = await prisma.user.findUnique({
-            where: { id:token.id },
+            where: { id: token.id as string },
           });
 
           if (dbUser) {
-            token.name = `${dbUser.firstName} ${dbUser.lastName}`.trim();
-            token.userName = dbUser.userName;
-            token.firstName = dbUser.firstName;
-            token.lastName = dbUser.lastName;
-            token.phoneNumber = dbUser.phoneNumber || "";
-            token.bio = dbUser.bio || "";
-            token.isAuthor = dbUser.isAuthor;
-            token.isVerified = dbUser.isVerified;
+            Object.assign(token, {
+              name: `${dbUser.firstName} ${dbUser.lastName}`.trim(),
+              userName: dbUser.userName,
+              firstName: dbUser.firstName,
+              lastName: dbUser.lastName,
+              phoneNumber: dbUser.phoneNumber || "",
+              bio: dbUser.bio || "",
+              isAuthor: dbUser.isAuthor,
+              isVerified: dbUser.isVerified,
+            });
           }
         } catch (error) {
           console.error("Error fetching user data for JWT:", error);
+          // Don't throw - just continue with existing token
         }
       }
 
@@ -396,29 +407,32 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
     async session({ session, token }) {
       if (session.user && token.id) {
-        session.user.id = token.id;
-        session.user.userName = token.userName || "";
-        session.user.firstName = token.firstName || "";
-        session.user.lastName = token.lastName || "";
-        session.user.phoneNumber = token.phoneNumber || "";
-        session.user.bio = token.bio || "";
-        session.user.isAuthor = token.isAuthor || false;
-        session.user.isVerified = token.isVerified || false;
-
-        session.user.name =
-          `${session.user.firstName} ${session.user.lastName}`.trim();
+        // Type-safe assignment
+        const userSession = session.user as any;
+        Object.assign(userSession, {
+          id: token.id,
+          userName: token.userName || "",
+          firstName: token.firstName || "",
+          lastName: token.lastName || "",
+          phoneNumber: token.phoneNumber || "",
+          bio: token.bio || "",
+          isAuthor: token.isAuthor || false,
+          isVerified: token.isVerified || false,
+          name: `${token.firstName || ""} ${token.lastName || ""}`.trim(),
+        });
       }
       return session;
     },
   },
   pages: {
     signIn: "/signin",
-    error: "/signin",
-    newUser: "/register",
+    error: "/signin", // Consider using a dedicated error page
   },
   secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === "development", // Enable debug in development
 });
 
+// Your type declarations remain the same
 declare module "next-auth" {
   interface Session {
     user: {

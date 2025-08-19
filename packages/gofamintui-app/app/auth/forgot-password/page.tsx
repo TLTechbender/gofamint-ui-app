@@ -1,36 +1,33 @@
 "use client";
 
-import { useState, useActionState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import Link from "next/link";
 import forgotPassword from "@/actions/forms/forgotPassword";
-import { forgotPasswordSchemaClient, ForgotPasswordSchemaClientData } from "@/lib/formSchemas/forgotPasswordSchemaClient";
+import {
+  forgotPasswordSchemaClient,
+  ForgotPasswordSchemaClientData,
+} from "@/lib/formSchemas/forgotPasswordSchemaClient";
 import { ForgotPasswordActionState } from "@/lib/formActionStates/forgotPasswordActionState";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "react-toastify";
 
-
-// Types
 interface ForgotPasswordForm {
   email: string;
 }
 
-
-
-const initialState: ForgotPasswordActionState = {
-  success: false,
-  message: "",
-  status: 0
-};
-
 export default function ForgotPassword() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState("");
+  const [serverResponse, setServerResponse] =
+    useState<ForgotPasswordActionState>({
+      success: false,
+      message: "",
+      status: 0,
+    });
 
-  // useActionState hook for server action
-  const [state, formAction, isPending] = useActionState(
-    forgotPassword,
-    initialState
-  );
+  // useTransition for handling server action
+  const [isPending, startTransition] = useTransition();
 
   // React Hook Form setup
   const {
@@ -39,41 +36,64 @@ export default function ForgotPassword() {
     formState: { errors, isValid },
     getValues,
     setError,
-    reset
+    reset,
   } = useForm<ForgotPasswordSchemaClientData>({
     mode: "onChange",
-   resolver: zodResolver(forgotPasswordSchemaClient)
+    resolver: zodResolver(forgotPasswordSchemaClient),
   });
 
   // Handle server action response
   useEffect(() => {
-    if (state.success) {
+    if (serverResponse.success) {
       setSubmittedEmail(getValues("email"));
+      toast.success(
+        "A message has been sent to your email concernig how to go about resetting your password"
+      );
       setIsSubmitted(true);
       reset();
-    } else if (state.message && !state.success) {
+    } else if (serverResponse.message && !serverResponse.success) {
       // Set server errors on the form
       setError("email", {
         type: "server",
-        message: state.message,
+        message: serverResponse.message,
       });
+      if (serverResponse.message == "No user found with this email") {
+        toast.error("Account does not exist");
+      }
     }
-  }, [state, getValues, setError]);
+  }, [serverResponse, getValues, setError, reset]);
 
   // Form submission handler
   const onSubmit = (data: ForgotPasswordForm) => {
-    // Create FormData for server action
-    const formData = new FormData();
-    formData.append("email", data.email);
+    startTransition(async () => {
+      try {
+        // Create FormData for server action
+        const formData = new FormData();
+        formData.append("email", data.email);
 
-    // Call server action
-    formAction(formData);
+        // Call server action and get response
+        const result = await forgotPassword(formData);
+        setServerResponse(result);
+      } catch (error) {
+        // Handle any unexpected errors
+        setServerResponse({
+          success: false,
+          message: "An unexpected error occurred. Please try again.",
+          status: 500,
+        });
+      }
+    });
   };
 
   // Reset to form view
   const handleTryDifferentEmail = () => {
     setIsSubmitted(false);
     setSubmittedEmail("");
+    setServerResponse({
+      success: false,
+      message: "",
+      status: 0,
+    });
   };
 
   if (isSubmitted) {

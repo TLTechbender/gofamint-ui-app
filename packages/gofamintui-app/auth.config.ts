@@ -7,7 +7,9 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isOnProfile = nextUrl.pathname.startsWith("/dashboard");
+
+      //Todo come and ensure the same for author route too bro
+      const isOnProfile = nextUrl.pathname.startsWith("/profile");
       const isOnAuth = nextUrl.pathname.startsWith("/auth");
 
       if (isOnProfile) {
@@ -15,7 +17,7 @@ export const authConfig = {
         return false; // Redirect unauthenticated users to login page
       } else if (isOnAuth && isLoggedIn) {
         // Redirect logged-in users away from auth pages
-        return Response.redirect(new URL("/dashboard", nextUrl));
+        return Response.redirect(new URL("/profile", nextUrl));
       }
 
       // Allow access to all other routes regardless of login status

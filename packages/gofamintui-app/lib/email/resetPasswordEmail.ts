@@ -1,7 +1,11 @@
-`<!DOCTYPE html>
+const resetPasswordEmail = (
+  firstName: string,
+  resetUrl: string
+) => `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Password Reset</title>
 </head>
 <body style="margin:0; padding:0; background-color:#f8f9fa; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;">
@@ -26,30 +30,36 @@
       <h1 style="font-size:28px; font-weight:300; color:#000000; margin:0 0 24px 0; line-height:1.3;">Reset Your Password</h1>
 
       <p style="font-size:16px; color:#000000; font-weight:300; line-height:1.6; margin:0 0 32px 0;">
-        We received a request to reset your password for your GSF UI account.
+        Hi ${firstName}, we received a request to reset your password for your GSF UI account.
       </p>
 
       <p style="font-size:16px; color:#000000; font-weight:300; line-height:1.6; margin:0 0 32px 0;">
-        Use the verification code below to reset your password:
+        Click the button below to reset your password securely:
       </p>
 
-      <div style="background-color:#f8f9fa; border:1px solid #e9ecef; padding:24px; text-align:center; margin:32px 0;">
-        <p style="font-size:12px; color:#666666; text-transform:uppercase; letter-spacing:1px; margin:0 0 8px 0;">Verification Code</p>
-        <p style="font-size:32px; font-weight:600; color:#000000; letter-spacing:4px; font-family:'Courier New', monospace; margin:0;">847291</p>
-      </div>
-
-      <p style="font-size:16px; color:#000000; font-weight:300; line-height:1.6; margin:0 0 32px 0;">
-        Enter this code on the password reset page to create a new password. This code will expire in 15 minutes for security purposes.
-      </p>
-
-      <div style="text-align:center; margin:40px 0;">
-        <a href="#" style="display:inline-block; background-color:#4169E1; color:#ffffff; text-decoration:none; padding:16px 32px; font-size:16px; font-weight:400; border:2px solid #4169E1;">
-          Reset Password
+      <!-- Reset Button -->
+      <div style="text-align:center; margin:32px 0;">
+        <a href="${resetUrl}" 
+           style="display:inline-block; background-color:#4169E1; color:#ffffff; text-decoration:none; padding:16px 32px; font-size:16px; font-weight:400; border:2px solid #4169E1; border-radius:4px;">
+          Reset My Password
         </a>
       </div>
 
-      <p style="font-size:16px; color:#000000; font-weight:300; line-height:1.6; margin:0;">
-        If you prefer, you can also reset your password directly using the link above.
+      <!-- Fallback Instructions -->
+      <div style="background-color:#f8f9fa; border:1px solid #e9ecef; padding:24px; margin:32px 0; border-radius:4px;">
+        <p style="font-size:14px; color:#666666; font-weight:500; margin:0 0 12px 0; text-transform:uppercase; letter-spacing:0.5px;">
+          Button not working?
+        </p>
+        <p style="font-size:14px; color:#000000; font-weight:300; line-height:1.5; margin:0 0 16px 0;">
+          Copy and paste this link into your browser:
+        </p>
+        <div style="background-color:#ffffff; border:1px solid #ddd; padding:12px; border-radius:4px; word-break:break-all;">
+          <code style="font-family:'Courier New', monospace; font-size:12px; color:#333333;">${resetUrl}</code>
+        </div>
+      </div>
+
+      <p style="font-size:16px; color:#000000; font-weight:300; line-height:1.6; margin:32px 0 0 0;">
+        This reset link will expire in 15 minutes for security purposes.
       </p>
     </div>
 
@@ -69,5 +79,6 @@
 
   </div>
 </body>
-</html>
-`
+</html>`;
+
+export default resetPasswordEmail;

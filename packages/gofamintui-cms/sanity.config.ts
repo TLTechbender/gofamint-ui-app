@@ -2,7 +2,7 @@ import {defineConfig} from 'sanity'
 import {structureTool} from 'sanity/structure'
 import {visionTool} from '@sanity/vision'
 import {schemaTypes} from './schemaTypes'
-import {muxInput} from 'sanity-plugin-mux-input'
+
 
 export default defineConfig({
   name: 'default',
@@ -11,7 +11,7 @@ export default defineConfig({
   projectId: '276it5za',
   dataset: 'production',
 
-  plugins: [structureTool(), visionTool(), muxInput()],
+  plugins: [structureTool(), visionTool()],
 
   schema: {
     types: schemaTypes,

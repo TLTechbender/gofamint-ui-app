@@ -8,7 +8,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 
 export default function Signin() {
@@ -33,19 +33,27 @@ export default function Signin() {
   const onSubmit = async (data: LoginSchemaClientData) => {
     try {
       // Validate input
-
       const result = loginSchemaClient.safeParse(data);
       if (!result.success) {
         toast.error("Invalid input credentials. Please try again.");
         reset();
         return;
       }
+
+
+      //Todo: bro fix them callback urls too
+
       setIsLoading(true);
+      console.log("Submitting credentials:", result.data);
+
+      
       const res = await signIn("credentials", {
         redirect: false,
-        emailOrUserName: result.data.emailOrUserName,
+        emailOrUsername: result.data.emailOrUserName, 
         password: result.data.password,
       });
+
+      console.log("SignIn response:", res); 
 
       if (res?.error) {
         switch (res.error) {
@@ -54,18 +62,33 @@ export default function Signin() {
               "Invalid credentials. Check your email/username and password."
             );
             break;
-
+          case "AccessDenied":
+            toast.error("Access denied. Your account may not be verified.");
+            break;
+          case "Configuration":
+            toast.error(
+              "Authentication configuration error. Please contact support."
+            );
+            break;
           default:
             toast.error("Login failed: " + res.error);
+            console.error("Unexpected error:", res.error);
         }
         return;
       }
 
-      toast.success("Logged in successfully!");
-      if (callbackUrl) {
-        router.push(callbackUrl);
+      // Check if sign-in was successful
+      if (res?.ok) {
+        toast.success("Logged in successfully!");
+
+        if (callbackUrl) {
+          router.push(callbackUrl);
+        } else {
+          router.push(`/profile`);
+        }
       } else {
-        router.push(`/profile`);
+        toast.error("Login failed. Please try again.");
+        console.error("Sign-in failed without specific error:", res);
       }
     } catch (err) {
       console.error("Login error:", err);
@@ -107,13 +130,13 @@ export default function Signin() {
                 {/* Email Field */}
                 <div className="space-y-2">
                   <label
-                    htmlFor="email"
+                    htmlFor="text"
                     className="block text-sm font-medium text-black tracking-wide"
                   >
                     Email Address or Username
                   </label>
                   <input
-                    type="email"
+                    type="text"
                     id="emailOrUserName"
                     {...register("emailOrUserName")}
                     className={`w-full px-4 py-3 border  bg-white text-black placeholder-gray-400 focus:outline-none focus:ring-1  transition-colors duration-200 font-light

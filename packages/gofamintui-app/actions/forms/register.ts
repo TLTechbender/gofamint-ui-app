@@ -6,7 +6,6 @@ import { registerSchemaServer } from "@/lib/formSchemas/registerSchemaServer";
 import generateToken from "@/lib/tokenHandler/generateToken";
 
 export default async function registerNewUser(
-  initialState: RegisterActionState,
   formData: FormData
 ): Promise<RegisterActionState> {
   try {
@@ -21,7 +20,7 @@ export default async function registerNewUser(
 
     //logging cos i dont know what to do with it and I just be learning how to use the hook this be coming from
 
-    console.log(initialState);
+  
     const result = registerSchemaServer.safeParse(rawFormData);
     if (!result.success) {
       type RegisterErrors = NonNullable<RegisterActionState["errors"]>;
@@ -58,6 +57,7 @@ export default async function registerNewUser(
       userName: userData.userName,
     });
 
+    console.log('omo, deep in the server action')
     if (createNewUserResponse.success) {
       //Patterns here is key dawg
       const verificationToken = generateToken(

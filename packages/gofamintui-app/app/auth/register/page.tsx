@@ -1,5 +1,5 @@
 "use client";
-import { useActionState, useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -7,20 +7,77 @@ import {
   registerSchemaClient,
 } from "@/lib/formSchemas/registerSchemaClient";
 import registerNewUser from "@/actions/forms/register";
-import { Eye, EyeOff, Mail, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Mail } from "lucide-react";
 import Link from "next/link";
+import { toast } from "react-toastify";
+import { RegisterActionState } from "@/lib/formActionStates/registerActionState";
+import { resendVerificationEmail } from "@/actions/forms/resendVerification";
 
-//Is user verified state can throw me into bush later walahi
+/*
+ * RESEND VERIFICATION TIMER UTILITY FUNCTIONS
+ * These functions manage the timer state that persists across page refreshes
+ * to prevent users from abusing the resend verification feature
+ */
 
-const initialState = {
-  success: false,
-  message: "",
-  errors: null,
-  
-  email: "",
+// Key for storing timer data in localStorage
+const RESEND_TIMER_KEY = "resend_verification_timer";
+const RESEND_COOLDOWN_MINUTES = 2; // 2 minutes cooldown period
+
+// Get remaining time from localStorage
+const getRemainingTime = (email: string): number => {
+  if (typeof window === "undefined") return 0;
+
+  try {
+    const stored = localStorage.getItem(`${RESEND_TIMER_KEY}_${email}`);
+    if (!stored) return 0;
+
+    const { timestamp, cooldownMinutes } = JSON.parse(stored);
+    const now = Date.now();
+    const elapsed = now - timestamp;
+    const cooldownMs = cooldownMinutes * 60 * 1000;
+
+    return Math.max(0, cooldownMs - elapsed);
+  } catch {
+    return 0;
+  }
 };
 
+// Set timer in localStorage
+const setResendTimer = (email: string): void => {
+  if (typeof window === "undefined") return;
+
+  try {
+    const timerData = {
+      timestamp: Date.now(),
+      cooldownMinutes: RESEND_COOLDOWN_MINUTES,
+    };
+    localStorage.setItem(
+      `${RESEND_TIMER_KEY}_${email}`,
+      JSON.stringify(timerData)
+    );
+  } catch (error) {
+    console.warn("Could not set resend timer:", error);
+  }
+};
+
+// Clear timer from localStorage
+const clearResendTimer = (email: string): void => {
+  if (typeof window === "undefined") return;
+
+  try {
+    localStorage.removeItem(`${RESEND_TIMER_KEY}_${email}`);
+  } catch (error) {
+    console.warn("Could not clear resend timer:", error);
+  }
+};
+
+/*
+ * PASSWORD STRENGTH VALIDATION HOOK
+ * This custom hook evaluates password strength based on multiple criteria
+ * and provides visual feedback to users about their password quality
+ */
 const usePasswordStrength = (password: string) => {
+  // Define password strength criteria
   const criteria = [
     { label: "At least 8 characters", met: password.length >= 8 },
     { label: "Contains uppercase letter", met: /[A-Z]/.test(password) },
@@ -32,8 +89,8 @@ const usePasswordStrength = (password: string) => {
     },
   ];
 
+  // Calculate strength metrics
   const metCount = criteria.filter((c) => c.met).length;
-
   const strength =
     metCount === 0
       ? 0
@@ -46,6 +103,7 @@ const usePasswordStrength = (password: string) => {
             : 4;
   const score = (metCount / 5) * 100;
 
+  // Determine strength label and color
   const strengthLabel =
     strength === 0
       ? ""
@@ -70,12 +128,42 @@ const usePasswordStrength = (password: string) => {
   return { criteria, strength, score, strengthLabel, strengthColor };
 };
 
+/*
+ * MAIN REGISTER COMPONENT
+ * This component handles the complete registration flow with multiple states:
+ * 1. Initial registration form
+ * 2. Email verification required state
+ * 3. Email verification sent state
+ *
+ * Architecture Philosophy: BFF (Backend for Frontend)
+ * - Server actions handle all backend communication
+ * - Client manages UI state and user interactions
+ * - Props flow between server and client for consistent auth experience
+ */
 export default function Register() {
+  // UI STATE MANAGEMENT
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isResendingEmail, setIsResendingEmail] = useState(false);
-  const [serverErrorsProcessed, setServerErrorsProcessed] = useState(false);
 
+  // REGISTRATION STATE from server actions
+  const [registrationState, setRegistrationState] =
+    useState<RegisterActionState>({
+      success: false,
+      message: "",
+      errors: null as Record<string, string[]> | null,
+      email: "",
+      isUserVerified: null as boolean | null,
+    });
+
+  // RESEND VERIFICATION TIMER STATE
+  const [remainingTime, setRemainingTime] = useState<number>(0);
+  const [isTimerActive, setIsTimerActive] = useState<boolean>(false);
+
+  // LOADING STATES for async operations
+  const [isPending, startTransition] = useTransition();
+  const [isResendingEmail, startIsResendingTransition] = useTransition();
+
+  // FORM MANAGEMENT with React Hook Form and Zod validation
   const {
     register,
     handleSubmit,
@@ -86,22 +174,67 @@ export default function Register() {
     formState: { errors },
   } = useForm<RegisterFormDataClient>({
     resolver: zodResolver(registerSchemaClient),
-    mode: "onChange",
+    mode: "onChange", // Real-time validation
   });
 
+  // Watch password for strength calculation
   const password = watch("password") || "";
   const { criteria, strength, score, strengthLabel, strengthColor } =
     usePasswordStrength(password);
 
-  const [state, formAction, isPending] = useActionState(
-    registerNewUser,
-    initialState
-  );
-
-  // Handle server-side validation errors - Fixed to prevent infinite re-renders
+  /*
+   * TIMER EFFECT MANAGEMENT
+   * Initialize and manage the resend verification timer
+   * This effect runs when the component mounts or when email changes
+   */
   useEffect(() => {
-    if (state.errors && !state.success && !serverErrorsProcessed) {
-      Object.entries(state.errors).forEach(([field, messages]) => {
+    if (registrationState.email) {
+      const remaining = getRemainingTime(registrationState.email);
+      setRemainingTime(remaining);
+      setIsTimerActive(remaining > 0);
+    }
+  }, [registrationState.email]);
+
+  /*
+   * COUNTDOWN TIMER EFFECT
+   * Updates the timer every second when active
+   * Automatically clears when timer reaches zero
+   */
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (isTimerActive && remainingTime > 0) {
+      interval = setInterval(() => {
+        setRemainingTime((prev) => {
+          const newTime = Math.max(0, prev - 1000);
+          if (newTime === 0) {
+            setIsTimerActive(false);
+            // Clean up localStorage when timer expires
+            if (registrationState.email) {
+              clearResendTimer(registrationState.email);
+            }
+          }
+          return newTime;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [isTimerActive, remainingTime, registrationState.email]);
+
+  /*
+   * SERVER ERROR HANDLING
+   * Process validation errors returned from server actions
+   * and display them in the appropriate form fields
+   */
+  useEffect(() => {
+    if (registrationState.errors && !registrationState.success) {
+      // Map server errors to form field errors
+      Object.entries(registrationState.errors).forEach(([field, messages]) => {
         if (messages && messages.length > 0) {
           setError(field as keyof RegisterFormDataClient, {
             type: "server",
@@ -109,131 +242,404 @@ export default function Register() {
           });
         }
       });
-      setServerErrorsProcessed(true);
     }
 
-    if (state.success && !state.errors) {
+    // Reset form on successful registration
+    if (registrationState.success && !registrationState.errors) {
       reset();
-      setServerErrorsProcessed(false);
     }
-  }, [state, setError, reset, serverErrorsProcessed]);
+  }, [registrationState, setError, reset]);
 
+  /*
+   * TOAST NOTIFICATION MANAGEMENT
+   * Display success/error messages to users
+   * Handles both registration and verification resend feedback
+   */
+  useEffect(() => {
+    if (registrationState.message && !registrationState.success) {
+      toast.error(registrationState.message);
+    } else if (registrationState.message && registrationState.success) {
+      toast.success(registrationState.message);
+    }
+  }, [registrationState.message, registrationState.success]);
+
+  /*
+   * FORM SUBMISSION HANDLER
+   * Processes user registration with comprehensive error handling
+   * This is where client data flows to server via server actions
+   */
   const onSubmit = async (data: RegisterFormDataClient) => {
-   
+    // Clear any existing form errors
     clearErrors();
-    setServerErrorsProcessed(false);
 
-    const formData = new FormData();
-    formData.append("firstName", data.firstName);
-    formData.append("lastName", data.lastName);
-    formData.append("email", data.email);
-    formData.append("userName", data.userName);
-    formData.append("phoneNumber", data.phoneNumber);
-    formData.append("password", data.password);
+    startTransition(async () => {
+      try {
+        // Prepare FormData for server action
+        // Server actions expect FormData format for type safety
+        const formData = new FormData();
+        formData.append("firstName", data.firstName);
+        formData.append("lastName", data.lastName);
+        formData.append("email", data.email);
+        formData.append("userName", data.userName);
+        formData.append("phoneNumber", data.phoneNumber);
+        formData.append("password", data.password);
 
-    formAction(formData);
-  };
+        console.log("FormData being sent to server action:", formData);
 
-  const handleResendVerification = async () => {
-    setIsResendingEmail(true);
-    try {
-      // Call your resend verification email action here
-      const response = await fetch("/api/resend-verification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: state.email }),
-      });
+        // Call server action for user registration
+        const result = await registerNewUser(formData);
+        console.log("Registration result from server:", result);
 
-      if (response.ok) {
-        // Show success message
-        alert("Verification email sent! Please check your inbox.");
-      } else {
-        alert("Failed to resend email. Please try again.");
+        // Update component state with server response
+        setRegistrationState(result);
+      } catch (error) {
+        // Handle unexpected client-side errors
+        console.error("Registration error:", error);
+        setRegistrationState({
+          success: false,
+          message: "An unexpected error occurred. Please try again.",
+          errors: null,
+          email: "",
+          isUserVerified: null,
+        });
       }
-    } catch (error) {
-      alert("An error occurred. Please try again.");
-    } finally {
-      setIsResendingEmail(false);
-    }
+    });
   };
 
+  /*
+   * RESEND VERIFICATION EMAIL HANDLER
+   * Manages email resending with timer-based rate limiting
+   * Prevents abuse while maintaining good UX for network issues
+   */
+  const handleResendVerification = async () => {
+    // Validate email availability
+    if (!registrationState.email) {
+      toast.error("Email is required for resending verification");
+      return;
+    }
+
+    // Check if timer is still active (rate limiting)
+    if (isTimerActive && remainingTime > 0) {
+      const minutes = Math.ceil(remainingTime / (60 * 1000));
+      toast.warning(
+        `Please wait ${minutes} minute(s) before requesting another email`
+      );
+      return;
+    }
+
+    startIsResendingTransition(async () => {
+      try {
+       
+        const formData = new FormData();
+        formData.append("email", registrationState.email!);
+
+        console.log(
+          "Resending verification email for:",
+          registrationState.email
+        );
+
+        // Call server action to resend verification
+        const result = await resendVerificationEmail(formData);
+
+        if (result && !isResendingEmail) {
+          
+          toast.success("Verification email sent! Check your inbox.");
+
+         
+          setResendTimer(registrationState.email!);
+          setRemainingTime(RESEND_COOLDOWN_MINUTES * 60 * 1000);
+          setIsTimerActive(true);
+        }
+      } catch (error) {
+        console.error("Could not resend verification email:", error);
+        toast.error("Failed to resend email. Please try again.");
+      }
+    });
+  };
+
+  // UI UTILITY FUNCTIONS
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const toggleConfirmPasswordVisibility = () =>
     setShowConfirmPassword(!showConfirmPassword);
 
-  // Show verification needed state
-  if (state.isUserVerified == false ) {
+  // Helper function to format remaining time
+  const formatRemainingTime = (ms: number): string => {
+    const minutes = Math.floor(ms / (60 * 1000));
+    const seconds = Math.floor((ms % (60 * 1000)) / 1000);
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
+
+  /*
+   * CONDITIONAL RENDERING: EMAIL VERIFICATION REQUIRED STATE
+   *
+   * This state handles users who registered but haven't verified their email
+   * Provides options to resend verification with rate limiting
+   * Gracefully handles network errors common in Nigeria ("nha naija we dey network errors dey happen")
+   */
+  if (
+    !registrationState.isUserVerified &&
+    registrationState.message ==
+      "Your email is registered but not verified. Please verify."
+  ) {
     return (
-      <main className="min-h-screen bg-white flex items-center justify-center p-6">
-        <div className="max-w-md w-full">
-          <div className="text-center space-y-6">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-              <Mail className="w-8 h-8 text-blue-500" />
-            </div>
+      <>
+        <div className="pt-20 mb-2 bg-black h-16 w-full" />
+        <main className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+          <div className="max-w-lg w-full">
+            <div className="bg-white rounded-lg shadow-sm border p-8">
+              {/* Header Section */}
+              <div className="text-center space-y-4 mb-8">
+                <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto">
+                  <Mail className="w-8 h-8 text-amber-600" />
+                </div>
+                <div className="space-y-2">
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    Email Verification Required
+                  </h1>
+                  <p className="text-gray-600 leading-relaxed">
+                    Your account{" "}
+                    <span className="font-semibold text-gray-800">
+                      {registrationState.email}
+                    </span>{" "}
+                    needs to be verified before you can continue.
+                  </p>
+                </div>
+              </div>
 
-            <div className="space-y-2">
-              <h1 className="text-2xl font-semibold text-black">
-                Check Your Email
-              </h1>
-              <p className="text-gray-600">
-                {` We've sent a verification link to{" "} `}
-                <span className="font-medium">{state.email}</span>
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <p className="text-sm text-gray-500">
-                {`   Didn't receive the email? Check your spam folder or click below
-                to resend. `}
-              </p>
-
-              <button
-                onClick={handleResendVerification}
-                disabled={isResendingEmail}
-                className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-medium py-3 px-6 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
-              >
-                {isResendingEmail ? (
-                  <>
+              {/* Network-Aware Info Section */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="flex">
+                  <div className="flex-shrink-0">
                     <svg
-                      className="animate-spin -ml-1 mr-3 h-4 w-4 text-white inline"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
+                      className="h-5 w-5 text-blue-400"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
                     >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
                       <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clipRule="evenodd"
+                      />
                     </svg>
-                    Sending...
-                  </>
-                ) : (
-                  "Resend Verification Email"
-                )}
-              </button>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-blue-700">
+                      We understand network issues can happen. If you previously
+                      signed up but never verified your email, we can send you a
+                      new verification link.
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-              <Link
-                href="/auth/signin"
-                className="block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 transition-colors duration-200"
-              >
-                Back to Sign In
-              </Link>
+              {/* Timer Display */}
+              {isTimerActive && remainingTime > 0 && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <svg
+                        className="h-5 w-5 text-orange-400"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-orange-700">
+                        You can request another verification email in{" "}
+                        <span className="font-semibold">
+                          {formatRemainingTime(remainingTime)}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="space-y-4">
+                <button
+                  onClick={handleResendVerification}
+                  disabled={
+                    isResendingEmail || (isTimerActive && remainingTime > 0)
+                  }
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-sm"
+                >
+                  {isResendingEmail ? (
+                    <div className="flex items-center justify-center">
+                      <svg
+                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                      Sending verification email...
+                    </div>
+                  ) : isTimerActive && remainingTime > 0 ? (
+                    `Wait ${formatRemainingTime(remainingTime)}`
+                  ) : (
+                    "Send Verification Email"
+                  )}
+                </button>
+
+                <div className="text-center">
+                  <p className="text-sm text-gray-500 mb-3">
+                    {`Don't have access to this email anymore?`}
+                  </p>
+                  <Link
+                    href="/auth/signup"
+                    className="text-blue-600 hover:text-blue-700 font-medium text-sm underline"
+                  >
+                    Create a new account
+                  </Link>
+                </div>
+
+                <div className="border-t pt-4">
+                  <Link
+                    href="/auth/signin"
+                    className="block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-lg transition-colors duration-200"
+                  >
+                    Back to Sign In
+                  </Link>
+                </div>
+              </div>
+
+              {/* Help Text */}
+              <div className="mt-6 text-center">
+                <p className="text-xs text-gray-500">
+                  {`Check your spam folder if you don't see the email within a few
+                  minutes. Network delays are common, so please be patient.`}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </>
     );
   }
 
+  /*
+   * CONDITIONAL RENDERING: EMAIL VERIFICATION SENT STATE
+   *
+   * This state shows after successful registration
+   * Provides resend functionality with timer protection
+   */
+  if (registrationState.isUserVerified === false) {
+    return (
+      <>
+        <div className="pt-20 mb-2 bg-black h-16 w-full" />
+        <main className="h-screen bg-white flex items-center justify-center p-6">
+          <div className="max-w-md w-full">
+            <div className="text-center space-y-6">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                <Mail className="w-8 h-8 text-blue-500" />
+              </div>
+
+              <div className="space-y-2">
+                <h1 className="text-2xl font-semibold text-black">
+                  Check Your Email
+                </h1>
+                <p className="text-gray-600">
+                  {`We've sent a verification link to `}
+                  <span className="font-medium">{registrationState.email}</span>
+                </p>
+              </div>
+
+              {/* Timer Display for this state too */}
+              {isTimerActive && remainingTime > 0 && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                  <p className="text-sm text-orange-700">
+                    Resend available in{" "}
+                    <span className="font-semibold">
+                      {formatRemainingTime(remainingTime)}
+                    </span>
+                  </p>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <p className="text-sm text-gray-500">
+                  {` Didn't receive the email? Check your spam folder or click
+                  below to resend.`}
+                </p>
+
+                <button
+                  onClick={handleResendVerification}
+                  disabled={
+                    isResendingEmail || (isTimerActive && remainingTime > 0)
+                  }
+                  className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-medium py-3 px-6 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
+                >
+                  {isResendingEmail ? (
+                    <>
+                      <svg
+                        className="animate-spin -ml-1 mr-3 h-4 w-4 text-white inline"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Sending...
+                    </>
+                  ) : isTimerActive && remainingTime > 0 ? (
+                    `Wait ${formatRemainingTime(remainingTime)}`
+                  ) : (
+                    "Resend Verification Email"
+                  )}
+                </button>
+
+                <Link
+                  href="/auth/signin"
+                  className="block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 transition-colors duration-200"
+                >
+                  Back to Sign In
+                </Link>
+              </div>
+            </div>
+          </div>
+        </main>
+      </>
+    );
+  }
+
+  /*
+   * MAIN REGISTRATION FORM
+   *
+   * This is the primary registration interface where users input their details
+   * Features comprehensive validation, password strength checking, and smooth UX
+   */
   return (
     <main className="min-h-screen bg-white">
       <div className="pt-20 mb-2 bg-black h-16 w-full" />
@@ -241,7 +647,7 @@ export default function Register() {
       <section className="py-16 md:py-24">
         <div className="container mx-auto px-6 md:px-8 max-w-7xl">
           <div className="grid lg:grid-cols-2 gap-16 xl:gap-24 items-start">
-            {/* Left Column - Welcome Content */}
+            {/* Left Column - Welcome Content & Benefits */}
             <div className="space-y-10">
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-px bg-blue-400"></div>
@@ -255,7 +661,7 @@ export default function Register() {
                   Create Your Account
                 </h1>
                 <p className="text-lg md:text-xl text-gray-600 font-light leading-relaxed max-w-xl">
-                  {`  Join the Gofamint Students' Fellowship community and be part
+                  {`Join the Gofamint Students' Fellowship community and be part
                   of our spiritual journey at the University of Ibadan.`}
                 </p>
               </div>
@@ -281,20 +687,6 @@ export default function Register() {
             {/* Right Column - Registration Form */}
             <div className="w-full">
               <div className="max-w-lg">
-                {/* Show server messages */}
-                {state.message && !state.success && (
-                  <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-400 flex items-start space-x-3">
-                    <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-                    <p className="text-red-700 text-sm">{state.message}</p>
-                  </div>
-                )}
-
-                {state.message && state.success && (
-                  <div className="mb-6 p-4 bg-green-50 border-l-4 border-green-400">
-                    <p className="text-green-700 text-sm">{state.message}</p>
-                  </div>
-                )}
-
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
                   {/* Personal Information Section */}
                   <div className="space-y-6">
@@ -305,6 +697,7 @@ export default function Register() {
                       </span>
                     </div>
 
+                    {/* Name Fields Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <label
@@ -359,6 +752,7 @@ export default function Register() {
                       </div>
                     </div>
 
+                    {/* Email Field */}
                     <div className="space-y-2">
                       <label
                         htmlFor="email"
@@ -385,6 +779,7 @@ export default function Register() {
                       )}
                     </div>
 
+                    {/* Username Field */}
                     <div className="space-y-2">
                       <label
                         htmlFor="userName"
@@ -411,6 +806,7 @@ export default function Register() {
                       )}
                     </div>
 
+                    {/* Phone Number Field */}
                     <div className="space-y-2">
                       <label
                         htmlFor="phone"
@@ -447,6 +843,7 @@ export default function Register() {
                       </span>
                     </div>
 
+                    {/* Password Field with Strength Indicator */}
                     <div className="space-y-2">
                       <label
                         htmlFor="password"
@@ -518,6 +915,7 @@ export default function Register() {
                             </div>
                           </div>
 
+                          {/* Password Criteria Checklist */}
                           <div className="grid grid-cols-1 gap-2">
                             {criteria.map((criterion, index) => (
                               <div
@@ -561,6 +959,7 @@ export default function Register() {
                       )}
                     </div>
 
+                    {/* Confirm Password Field */}
                     <div className="space-y-2">
                       <label
                         htmlFor="confirmPassword"
@@ -602,7 +1001,7 @@ export default function Register() {
                     </div>
                   </div>
 
-                  {/* Agreement Checkbox */}
+                  {/* Terms and Conditions Agreement */}
                   <div className="pt-2">
                     <label className="flex items-start space-x-3 cursor-pointer">
                       <input
