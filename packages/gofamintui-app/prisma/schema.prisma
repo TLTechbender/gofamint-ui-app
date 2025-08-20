@@ -16,7 +16,7 @@ model User {
   userName    String        @unique
   firstName   String
   lastName    String
-  phoneNumber String?       // Google auth wahala 
+  phoneNumber String?        @unique// Google auth wahala 
   password    String?       // For google auth wahala with no password
   bio         String?
   createdAt   DateTime      @default(now())

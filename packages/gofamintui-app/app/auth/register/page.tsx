@@ -6,12 +6,12 @@ import {
   RegisterFormDataClient,
   registerSchemaClient,
 } from "@/lib/formSchemas/registerSchemaClient";
-import registerNewUser from "@/actions/forms/register";
+import registerNewUser from "@/actions/authentication/register";
 import { Eye, EyeOff, Mail } from "lucide-react";
 import Link from "next/link";
 import { toast } from "react-toastify";
 import { RegisterActionState } from "@/lib/formActionStates/registerActionState";
-import { resendVerificationEmail } from "@/actions/forms/resendVerification";
+import { resendVerificationEmail } from "@/actions/authentication/resendVerification";
 
 /*
  * RESEND VERIFICATION TIMER UTILITY FUNCTIONS
@@ -329,7 +329,6 @@ export default function Register() {
 
     startIsResendingTransition(async () => {
       try {
-       
         const formData = new FormData();
         formData.append("email", registrationState.email!);
 
@@ -342,10 +341,8 @@ export default function Register() {
         const result = await resendVerificationEmail(formData);
 
         if (result && !isResendingEmail) {
-          
           toast.success("Verification email sent! Check your inbox.");
 
-         
           setResendTimer(registrationState.email!);
           setRemainingTime(RESEND_COOLDOWN_MINUTES * 60 * 1000);
           setIsTimerActive(true);

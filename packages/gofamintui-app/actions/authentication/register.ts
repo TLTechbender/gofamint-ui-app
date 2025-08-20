@@ -20,7 +20,6 @@ export default async function registerNewUser(
 
     //logging cos i dont know what to do with it and I just be learning how to use the hook this be coming from
 
-  
     const result = registerSchemaServer.safeParse(rawFormData);
     if (!result.success) {
       type RegisterErrors = NonNullable<RegisterActionState["errors"]>;
@@ -57,11 +56,11 @@ export default async function registerNewUser(
       userName: userData.userName,
     });
 
-    console.log('omo, deep in the server action')
+    console.log("omo, deep in the server action");
     if (createNewUserResponse.success) {
       //Patterns here is key dawg
       const verificationToken = generateToken(
-      createNewUserResponse.user!.id,
+        createNewUserResponse.user!.id,
         "verify-email"
       );
       await sendVerifiyUserEmail(
@@ -106,6 +105,12 @@ export default async function registerNewUser(
             errors: { userName: ["Please complete verification"] },
             isUserVerified: false,
             email: createNewUserResponse.user?.email,
+          };
+        case "phoneNumber":
+          return {
+            success: false,
+            message: createNewUserResponse.message,
+            errors: { phoneNumber: [createNewUserResponse.message] },
           };
         default:
           return {

@@ -11,7 +11,7 @@ import {
   resetPasswordClientSchema,
   ResetPasswordSchemaClientData,
 } from "@/lib/formSchemas/resetPasswordSchemaClient";
-import resetPassword from "@/actions/forms/resetPassword";
+import resetPassword from "@/actions/authentication/resetPassword";
 import { ResetPasswordActionState } from "@/lib/formActionStates/resetPasswordActionState";
 import { toast } from "react-toastify";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import verifyEmail from "@/actions/forms/verifyEmail";
+import verifyEmail from "@/actions/authentication/verifyEmail";
 import { VerifyEmailActionState } from "@/lib/formActionStates/verifyEmailActionState";
 import {
   ArrowRight,
@@ -38,7 +38,7 @@ const VerifyTokenComponent = ({ token }: { token: string }) => {
   const [verificationAttempted, setVerificationAttempted] = useState(false);
 
   // Extract user ID from search params or other source
- 
+
   const userEmail = searchParams.get("email");
 
   /*
@@ -83,7 +83,7 @@ const VerifyTokenComponent = ({ token }: { token: string }) => {
    * Automatically attempt verification when component mounts with valid token and userId
    */
   useEffect(() => {
-    if (token &&userEmail  && !verificationAttempted) {
+    if (token && userEmail && !verificationAttempted) {
       console.log("Triggering initial verification attempt");
 
       setVerificationAttempted(true);
@@ -228,8 +228,6 @@ const VerifyTokenComponent = ({ token }: { token: string }) => {
               <p className="text-lg text-black font-light leading-relaxed max-w-sm mx-auto">
                 Please wait while we verify your email address...
               </p>
-
-            
             </div>
           </div>
         </main>

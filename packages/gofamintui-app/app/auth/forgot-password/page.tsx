@@ -3,7 +3,7 @@
 import { useState, useEffect, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import Link from "next/link";
-import forgotPassword from "@/actions/forms/forgotPassword";
+import forgotPassword from "@/actions/authentication/forgotPassword";
 import {
   forgotPasswordSchemaClient,
   ForgotPasswordSchemaClientData,

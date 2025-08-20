@@ -31,10 +31,12 @@ async function createNewUser(userData: {
   phoneNumber: string;
 }) {
   try {
-    const [existingUserByEmail, existingUserByUsername] = await Promise.all([
-      getUserByEmail(userData.email),
-      getUserByUsername(userData.userName),
-    ]);
+    const [existingUserByEmail, existingUserByUsername, existingUserByPhone] =
+      await Promise.all([
+        getUserByEmail(userData.email),
+        getUserByUsername(userData.userName),
+        getUserByPhoneNumber(userData.phoneNumber),
+      ]);
 
     // If email exists
     if (existingUserByEmail) {
@@ -72,6 +74,16 @@ async function createNewUser(userData: {
       };
     }
 
+    // If phone number exists (no verification, just block it)
+    if (existingUserByPhone) {
+      return {
+        success: false,
+        user: null,
+        message: "Phone number is already registered",
+        field: "phoneNumber",
+      };
+    }
+
     // ✅ Create brand new user
     const hashedPassword = await bcrypt.hash(userData.password, 12);
 
@@ -101,25 +113,14 @@ async function createNewUser(userData: {
   }
 }
 
-async function updateUserDetails(userId: string, updateData: any) {
-  try {
-    if (updateData.password) {
-      const saltRounds = 12;
-      updateData.password = await bcrypt.hash(updateData.password, saltRounds);
-    }
-
-    const result = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        ...updateData,
-        updatedAt: new Date(),
-      },
-    });
-    return result;
-  } catch (error) {
-    console.error("Failed to update user details:", error);
-    throw new Error("User update failed");
-  }
+export async function getUserByPhoneNumber(
+  phoneNumber: string
+): Promise<DatabaseUser | null> {
+  return await prisma.user.findUnique({
+    where: {
+      phoneNumber: phoneNumber,
+    },
+  });
 }
 
 async function getUserByEmail(email: string): Promise<DatabaseUser | null> {
@@ -278,16 +279,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const user =
             (await getUserByEmail(emailOrUsername)) ||
             (await getUserByUsername(emailOrUsername));
-console.log(user)
+          console.log(user);
           if (!user || !user.isVerified || !user.password) {
             return null;
           }
 
-          console.log(password, user.password)
+          console.log(password, user.password);
 
           const isValidPassword = await bcrypt.compare(password, user.password);
           if (!isValidPassword) {
-            console.log(isValidPassword)
+            console.log(isValidPassword);
             return null;
           }
 
@@ -471,4 +472,4 @@ declare module "@auth/core/jwt" {
   }
 }
 
-export { createNewUser, updateUserDetails, getUserByEmail, getUserByUsername };
+export { createNewUser, getUserByEmail, getUserByUsername };
