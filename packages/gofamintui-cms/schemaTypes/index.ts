@@ -4,7 +4,7 @@ import {author} from './documents/author'
 import {blogPost} from './documents/blogs'
 import contact from './documents/contact'
 
-import events from './documents/events'
+// import events from './documents/events'
 import excecutives from './documents/excecutives'
 import footerContent from './documents/footerContent'
 
@@ -26,7 +26,7 @@ export const schemaTypes = [
   excecutives,
   contact,
   streaming,
-  events,
+  // events,
   blogPost,
   author,
   footerContent,

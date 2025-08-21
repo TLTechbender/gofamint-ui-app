@@ -27,6 +27,9 @@ export const blogPost = defineType({
       type: 'reference',
       to: [{type: 'author'}],
       validation: (Rule) => Rule.required(),
+      options: {
+        filter: 'isApproved == true', // Only show approved authors abeg
+      },
     }),
     defineField({
       name: 'featuredImage',
@@ -48,7 +51,7 @@ export const blogPost = defineType({
       name: 'excerpt',
       title: 'Excerpt',
       type: 'text',
-      description: 'Brief description of the post (for previews)',
+      description: 'Brief description of the post (for previews) and seo',
       rows: 3,
       validation: (Rule) => Rule.max(1000),
     }),
@@ -76,6 +79,9 @@ export const blogPost = defineType({
               {title: 'Strong', value: 'strong'},
               {title: 'Emphasis', value: 'em'},
               {title: 'Code', value: 'code'},
+              {title: 'Code', value: 'code'},
+              {title: 'Underline', value: 'underline'},
+              {title: 'Strike', value: 'strike-through'},
             ],
             annotations: [
               {
@@ -87,6 +93,12 @@ export const blogPost = defineType({
                     title: 'URL',
                     name: 'href',
                     type: 'url',
+                  },
+                  {
+                    name: 'blank',
+                    type: 'boolean',
+                    title: 'Open in new tab',
+                    initialValue: true,
                   },
                 ],
               },
@@ -124,13 +136,6 @@ export const blogPost = defineType({
       title: 'Reading Time (minutes)',
       type: 'number',
       description: 'Estimated reading time in minutes',
-    }),
-    defineField({
-      name: 'views',
-      title: 'View Count',
-      type: 'number',
-      initialValue: 0,
-      description: 'Generic view count for popularity ranking',
     }),
 
     defineField({
@@ -186,11 +191,7 @@ export const blogPost = defineType({
       name: 'publishedAtAsc',
       by: [{field: 'publishedAt', direction: 'asc'}],
     },
-    {
-      title: 'Most Popular',
-      name: 'viewsDesc',
-      by: [{field: 'views', direction: 'desc'}],
-    },
+
     {
       title: 'Title A-Z',
       name: 'titleAsc',
@@ -200,21 +201,19 @@ export const blogPost = defineType({
   preview: {
     select: {
       title: 'title',
-      author: 'author.displayName',
+      author: 'author.firstName',
       media: 'featuredImage',
       publishedAt: 'publishedAt',
       isDraft: 'isDraft',
-      views: 'views',
     },
     prepare(selection) {
-      const {title, author, publishedAt, isDraft, views} = selection
+      const {title, author, publishedAt, isDraft} = selection
       const status = isDraft ? '(Draft)' : ''
       const date = publishedAt ? new Date(publishedAt).toLocaleDateString() : ''
-      const viewCount = views || 0
 
       return {
         title: `${title} ${status}`,
-        subtitle: `by ${author || 'Unknown Author'} ${date ? `• ${date}` : ''} • ${viewCount} 👁️`,
+        subtitle: `by ${author || 'Unknown Author'} ${date ? `• ${date}` : ''} `,
       }
     },
   },
