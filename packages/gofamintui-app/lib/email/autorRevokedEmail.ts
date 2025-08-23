@@ -1,4 +1,4 @@
-`
+const revokeAuthorEmail = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -31,7 +31,7 @@
       </p>
 
       <p style="font-size:16px; color:#000000; font-weight:300; line-height:1.6; margin:0 0 32px 0;">
-        Your author privileges have been temporarily suspended. This decision was made after a review of our content policies and community guidelines.
+        Your author privileges have been revoked.
       </p>
 
       <p style="font-size:16px; color:#000000; font-weight:300; line-height:1.6; margin:0 0 32px 0;">
@@ -41,11 +41,7 @@
         • Your existing published content remains unaffected
       </p>
 
-      <div style="text-align:center; margin:40px 0;">
-        <a href="#" style="display:inline-block; background-color:transparent; color:#4169E1; text-decoration:none; padding:16px 32px; font-size:16px; font-weight:400; border:1px solid #4169E1;">
-          Contact Support
-        </a>
-      </div>
+     
 
       <p style="font-size:16px; color:#000000; font-weight:300; line-height:1.6; margin:0;">
         If you believe this decision was made in error or would like to discuss reinstatement, please reach out to our support team. We value your contributions and are open to dialogue.
@@ -53,7 +49,20 @@
     </div>
 
     <!-- Footer -->
-    <div style="background-color:#f8f9fa; padding:40px; text-align:center; border-top:1px solid #f0f0f0;">
-      <p style="font-size:14px; color:#666666; font-weight
+       <div style="background-color:#f8f9fa; padding:40px; text-align:center; border-top:1px solid #f0f0f0;">
+      <p style="font-size:14px; color:#666666; font-weight:300; line-height:1.5; margin:0 0 16px 0;">
+        Need help getting started? Our support team is here to assist you.
+      </p>
+     
+      <p style="font-size:14px; color:#666666; font-weight:300; line-height:1.5; margin:0;">
+        © 2025 Gofamint Students' Fellowship, University of Ibadan
+      </p>
+    </div>
 
-`
+  </div>
+</body>
+</html>
+
+`;
+
+export default revokeAuthorEmail;

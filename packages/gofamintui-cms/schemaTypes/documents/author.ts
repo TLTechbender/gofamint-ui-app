@@ -1,5 +1,15 @@
 import {defineField, defineType} from 'sanity'
 
+type ApplicationStatus = 'pending'  | 'approved' | 'rejected' 
+
+const APPLICATION_STATUSES: Array<{title: string; value: ApplicationStatus}> = [
+  {title: 'Pending Review', value: 'pending'},
+
+  {title: 'Approved', value: 'approved'},
+  { title: 'Rejected', value: 'rejected' },
+
+]
+
 export const author = defineType({
   name: 'author',
   title: 'Author Details',
@@ -65,24 +75,59 @@ export const author = defineType({
     }),
 
     // Approval fields (editable by super user, this is very crucial sha)
-    defineField({
-      name: 'isApproved',
-      title: 'Approved',
-      type: 'boolean',
-      initialValue: false,
-      description: 'Toggle this to approve/reject the author request',
-    }),
 
     defineField({
-      name: 'approvedAt',
-      title: 'Approved At',
-      type: 'datetime',
-    }),
-    defineField({
-      name: 'rejectionReason',
-      title: 'Rejection Reason',
-      type: 'text', //If you get rejected sha or something like that
-      hidden: ({document}) => document?.isApproved === true,
+      name: 'application',
+      title: 'Author Application',
+      type: 'object',
+      validation: (Rule) => Rule.required().error('Application details are required'),
+      fields: [
+        defineField({
+          name: 'isApproved',
+          title: 'Approved',
+          type: 'boolean',
+          initialValue: false,
+          description: 'Toggle this to approve/reject the author request',
+        }),
+        defineField({
+          name: 'status',
+          title: 'Application Status',
+          type: 'string',
+          options: {
+            list: APPLICATION_STATUSES,
+            layout: 'radio',
+          },
+          initialValue: 'pending' as ApplicationStatus,
+          validation: (Rule) => Rule.required().error('Application status is required'),
+        }),
+
+        defineField({
+          name: 'approvedAt',
+          title: 'Approved At',
+          type: 'datetime',
+        }),
+        defineField({
+          name: 'rejectionReason',
+          title: 'Rejection Reason',
+          type: 'text',
+          hidden: ({document}) => {
+            const status = document?.status as ApplicationStatus
+            return status !== 'rejected' || document?.isApproved !== false
+          },
+          validation: (Rule) =>
+            Rule.custom((value, context) => {
+              const {document} = context
+              const status = document?.status as ApplicationStatus
+
+              const isVisible = status === 'rejected' && document?.isApproved === false
+
+              if (isVisible && !value) {
+                return 'Rejection reason is required when application is rejected'
+              }
+              return true
+            }),
+        }),
+      ],
     }),
 
     // Author profile fields (editable later)

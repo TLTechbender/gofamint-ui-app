@@ -2,6 +2,7 @@ import aboutPage from './documents/aboutPage'
 import {author} from './documents/author'
 
 import {blogPost} from './documents/blogs'
+import blogsPage from './documents/blogsPage'
 import contact from './documents/contact'
 
 // import events from './documents/events'
@@ -28,6 +29,7 @@ export const schemaTypes = [
   streaming,
   // events,
   blogPost,
+  blogsPage,
   author,
   footerContent,
   whatsappContactWidget,

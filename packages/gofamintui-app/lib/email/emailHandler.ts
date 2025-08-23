@@ -1,6 +1,8 @@
 import nodemailer from "nodemailer";
 import verifyNewUserEmail from "./verifyNewUserEmail";
 import resetPaswordEmail from "./resetPasswordEmail";
+import approveAuthorEmail from "./approveAuthorEmail";
+import revokeAuthorEmail from "./autorRevokedEmail";
 
 // Create transporter
 const transporter = nodemailer.createTransport({
@@ -57,5 +59,44 @@ export async function sendResetPasswordEmail(
   } catch (error) {
     console.error("Error sending reset email:", error);
     throw new Error("Failed to send reset email");
+  }
+}
+
+export async function sendAuthorApprovedEmail(
+  email: string,
+  firstName: string
+) {
+  const mailOptions = {
+    from: `${process.env.NEXT_SMTP_EMAIL_ADDRESS}`,
+    to: email,
+    subject: "Author Application Approved",
+
+    html: approveAuthorEmail(firstName),
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log("Author approved email sent successfully");
+  } catch (error) {
+    console.error("Error sending author approved email:", error);
+    throw new Error("Failed to send author approved email");
+  }
+}
+
+export async function sendAuthorRevokedEmail(email: string) {
+  const mailOptions = {
+    from: `${process.env.NEXT_SMTP_EMAIL_ADDRESS}`,
+    to: email,
+    subject: "Author Application Approved",
+
+    html: revokeAuthorEmail,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log("Author revoked email sent successfully");
+  } catch (error) {
+    console.error("Error sending author approved email:", error);
+    throw new Error("Failed to send author approved email");
   }
 }

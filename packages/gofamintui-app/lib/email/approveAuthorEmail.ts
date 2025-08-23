@@ -1,4 +1,5 @@
-`<!DOCTYPE html>
+const approveAuthorEmail = (firstName: string) =>
+  `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -26,23 +27,19 @@
       <h1 style="font-size:28px; font-weight:300; color:#000000; margin:0 0 24px 0; line-height:1.3;">Welcome to Our Author Community!</h1>
 
       <p style="font-size:16px; color:#000000; font-weight:300; line-height:1.6; margin:0 0 32px 0;">
-        Congratulations! Your application to become a contributing author for GSF UI Blog has been approved.
+        Congratulations ${firstName}! Your application to become a contributing author for GSF UI Blog has been approved.
       </p>
 
       <p style="font-size:16px; color:#000000; font-weight:300; line-height:1.6; margin:0 0 32px 0;">
         You now have access to our publishing platform where you can share your insights, testimonies, and spiritual reflections with our community of believers.
       </p>
 
-      <div style="text-align:center; margin:40px 0;">
-        <a href="#" style="display:inline-block; background-color:#4169E1; color:#ffffff; text-decoration:none; padding:16px 32px; font-size:16px; font-weight:400; border:2px solid #4169E1;">
-          Start Writing
-        </a>
-      </div>
+     
 
       <p style="font-size:16px; color:#000000; font-weight:300; line-height:1.6; margin:0 0 32px 0;">
         <strong>What's next?</strong><br>
         • Access your author dashboard<br>
-        • Review our content guidelines<br>
+        • Remember to do all things in the name of the Lord<br>
         • Start creating and publishing your first post
       </p>
 
@@ -56,10 +53,7 @@
       <p style="font-size:14px; color:#666666; font-weight:300; line-height:1.5; margin:0 0 16px 0;">
         Need help getting started? Our support team is here to assist you.
       </p>
-      <div style="margin:24px 0;">
-        <a href="#" style="color:#4169E1; text-decoration:none; font-size:14px; margin:0 16px;">Author Guidelines</a>
-        <a href="#" style="color:#4169E1; text-decoration:none; font-size:14px; margin:0 16px;">Contact Support</a>
-      </div>
+     
       <p style="font-size:14px; color:#666666; font-weight:300; line-height:1.5; margin:0;">
         © 2025 Gofamint Students' Fellowship, University of Ibadan
       </p>
@@ -68,4 +62,6 @@
   </div>
 </body>
 </html>
-`
+`;
+
+export default approveAuthorEmail;

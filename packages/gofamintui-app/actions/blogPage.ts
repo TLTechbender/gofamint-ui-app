@@ -1,7 +1,7 @@
 "use server";
 
-import { BlogPost } from "@/sanity/interfaces/blogPost";
-import { blogPostQuery } from "@/sanity/queries/blogPage";
+import { BlogPost } from "@/sanity/interfaces/blog";
+import { blogPostQuery } from "@/sanity/queries/blog";
 import { sanityPatchWrapper, sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
 import { revalidatePath } from "next/cache";
 

@@ -68,7 +68,7 @@ export default async function Footer() {
             <div className="flex items-center gap-3">
               <div className="relative rounded-full bg-white p-1">
                 <Image
-                  src={urlFor(footerContent.logo.image as any)
+                  src={urlFor(footerContent.logo.image )
                     .width(72)
                     .height(72)
                     .format("jpg")

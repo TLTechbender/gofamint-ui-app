@@ -42,7 +42,11 @@ const NotFoundPage = () => {
       text: "Contact",
       href: "/contact",
       description: "Get in touch with us",
-    },
+    }, {
+      text: "Publishing",
+      href: "/publishing",
+      description: "Become a labouer in the literrary vineyard of the Lord",
+    }
   ];
 
   return (

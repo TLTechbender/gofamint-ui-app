@@ -22,13 +22,26 @@ export const blogPost = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: 'authorDatabaseReferenceId',
+      title: 'Author',
+      type: 'text',
+      // readOnly: true,
+      rows: 1,
+      description: 'A reference to keep track of the author in the database',
+      validation: (Rule) => Rule.required(),
+    }),
+
+    //Refereence the one in sanity
+    defineField({
       name: 'author',
       title: 'Author',
       type: 'reference',
       to: [{type: 'author'}],
       validation: (Rule) => Rule.required(),
       options: {
-        filter: 'isApproved == true', // Only show approved authors abeg
+        // This helps with performance when you have many authors
+        filter: 'application.status == "approved" && application.isApproved == true',
+        // Show only approved authors in the reference picker
       },
     }),
     defineField({
@@ -79,7 +92,6 @@ export const blogPost = defineType({
               {title: 'Strong', value: 'strong'},
               {title: 'Emphasis', value: 'em'},
               {title: 'Code', value: 'code'},
-              {title: 'Code', value: 'code'},
               {title: 'Underline', value: 'underline'},
               {title: 'Strike', value: 'strike-through'},
             ],
@@ -125,11 +137,11 @@ export const blogPost = defineType({
       initialValue: () => new Date().toISOString(),
     }),
     defineField({
-      name: 'isDraft',
-      title: 'Draft',
+      name: 'isApprovedToBePublished',
+      title: 'Approved to be Published',
       type: 'boolean',
-      initialValue: true,
-      description: 'Set to false to publish the post',
+      initialValue: false,
+      description: 'Set to true to approve this post for publication',
     }),
     defineField({
       name: 'readingTime',
@@ -137,32 +149,35 @@ export const blogPost = defineType({
       type: 'number',
       description: 'Estimated reading time in minutes',
     }),
-
     defineField({
       name: 'seo',
       title: 'SEO Settings',
       type: 'object',
+      validation: (Rule) => Rule.required(),
       fields: [
         defineField({
-          name: 'metaTitle',
-          title: 'Meta Title',
+          name: 'title',
+          title: 'Page Title',
           type: 'string',
-          validation: (Rule) => Rule.max(60),
+          initialValue: "GSF UI – Gofamint Students' Fellowship, University of Ibadan",
+          validation: (Rule) => Rule.required(),
         }),
         defineField({
-          name: 'metaDescription',
+          name: 'description',
           title: 'Meta Description',
           type: 'text',
-          validation: (Rule) => Rule.max(160),
+          rows: 3,
+          validation: (Rule) => Rule.required().min(10).max(300),
         }),
+
         defineField({
-          name: 'keywords',
-          title: 'Keywords',
-          type: 'array',
-          of: [{type: 'string'}],
+          name: 'ogImage',
+          title: 'Social Media Image',
+          type: 'image',
           options: {
-            layout: 'tags',
+            hotspot: true,
           },
+          validation: (Rule) => Rule.required(),
         }),
       ],
     }),
@@ -171,7 +186,7 @@ export const blogPost = defineType({
       title: 'Created At',
       type: 'datetime',
       initialValue: () => new Date().toISOString(),
-      hidden: true,
+    
     }),
     defineField({
       name: 'updatedAt',
@@ -191,7 +206,6 @@ export const blogPost = defineType({
       name: 'publishedAtAsc',
       by: [{field: 'publishedAt', direction: 'asc'}],
     },
-
     {
       title: 'Title A-Z',
       name: 'titleAsc',
@@ -201,19 +215,22 @@ export const blogPost = defineType({
   preview: {
     select: {
       title: 'title',
-      author: 'author.firstName',
+      authorName: 'author.firstName',
+      authorLastName: 'author.lastName',
       media: 'featuredImage',
       publishedAt: 'publishedAt',
-      isDraft: 'isDraft',
+      isApprovedToBePublished: 'isApprovedToBePublished',
     },
     prepare(selection) {
-      const {title, author, publishedAt, isDraft} = selection
-      const status = isDraft ? '(Draft)' : ''
+      const {title, authorName, authorLastName, publishedAt, isApprovedToBePublished} = selection
+      const status = isApprovedToBePublished ? '✅ Approved' : '⏳ Pending'
       const date = publishedAt ? new Date(publishedAt).toLocaleDateString() : ''
+      const author =
+        authorName && authorLastName ? `${authorName} ${authorLastName}` : 'Unknown Author'
 
       return {
-        title: `${title} ${status}`,
-        subtitle: `by ${author || 'Unknown Author'} ${date ? `• ${date}` : ''} `,
+        title: `${title}`,
+        subtitle: `Author: ${author} • ${status} ${date ? `• ${date}` : ''} `,
       }
     },
   },

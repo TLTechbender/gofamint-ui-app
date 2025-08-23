@@ -4,9 +4,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { urlFor } from "@/sanity/sanityClient";
-import useBlogPosts from "@/hooks/useBlogPages";
+import useBlogPosts from "@/hooks/useBlogs";
 import InfiniteScrollContainer from "./infiniteScrollContainer";
-import { BlogPost } from "@/sanity/interfaces/blogPosts";
+import { BlogPost } from "@/sanity/interfaces/blog";
+
 
 const BlogsPageClient = () => {
   const router = useRouter();
@@ -18,12 +19,10 @@ const BlogsPageClient = () => {
     searchParams.get("search") || ""
   );
   const loadingRef = useRef(false);
-  const debounceRef = useRef<NodeJS.Timeout>();
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  const { data, hasNextPage, isError, isLoading, fetchNextPage, blogPosts } =
-    useBlogPosts({
-      searchTerm: searchInput,
-    });
+  const {  hasNextPage, isError, isLoading, fetchNextPage, blogPosts } =
+    useBlogPosts();
 
   const debouncedSearch = useCallback(
     (searchValue: string) => {
@@ -131,10 +130,10 @@ const BlogsPageClient = () => {
 
       {/* Content */}
       <InfiniteScrollContainer
-              onBottomReached={() => {
-                  console.log(hasNextPage);
-                  if (hasNextPage) {
-              console.log('i don reach')
+        onBottomReached={() => {
+          console.log(hasNextPage);
+          if (hasNextPage) {
+            console.log("i don reach");
             return fetchNextPage();
           }
           return;

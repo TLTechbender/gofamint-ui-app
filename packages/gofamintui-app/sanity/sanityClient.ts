@@ -18,7 +18,8 @@ export const sanityClient = createClient({
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET!,
   useCdn: false,
   apiVersion: "2025-04-01",
-  token: process.env.NEXT_SANITY_TOKEN!,
+  //No be my fault, i no wan make am public
+  token: process.env.NEXT_PUBLIC_SANITY_TOKEN || process.env.NEXT_SANITY_TOKEN,
   // Use the new cache configuration
   fetch: {
     cache: "no-store",
