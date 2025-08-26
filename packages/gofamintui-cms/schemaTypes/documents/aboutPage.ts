@@ -76,118 +76,124 @@ export default defineType({
       ],
     }),
 
-    // Multiple Content Sections
+    // Hardcoded sections now as Sanity fields
     defineField({
-      name: 'contentSections',
-      title: 'Content Sections',
-      type: 'array',
-      of: [
-        {
-          type: 'object',
-          name: 'contentSection',
-          title: 'Content Section',
-          fields: [
-            defineField({
-              name: 'sectionId',
-              title: 'Section ID',
-              type: 'string',
-              description: 'Unique identifier for this section (used for navigation/anchoring)',
-            }),
-            defineField({
-              name: 'title',
-              title: 'Section Title',
-              type: 'string',
-              validation: (Rule) => Rule.required(),
-            }),
-            defineField({
-              name: 'subtitle',
-              title: 'Subtitle (Optional)',
-              type: 'string',
-              description: 'Supporting text that appears below the main title',
-            }),
-            defineField({
-              name: 'content',
-              title: 'Content',
-              type: 'array',
-              of: [
-                {
-                  type: 'block',
-                  styles: [
-                    {title: 'Normal', value: 'normal'},
-                    {title: 'H1', value: 'h1'},
-                    {title: 'H2', value: 'h2'},
-                    {title: 'H3', value: 'h3'},
-                    {title: 'H4', value: 'h4'},
-                    {title: 'H5', value: 'h5'},
-                    {title: 'H6', value: 'h6'},
-                    {title: 'Quote', value: 'blockquote'},
-                  ],
-                  lists: [
-                    {title: 'Bullet', value: 'bullet'},
-                    {title: 'Numbered', value: 'number'},
-                  ],
-                  marks: {
-                    decorators: [
-                      {title: 'Strong', value: 'strong'},
-                      {title: 'Emphasis', value: 'em'},
-                      {title: 'Underline', value: 'underline'},
-                      {title: 'Strike', value: 'strike-through'},
-                      {title: 'Code', value: 'code'},
-                    ],
-                    annotations: [
-                      {
-                        name: 'link',
-                        type: 'object',
-                        title: 'Link',
-                        fields: [
-                          {
-                            name: 'href',
-                            type: 'url',
-                            title: 'URL',
-                          },
-                          {
-                            name: 'blank',
-                            type: 'boolean',
-                            title: 'Open in new tab',
-                          },
-                        ],
-                      },
-                    ],
-                  },
-                },
-              ],
-              validation: (Rule) => Rule.required(),
-            }),
-          ],
-          preview: {
-            select: {
-              title: 'title',
-              subtitle: 'subtitle',
-              content: 'content',
-            },
-            prepare({title, subtitle, content}) {
-              const block = (content || []).find((block: any) => block._type === 'block')
-              return {
-                title: title || 'Untitled Section',
-                subtitle:
-                  subtitle ||
-                  (block
-                    ? block.children
-                        ?.filter((child: any) => child._type === 'span')
-                        ?.map((span: any) => span.text)
-                        ?.join('')
-                        ?.substring(0, 80) + '...'
-                    : 'No content'),
-              }
-            },
-          },
-        },
+      name: 'establishedSection',
+      title: 'Established Section',
+      type: 'object',
+      fields: [
+        defineField({
+          name: 'yearLabel',
+          title: 'Year Label',
+          type: 'string',
+          initialValue: 'Established in 2002',
+        }),
+        defineField({
+          name: 'title',
+          title: 'Section Title',
+          type: 'text',
+          rows: 2,
+          initialValue: 'We all young, energetic dudes who love God',
+        }),
       ],
-      description: 'Add multiple content sections to build your about page',
     }),
+
+    defineField({
+      name: 'whoWeAreSection',
+      title: 'Who We Are Section',
+      type: 'object',
+      fields: [
+        defineField({
+          name: 'label',
+          title: 'Section Label',
+          type: 'string',
+          initialValue: 'Who We Are',
+        }),
+        defineField({
+          name: 'content',
+          title: 'Section Content',
+          type: 'text',
+          initialValue:
+            "GOFAMINT UI Student Fellowship (GSF UI) is the student arm of the Gospel Faith Mission International at the University of Ibadan. We exist to honor and proclaim the supremacy of the name and purpose of Jesus. Rooted in the truth of Christ's life, death, and resurrection, we are committed to His plan of healing and redemption in our campus and beyond.",
+        }),
+      ],
+    }),
+
+    defineField({
+      name: 'beliefsSection',
+      title: 'What We Believe Section',
+      type: 'object',
+      fields: [
+        defineField({
+          name: 'sectionLabel',
+          title: 'Section Label',
+          type: 'string',
+          initialValue: 'WHAT WE BELIEVE',
+        }),
+        defineField({
+          name: 'title',
+          title: 'Main Title',
+          type: 'string',
+          initialValue: 'Our Foundational Beliefs',
+        }),
+        defineField({
+          name: 'convictionsTitle',
+          title: 'Convictions Title',
+          type: 'string',
+          initialValue: 'Our Convictions',
+        }),
+        defineField({
+          name: 'convictions',
+          title: 'Convictions List',
+          type: 'array',
+          of: [{type: 'string'}],
+          initialValue: [
+            "Ruled by God's Word",
+            'Christ-Centered in Focus',
+            'Empowered by the Holy Spirit',
+            'Reliant on Prayer',
+            'Committed to Covenant Community',
+            'Gospel-Saturated in Discipleship',
+            'Devoted to Equipping the Saints',
+            'Relentless in Mission',
+          ],
+        }),
+        defineField({
+          name: 'faithLabel',
+          title: 'Faith Section Label',
+          type: 'string',
+          initialValue: 'Core Beliefs',
+        }),
+        defineField({
+          name: 'faithTitle',
+          title: 'Faith Section Title',
+          type: 'string',
+          initialValue: 'Affirmation of Faith',
+        }),
+        defineField({
+          name: 'faithPoints',
+          title: 'Faith Points',
+          type: 'array',
+          of: [{type: 'string'}],
+          initialValue: [
+            'The Bible is the Word of God, fully inspired and without error in the original manuscripts.',
+            'There is one true, good, and living God who eternally exists in three persons—the Father, Son, and Holy Spirit.',
+            'God created men and women in His image and created all things for His glory.',
+            'All have sinned and rebelled against God.',
+            'Jesus came to earth, lived a perfect life, and died an atoning death—conquering sin, Satan, and death by His resurrection.',
+            'God alone is the Author of Salvation.',
+            'The Holy Spirit gives gifts to those who are in Christ.',
+            'The church consists of all who have trusted Jesus for their eternal salvation.',
+            'Heaven and hell are real places.',
+            'Jesus Christ will one day return to establish His kingdom.',
+          ],
+        }),
+      ],
+    }),
+
     defineField({
       name: 'imageTextSections',
-      title: 'Image-Text Sections',
+      title: 'These is for the about page to highlight some of the important events you have during the year like conferences, annual movements etc',
       type: 'array',
       of: [
         {
@@ -195,12 +201,7 @@ export default defineType({
           name: 'imageTextSection',
           title: 'Image-Text Section',
           fields: [
-            defineField({
-              name: 'sectionId',
-              title: 'Section ID',
-              type: 'string',
-              description: 'Unique identifier for this section (used for navigation/anchoring)',
-            }),
+          
             defineField({
               name: 'title',
               title: 'Section Title',
@@ -252,58 +253,11 @@ export default defineType({
             }),
             defineField({
               name: 'content',
-              title: 'Content',
-              type: 'array',
-              of: [
-                {
-                  type: 'block',
-                  styles: [
-                    {title: 'Normal', value: 'normal'},
-                    {title: 'H1', value: 'h1'},
-                    {title: 'H2', value: 'h2'},
-                    {title: 'H3', value: 'h3'},
-                    {title: 'H4', value: 'h4'},
-                    {title: 'H5', value: 'h5'},
-                    {title: 'H6', value: 'h6'},
-                    {title: 'Quote', value: 'blockquote'},
-                  ],
-                  lists: [
-                    {title: 'Bullet', value: 'bullet'},
-                    {title: 'Numbered', value: 'number'},
-                  ],
-                  marks: {
-                    decorators: [
-                      {title: 'Strong', value: 'strong'},
-                      {title: 'Emphasis', value: 'em'},
-                      {title: 'Underline', value: 'underline'},
-                      {title: 'Strike', value: 'strike-through'},
-                      {title: 'Code', value: 'code'},
-                    ],
-                    annotations: [
-                      {
-                        name: 'link',
-                        type: 'object',
-                        title: 'Link',
-                        fields: [
-                          {
-                            name: 'href',
-                            type: 'url',
-                            title: 'URL',
-                          },
-                          {
-                            name: 'blank',
-                            type: 'boolean',
-                            title: 'Open in new tab',
-                          },
-                        ],
-                      },
-                    ],
-                  },
-                },
-              ],
+              title: 'Content Text',
+              type: 'text',
+              rows: 4,
               validation: (Rule) => Rule.required(),
             }),
-        
           ],
           preview: {
             select: {
@@ -314,14 +268,7 @@ export default defineType({
               imagePosition: 'imagePosition',
             },
             prepare({title, subtitle, content, image, imagePosition}) {
-              const block = (content || []).find((block: any) => block._type === 'block')
-              const contentPreview = block
-                ? block.children
-                    ?.filter((child: any) => child._type === 'span')
-                    ?.map((span: any) => span.text)
-                    ?.join('')
-                    ?.substring(0, 60) + '...'
-                : 'No content'
+              const contentPreview = content ? content.substring(0, 60) + '...' : 'No content'
 
               return {
                 title: title || 'Untitled Section',
@@ -333,7 +280,7 @@ export default defineType({
           },
         },
       ],
-      description: 'Create image-text sections with customizable layouts for your about page',
+      description: '',
     }),
   ],
   preview: {

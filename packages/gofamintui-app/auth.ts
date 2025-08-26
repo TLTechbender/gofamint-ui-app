@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import type { DefaultSession } from "next-auth";
 import { prisma } from "./lib/prisma/prisma";
+import crypto from "crypto";
 
 interface DatabaseUser {
   id: string;
@@ -12,7 +13,7 @@ interface DatabaseUser {
   userName: string;
   firstName: string;
   lastName: string;
-  isVerified: boolean; // always boolean now
+  isVerified: boolean;
   phoneNumber?: string | null;
   bio?: string | null;
   password?: string | null;
@@ -38,7 +39,6 @@ async function createNewUser(userData: {
         getUserByPhoneNumber(userData.phoneNumber),
       ]);
 
-    // If email exists
     if (existingUserByEmail) {
       if (!existingUserByEmail.isVerified) {
         return {
@@ -56,7 +56,6 @@ async function createNewUser(userData: {
       };
     }
 
-    // If username exists
     if (existingUserByUsername) {
       if (!existingUserByUsername.isVerified) {
         return {
@@ -74,7 +73,6 @@ async function createNewUser(userData: {
       };
     }
 
-    // If phone number exists (no verification, just block it)
     if (existingUserByPhone) {
       return {
         success: false,
@@ -84,7 +82,6 @@ async function createNewUser(userData: {
       };
     }
 
-    // ✅ Create brand new user
     const hashedPassword = await bcrypt.hash(userData.password, 12);
 
     const newUser = await prisma.user.create({
@@ -250,11 +247,12 @@ function parseGoogleUserName(fullName: string | null | undefined): {
 
   return { firstName, lastName };
 }
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
     Google({
-      clientId: process.env.AUTH_GOOGLE_CLIENT_ID!, // Changed env var name
+      clientId: process.env.AUTH_GOOGLE_CLIENT_ID!,
       clientSecret: process.env.AUTH_GOOGLE_CLIENT_SECRET!,
     }),
     Credentials({
@@ -270,7 +268,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       authorize: async (credentials) => {
         try {
           if (!credentials?.emailOrUsername || !credentials?.password) {
-            return null; // Return null instead of throwing
+            return null;
           }
 
           const emailOrUsername = String(credentials.emailOrUsername);
@@ -279,16 +277,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const user =
             (await getUserByEmail(emailOrUsername)) ||
             (await getUserByUsername(emailOrUsername));
-          console.log(user);
-          if (!user || !user.isVerified || !user.password) {
+
+          if (!user || !user.isVerified) {
             return null;
           }
 
-          console.log(password, user.password);
+          // Block credentials if user has no password (Google user)
+          if (!user.password) {
+            return null;
+          }
 
           const isValidPassword = await bcrypt.compare(password, user.password);
           if (!isValidPassword) {
-            console.log(isValidPassword);
             return null;
           }
 
@@ -306,12 +306,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           };
         } catch (error) {
           console.error("Authentication error:", error);
-          return null; // Always return null on error
+          return null;
         }
       },
     }),
   ],
-  session: { strategy: "jwt" },
+  session: {
+    strategy: "jwt",
+    maxAge: 5 * 24 * 60 * 60, // 5 days in seconds
+  },
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider === "google") {
@@ -319,7 +322,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const existingUser = await getUserByEmail(user.email!);
 
           if (existingUser) {
-            return existingUser.isVerified; // Return boolean directly
+            if (!existingUser.isVerified) {
+              return false;
+            }
+
+            // Block Google if user has password (normal auth user)
+            if (existingUser.password) {
+              return false;
+            }
+
+            return true;
           }
 
           // Create new Google user
@@ -332,13 +344,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               userName,
               firstName,
               lastName,
-              password: null, // Google users don't have passwords
+              password: null,
               phoneNumber: null,
               bio: null,
               isVerified: true,
               isAuthor: false,
             },
           });
+
           return true;
         } catch (error) {
           console.error("Google sign-in error:", error);
@@ -399,7 +412,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }
         } catch (error) {
           console.error("Error fetching user data for JWT:", error);
-          // Don't throw - just continue with existing token
         }
       }
 
@@ -408,7 +420,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
     async session({ session, token }) {
       if (session.user && token.id) {
-        // Type-safe assignment
         const userSession = session.user as any;
         Object.assign(userSession, {
           id: token.id,
@@ -427,13 +438,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   pages: {
     signIn: "/signin",
-    error: "/signin", // Consider using a dedicated error page
+    error: "/signin",
   },
   secret: process.env.NEXTAUTH_SECRET,
-  debug: process.env.NODE_ENV === "development", // Enable debug in development
+  debug: process.env.NODE_ENV === "development",
 });
 
-// Your type declarations remain the same
+// Type declarations
 declare module "next-auth" {
   interface Session {
     user: {

@@ -1,29 +1,35 @@
 import { Metadata } from "next";
-import LiveStreamComponent from "@/components/liveComponent";
-import { LiveStream } from "@/sanity/interfaces/streaming";
-import { getCurrentLiveStreams } from "@/sanity/queries/streaming";
+import LiveStreamComponent from "@/components/live/liveStreamComponent";
+import { LiveStream } from "@/sanity/interfaces/liveStream";
+import { getCurrentLiveStreams } from "@/sanity/queries/liveStream";
 import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
 
 // Generate metadata function
 export async function generateMetadata(): Promise<Metadata> {
   try {
     const streamsData = await sanityFetchWrapper<LiveStream[]>(
-      getCurrentLiveStreams
+      getCurrentLiveStreams,
+      {},
+      ["liveStream"]
     );
 
     // Filter active live streams
     const currentLiveStreams =
-      streamsData?.filter((stream) => stream.isLive) || [];
+      streamsData?.filter((stream) => stream.isLive) ||
+      streamsData?.filter(
+        (stream) =>
+          new Date(stream.scheduledEnd!).getTime() < new Date().getTime()
+      ) ||
+      [];
     const hasLiveStreams = currentLiveStreams.length > 0;
 
     // Get primary stream for metadata
     const primaryStream = currentLiveStreams[0];
 
-    // Dynamic title and description based on live status
     const baseTitle = "Live Stream";
     const title = hasLiveStreams
-      ? `🔴 LIVE: ${primaryStream?.title || "Church Service"} | Your Church Name`
-      : `${baseTitle} | Your Church Name`;
+      ? `🔴 LIVE: ${primaryStream?.title || "Church Service"} | GSF UI`
+      : `${baseTitle} | GSF UI`;
 
     const description = hasLiveStreams
       ? `Watch live now: ${primaryStream?.title}${primaryStream?.description ? ` - ${primaryStream.description}` : ""}. Join our online worship service and be part of our community.`
@@ -53,6 +59,9 @@ export async function generateMetadata(): Promise<Metadata> {
       "live ministry",
       "online worship service",
       "church live",
+      "Live gofamint ui",
+      "online brethren",
+      "Gofamint Streaming University Of Ibadan",
       ...streamKeywords,
     ];
 
@@ -71,7 +80,7 @@ export async function generateMetadata(): Promise<Metadata> {
             name: primaryStream?.title,
             location: {
               "@type": "Place",
-              name: "Your Church Name",
+              name: "GSF UI",
             },
           },
         }
@@ -81,21 +90,20 @@ export async function generateMetadata(): Promise<Metadata> {
       title,
       description,
       keywords,
-      authors: [{ name: "Your Church Name" }],
-      creator: "Your Church Name",
-      publisher: "Your Church Name",
-
+      authors: [{ name: "Gofamint UI, Bolarinwa Paul Ayomide" }],
+      creator: "Bolarinwa Paul Ayomide (https://github.com/TLTechbender)",
+      publisher: "Gofamint Students' Fellowship UI",
       // Open Graph metadata
       openGraph: {
         title,
         description,
         type: "website",
-        url: "/live",
-        siteName: "Your Church Name",
+        url: `process.env.NEXT_PUBLIC_SITE_URL/live`,
+        siteName: "",
         locale: "en_US",
         images: [
           {
-            url: "/images/live-stream-og.jpg", // Add your live stream thumbnail
+            url: `${hasLiveStreams ? `process.env.NEXT_PUBLIC_SITE_URL/liveStreamSeo.jpg` : `process.env.NEXT_PUBLIC_SITE_URL/calendarSeo.jpg`}`,
             width: 1200,
             height: 630,
             alt: hasLiveStreams
@@ -115,14 +123,14 @@ export async function generateMetadata(): Promise<Metadata> {
         }),
       },
 
-      // Twitter Card metadata with live-specific enhancements
+      //Todo: SEO bro
       twitter: {
         card: "summary_large_image",
         title,
         description,
-        site: "@yourchurchtwitter",
-        creator: "@yourchurchtwitter",
-        images: ["/images/live-stream-og.jpg"],
+        site: "@churchtwitter",
+        creator: "@churchtwitter",
+        images: `${hasLiveStreams ? `process.env.NEXT_PUBLIC_SITE_URL/liveStreamSeo.jpg` : `process.env.NEXT_PUBLIC_SITE_URL/calendarSeo.jpg`}`,
       },
 
       // Additional metadata
@@ -133,7 +141,7 @@ export async function generateMetadata(): Promise<Metadata> {
       // Enhanced structured data and live-specific metadata
       other: {
         "og:type": "website",
-        "og:video:type": hasLiveStreams ? "text/html" : '',
+        "og:video:type": hasLiveStreams ? "text/html" : "",
         "article:section": "Live Events",
         "article:tag": keywords.slice(0, 10).join(", "),
         ...(hasLiveStreams && {
@@ -158,7 +166,6 @@ export async function generateMetadata(): Promise<Metadata> {
           "max-image-preview": "large",
           "max-snippet": -1,
           // Refresh more frequently for live content
-        
         },
       },
 
@@ -171,25 +178,20 @@ export async function generateMetadata(): Promise<Metadata> {
 
       // Verification codes
       verification: {
-        google: "your-google-verification-code",
+        google: `${process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION_CODE}`,
       },
 
-      // Additional live-stream specific metadata
       ...(hasLiveStreams && {
-        applicationName: "Your Church Name Live",
+        applicationName: "Gofamint UI Live",
         category: "Religion & Spirituality",
         classification: "Live Streaming",
       }),
-
-      // Refresh directive for live content
-    
     };
   } catch (error) {
     console.error("Error generating live stream metadata:", error);
 
-    // Fallback metadata
     return {
-      title: "Live Stream | Your Church Name",
+      title: "Live Stream | Gofamint UI",
       description:
         "Join our live worship services online. Watch church services, prayer meetings, and special events as they happen.",
       keywords: [
@@ -200,13 +202,13 @@ export async function generateMetadata(): Promise<Metadata> {
       ],
 
       openGraph: {
-        title: "Live Stream | Your Church Name",
+        title: "Live Stream | GSF UI",
         description: "Join our live worship services online.",
         type: "website",
         url: "/live",
         images: [
           {
-            url: "/images/live-stream-og.jpg",
+            url: `process.env.NEXT_PUBLIC_SITE_URL/calendarSeo.jpg`,
             width: 1200,
             height: 630,
             alt: "Live Stream",
@@ -216,9 +218,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
       twitter: {
         card: "summary_large_image",
-        title: "Live Stream | Your Church Name",
+        title: "Live Stream | Gofamint UI",
         description: "Join our live worship services online.",
-        images: ["/images/live-stream-og.jpg"],
+        images: [`process.env.NEXT_PUBLIC_SITE_URL/calendarSeo.jpg`],
       },
 
       robots: {
@@ -228,11 +230,18 @@ export async function generateMetadata(): Promise<Metadata> {
     };
   }
 }
-export const dynamic = "force-dynamic";
+
 export default async function Live() {
   const streamsData = await sanityFetchWrapper<LiveStream[]>(
-    getCurrentLiveStreams
+    getCurrentLiveStreams,
+    {},
+    ["liveStream"]
   );
 
-  return <LiveStreamComponent streamsData={streamsData} />;
+  return (
+    <>
+      <div className="bg-black h-18 mb-2 w-full flex-shrink-0" />
+      <LiveStreamComponent streamsData={streamsData} />
+    </>
+  );
 }

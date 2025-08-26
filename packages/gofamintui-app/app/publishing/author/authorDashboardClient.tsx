@@ -9,7 +9,7 @@ import {
   Heart,
   Users,
   BookOpen,
-  TrendingUp,
+
   Save,
   X,
   Camera,
@@ -34,6 +34,7 @@ import {
 } from "@/actions/author/editProfile";
 import { toast } from "react-toastify";
 import Link from "next/link";
+import { AuthorAnalytics } from "@/actions/author/authorAnalytics";
 
 // Type definitions
 export interface ProfileData {
@@ -57,16 +58,9 @@ export interface SocialMedia {
   url: string;
   handle?: string;
 }
-interface Analytics {
-  totalViews: number;
-  verifiedViews: number;
-  totalLikes: number;
-  totalPosts: number;
-  avgViewsPerPost: number;
-  thisMonthViews: number;
-}
 
 //Todo, bro come do the analytics later man
+//update: cooked the analytics
 
 interface Post {
   title: string;
@@ -79,14 +73,16 @@ interface StatCardProps {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: number;
-  trend?: string;
+
   isMain?: boolean;
 }
 
 const AuthorDashboardClient = ({
   profileData,
+  analyticsData,
 }: {
   profileData: ProfileData;
+  analyticsData: AuthorAnalytics;
 }) => {
   const [isBioEditing, setIsBioEditing] = useState<boolean>(false);
   const [isImageEditing, setIsImageEditing] = useState<boolean>(false);
@@ -142,16 +138,6 @@ const AuthorDashboardClient = ({
     control: bioControl,
     name: "socialMedia",
   });
-
-  // Sample analytics data
-  const analytics: Analytics = {
-    totalViews: 12847,
-    verifiedViews: 9234,
-    totalLikes: 456,
-    totalPosts: 23,
-    avgViewsPerPost: 558,
-    thisMonthViews: 3421,
-  };
 
   const recentPosts: Post[] = [
     {
@@ -326,7 +312,7 @@ const AuthorDashboardClient = ({
     icon: Icon,
     label,
     value,
-    trend,
+   
     isMain = false,
   }) => (
     <div
@@ -341,11 +327,7 @@ const AuthorDashboardClient = ({
             {label}
           </span>
         </div>
-        {trend && (
-          <span className="text-xs text-blue-400 font-medium hidden sm:block">
-            {trend}
-          </span>
-        )}
+        
       </div>
       <div className="space-y-1">
         <p
@@ -353,11 +335,7 @@ const AuthorDashboardClient = ({
         >
           {value.toLocaleString()}
         </p>
-        {trend && (
-          <span className="text-xs text-blue-400 font-medium block sm:hidden">
-            {trend}
-          </span>
-        )}
+      
       </div>
     </div>
   );
@@ -520,7 +498,7 @@ const AuthorDashboardClient = ({
                       <form onSubmit={handleBioSubmit(onBioSubmit)}>
                         {/* Bio Section */}
                         {!isBioEditing ? (
-                          <p className="text-base sm:text-lg text-black font-light leading-relaxed mb-3 sm:mb-4">
+                          <p className="text-sm  text-black font-light leading-relaxed mb-3 sm:mb-4">
                             {optimisticProfile.bio}
                           </p>
                         ) : (
@@ -726,31 +704,26 @@ const AuthorDashboardClient = ({
               <StatCard
                 icon={Eye}
                 label="Total Views"
-                value={analytics.totalViews}
-                trend="+12% this month"
+                value={analyticsData.totalGenericViews}
+              
                 isMain={true}
               />
               <StatCard
                 icon={Users}
                 label="Verified Views"
-                value={analytics.verifiedViews}
-                trend="+8% this month"
+                value={analyticsData.totalVerifiedViews}
+               
               />
               <StatCard
                 icon={Heart}
                 label="Total Likes"
-                value={analytics.totalLikes}
-                trend="+15% this month"
+                value={analyticsData.totalLikes}
+               
               />
               <StatCard
                 icon={BookOpen}
                 label="Published Posts"
-                value={analytics.totalPosts}
-              />
-              <StatCard
-                icon={TrendingUp}
-                label="Avg Views/Post"
-                value={analytics.avgViewsPerPost}
+                value={analyticsData.totalPosts}
               />
             </div>
           </div>
@@ -765,7 +738,7 @@ const AuthorDashboardClient = ({
                 </span>
               </div>
               <Link
-                href={`/publishing/new`}
+                href={`/publishing/author/new`}
                 className="flex items-center space-x-2 bg-blue-400 text-white px-4 sm:px-6 py-2 sm:py-3 hover:bg-blue-500 transition-colors text-sm font-medium tracking-wide uppercase rounded-sm"
               >
                 <Plus className="w-4 h-4" />

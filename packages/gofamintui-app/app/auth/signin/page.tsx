@@ -4,7 +4,7 @@ import {
   LoginSchemaClientData,
 } from "@/lib/formSchemas/loginSchemaClient";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { signIn } from "next-auth/react";
@@ -16,8 +16,15 @@ export default function Signin() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl");
+  const credentialsError = searchParams.get("error");
   const [showPassword, setShowPassword] = useState(false);
 
+  const handleGoogleSignIn = async () => {
+    await signIn("google", {
+      redirectTo: "/profile",
+      redirect: true,
+    });
+  };
   const {
     register,
 
@@ -30,6 +37,12 @@ export default function Signin() {
     mode: "onChange",
   });
 
+  useEffect(() => {
+    if (credentialsError) {
+      toast.error("Wrong sign in method");
+    }
+  }, [searchParams, credentialsError]);
+
   const onSubmit = async (data: LoginSchemaClientData) => {
     try {
       // Validate input
@@ -40,20 +53,18 @@ export default function Signin() {
         return;
       }
 
-
       //Todo: bro fix them callback urls too
 
       setIsLoading(true);
       console.log("Submitting credentials:", result.data);
 
-      
       const res = await signIn("credentials", {
         redirect: false,
-        emailOrUsername: result.data.emailOrUserName, 
+        emailOrUsername: result.data.emailOrUserName,
         password: result.data.password,
       });
 
-      console.log("SignIn response:", res); 
+      console.log("SignIn response:", res);
 
       if (res?.error) {
         switch (res.error) {
@@ -268,7 +279,10 @@ export default function Signin() {
 
             {/* Social Login Options */}
             <div className="space-y-3">
-              <button className="w-full flex items-center justify-center space-x-3 py-3 px-4 border border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 text-black transition-colors duration-200">
+              <button
+                onClick={handleGoogleSignIn}
+                className="w-full flex items-center justify-center space-x-3 py-3 px-4 border border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 text-black transition-colors duration-200"
+              >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path
                     fill="#4285F4"

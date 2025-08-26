@@ -82,7 +82,6 @@ Based on current Vercel Hobby plan limits:
 - **Functions**: 1M invocations per month
 - **Bandwidth**: 100GB Fast Data Transfer
 
-*Note: The claim about Vercel's CEO using the free tier couldn't be verified, but the Hobby plan is indeed generous for most development needs.*
 
 ## Hybrid Rendering Strategy
 
@@ -123,4 +122,4 @@ This allows us to:
 
 This approach represents a modern, efficient solution for content-driven applications that need to balance performance, cost, and functionality while maintaining excellent user and developer experiences.
 
-# Bolarinwa <OluwaBrimz/> TLTechbender on the beat
+# Bolarinwa OluwaBrimz TLTechbender on the beat😎 😎 😎 

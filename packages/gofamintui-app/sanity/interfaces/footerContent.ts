@@ -51,31 +51,9 @@ export interface SocialLink {
   isActive: boolean;
 }
 
-export interface Newsletter {
-  title: string;
-  description: string;
-  buttonText: string;
-  placeholder: string;
-  isEnabled: boolean;
-}
 
-export interface LegalLink {
-  name: string;
-  url: string;
-}
 
-export interface DeveloperCredit {
-  show: boolean;
-  techCreditText: string;
-  developerName: string;
-  link?: string;
-}
 
-export interface FooterBottom {
-  copyrightText?: string;
-  legalLinks: LegalLink[];
-  developerCredit: DeveloperCredit;
-}
 
 export interface Footer {
   _id: string;
@@ -86,8 +64,8 @@ export interface Footer {
   serviceTimes: ServiceTime[];
   quickLinks: QuickLink[];
   socialLinks: SocialLink[];
-  newsletter: Newsletter;
-  footerBottom: FooterBottom;
+ 
+  
 }
 
 

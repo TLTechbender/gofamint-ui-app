@@ -1,6 +1,102 @@
 import { ArrowRight } from "lucide-react";
+import { Metadata } from "next";
 import Link from "next/link";
 
+//SSG for live for this page
+
+export const metadata: Metadata = {
+  title: "Become an Author | GSF UI Blog - Share Your Faith-Inspired Voice",
+  description:
+    "Join GSF UI Blog as a faith-driven writer. Share inspiring content that touches hearts and transforms lives. Apply to become part of our community of Christian authors and bloggers.",
+  keywords: [
+    "GSF UI Blog",
+    "Christian author",
+    "faith writer",
+    "gospel writer",
+    "Christian blog author",
+    "faith-based content",
+    "spiritual writing",
+    "Gofamint Students Fellowship",
+    "University of Ibadan",
+    "Christian blogging platform",
+    "gospel publishing",
+    "faith community writer",
+    "inspirational writing",
+    "biblical content creation",
+  ].join(", "),
+
+  authors: [
+    {
+      name: "Gofamint Students' Fellowship UI Chapter",
+      url: `${process.env.NEXT_PUBLIC_SITE_URL}`,
+    },
+  ],
+  creator: "Bolarinwa Paul Ayomide (https://github.com/TLTechbender)",
+  publisher: "Gofamint Students' Fellowship UI",
+  category: "Publishing",
+
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+
+  verification: {
+    google: `${process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION_CODE}`,
+  },
+
+  openGraph: {
+    title: "Become an Author | GSF UI Blog - Share Your Faith-Inspired Voice",
+    description:
+      "Join our community of faith-driven writers and share inspiring content that touches hearts and transforms lives. Apply to become a Christian author with GSF UI Blog.",
+    url: `${process.env.NEXT_PUBLIC_SITE_URL}/publishing`,
+    siteName: "GSF UI Blog",
+    images: [
+      {
+        url: `${process.env.NEXT_PUBLIC_SITE_URL}/publishing1.jpg`,
+        width: 1200,
+        height: 630,
+        alt: "GSF UI Blog - Become a Faith-Inspired Author and Writer",
+        type: "image/jpeg",
+      },
+    ],
+    locale: "en_NG",
+    type: "website",
+    countryName: "Nigeria",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Become an Author | GSF UI Blog - Share Your Faith-Inspired Voice",
+    description:
+      "Join our community of faith-driven writers. Share inspiring content that touches hearts and transforms lives through the power of God's word.",
+    site: "@gofamintui",
+    creator: "@gofamintui",
+    images: [
+      {
+        url: `${process.env.NEXT_PUBLIC_SITE_URL}/publishing2.jpg`,
+        alt: "GSF UI Blog - Become a Faith-Inspired Author",
+      },
+    ],
+  },
+
+  alternates: {
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/publishing`,
+  },
+
+  other: {
+    "theme-color": "#3b82f6",
+    "color-scheme": "light",
+  },
+
+  metadataBase: new URL(`${process.env.NEXT_PUBLIC_SITE_URL}`),
+};
 
 //SSG by default Jhoor
 export default function PulishingLandingPage() {
@@ -121,7 +217,7 @@ export default function PulishingLandingPage() {
                     Want to want to serve in this vineyard?
                   </p>
                   <Link
-                    href={`/author/apply`}
+                    href={`/publishing/author/apply`}
                     className="inline-flex items-center space-x-3 bg-blue-500 hover:bg-blue-600 text-white font-medium py-4 px-8 transition-all duration-300 group hover:shadow-lg transform hover:-translate-y-1"
                   >
                     <p>Start Your Application</p>

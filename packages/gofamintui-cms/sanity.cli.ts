@@ -4,7 +4,6 @@ export default defineCliConfig({
   api: {
     projectId: '276it5za',
     dataset: 'production',
-    
   },
   /**
    * Enable auto-updates for studios.
@@ -12,6 +11,3 @@ export default defineCliConfig({
    */
   autoUpdates: true,
 })
-
-
-//skMETNqQFZHpU8FdKGn1N2msRKrO6mXbZXAGsDynt42DDjLaXLgLmW7N50DAFJdQOcLJYsIe1GuxVlWVNdKPbu4yqFd3sSjc2jRg5Trdpi3va0SzTEIzaTgTfmYpNKbJd46fhRGFQNGhxqr9WFkC9QQfuQYLwPOdxTB3bHRMhZPzjtatM7rE

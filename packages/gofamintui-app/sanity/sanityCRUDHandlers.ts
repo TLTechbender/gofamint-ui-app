@@ -1,5 +1,6 @@
 import { sanityClient } from "./sanityClient";
 import type { SanityDocument } from "@sanity/client";
+import { unstable_cache } from "next/cache";
 
 export interface ClientError extends Error {
   status?: number;
@@ -8,9 +9,27 @@ export interface ClientError extends Error {
 
 export async function sanityFetchWrapper<T = any>(
   query: string,
-  params: Record<string, any> = {}
+  params: Record<string, any> = {},
+  tags?: string[]
 ): Promise<T> {
   try {
+    // If tags are provided, use Next.js caching
+    if (tags && tags.length > 0) {
+      const cachedFetch = unstable_cache(
+        async () => {
+          return await sanityClient.fetch(query, params);
+        },
+        [query, JSON.stringify(params)], // Cache key
+        {
+          tags,
+          revalidate: false, // On-demand only (ISR)
+        }
+      );
+
+      return await cachedFetch();
+    }
+
+    //in case we got not tags
     const result = await sanityClient.fetch(query, params);
     return result;
   } catch (error) {

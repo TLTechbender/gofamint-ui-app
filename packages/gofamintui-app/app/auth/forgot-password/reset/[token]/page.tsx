@@ -1,4 +1,4 @@
-import ResetPasswordComponent from "@/components/resetPasswordComponent";
+import ResetPasswordComponent from "@/components/auth/resetPasswordComponent";
 
 
 export default async function ResetPassword({

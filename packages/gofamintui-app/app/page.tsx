@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ChevronRight, Clock, LocationEditIcon, Quote } from "lucide-react";
 import Image from "next/image";
-import JourneyPlanner from "@/components/journeyPlanner";
+import JourneyPlanner from "@/components/homePage/journeyPlanner";
 import { homepageQuery } from "@/sanity/queries/homePage";
 import { Metadata } from "next";
 import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
@@ -9,16 +9,17 @@ import { homepageMetadataQuery } from "@/sanity/queries/homePageMetaData";
 import { urlFor } from "@/sanity/sanityClient";
 import { Sermon } from "@/sanity/interfaces/sermonsPage";
 import { recentSermonsQuery } from "@/sanity/queries/sermonsPage";
-
-import VideoBackground from "@/components/videoBackground";
-
-import ImagesScrollingContainer from "@/components/imagesScollingContainer";
+import VideoBackground from "@/components/homePage/videoBackground";
+import ImagesScrollingContainer from "@/components/homePage/imagesScollingContainer";
 import SermonCard from "@/components/sermonCard";
 import { Homepage } from "@/sanity/interfaces/homePage";
+import UnderConstructionPage from "@/components/underConstructionPage";
 
 export async function generateMetadata(): Promise<Metadata> {
   const dynamicMetaData = await sanityFetchWrapper<Homepage>(
-    homepageMetadataQuery
+    homepageMetadataQuery,
+    {},
+    ["homepage", "whatsappContactWidget", "footer"]
   );
 
   const optimizedImageUrl = dynamicMetaData?.seo?.ogImage?.asset?.url
@@ -43,12 +44,12 @@ export async function generateMetadata(): Promise<Metadata> {
     authors: [
       {
         name: "Gofamint Students' Fellowship UI Chapter",
-        url: "https://gofamintui.org",
+        url: `${process.env.NEXT_PUBLIC_SITE_URL}`,
       },
     ],
     creator: "Bolarinwa Paul Ayomide (https://github.com/TLTechbender)",
     publisher: "Gofamint Students' Fellowship UI",
-    category: "Religious Organization",
+    category: "Church",
     robots: {
       index: true,
       follow: true,
@@ -61,12 +62,12 @@ export async function generateMetadata(): Promise<Metadata> {
       },
     },
     verification: {
-      google: "your-google-site-verification-code", // Replace with actual code
+      google: `${process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION_CODE}`,
     },
     openGraph: {
       title,
       description,
-      url: "https://gofamintui.org",
+      url: `${process.env.NEXT_PUBLIC_SITE_URL}`,
       siteName: "GSF UI",
       images: optimizedImageUrl
         ? [
@@ -99,29 +100,39 @@ export async function generateMetadata(): Promise<Metadata> {
         : [],
     },
     alternates: {
-      canonical: "https://gofamintui.org",
+      canonical: `${process.env.NEXT_PUBLIC_SITE_URL}`,
     },
     other: {
       "theme-color": "#ffffff",
       "color-scheme": "light",
     },
-    metadataBase: new URL("https://gofamintui.org"),
+    metadataBase: new URL(`${process.env.NEXT_PUBLIC_SITE_URL}`),
   };
 }
 
-
-
 export default async function Home() {
-  const [homepage, mostRecentSermons] = await Promise.all([
-    sanityFetchWrapper<Homepage>(homepageQuery),
-    sanityFetchWrapper<Sermon[]>(recentSermonsQuery),
+  // Not doing promise.all in case one fails
+  const homepage = await sanityFetchWrapper<Homepage>(homepageQuery, {}, [
+    "homepage",
+    "whatsappContactWidget",
+    "footer",
   ]);
 
-console.log(homepage)
-  
+  const mostRecentSermons = await sanityFetchWrapper<Sermon[]>(
+    recentSermonsQuery,
+    {},
+    [
+      "homepage",
+      "whatsappContactWidget",
+      "footer",
+      "sermons",
+      "sermon",
+      "sermon",
+      "sermonsPageMetadataAndHero",
+    ]
+  );
 
   //This is for the thumbnail
-
   function formatDuration(totalMinutes: number): string {
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
@@ -132,11 +143,14 @@ console.log(homepage)
     return `${minutes}m`;
   }
 
+  if (!homepage || Object.keys(homepage).length === 0) {
+    return <UnderConstructionPage />;
+  }
+
   return (
-    <div className="overflow-hidden ">
+    <div className="overflow-hidden">
       {/* Hero Section */}
       <section id="hero">
-        {/* Background with parallax effect */}
         <div className="py-20 md:py-0 relative min-h-[90vh]">
           <VideoBackground
             imageSrc={urlFor(homepage.heroSection.backgroundImage)
@@ -148,7 +162,6 @@ console.log(homepage)
             videoSrc={homepage.heroSection.backgroundVideo.asset.url}
           />
 
-          {/* Gradient overlay with animated static particles */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/40 z-0 overflow-hidden">
             {/* Animated particles */}
             <div className="absolute inset-0 opacity-30">
@@ -214,59 +227,61 @@ console.log(homepage)
               </div>
 
               {/* Last sermon section - YouTube embed size on mobile (inspiraton from the austin stone church) */}
-              <div className="flex flex-col gap-2 justify-center items-center mt-12 lg:mt-0 ">
-                <p className="text-white leading-relaxed tracking-wider text-sm md:text-xs">
-                  Listen to our most recent sermon
-                </p>
-                <a
-                  href={`${mostRecentSermons[0].googleDriveLink}`}
-                  target="_blank"
-                  className="w-full max-w-md mx-auto lg:max-w-none lg:w-96 flex items-center justify-center"
-                >
-                  <div className="relative w-full aspect-video lg:w-80 lg:h-64 bg-black/30 backdrop-blur-sm rounded-2xl border border-white/20 overflow-hidden shadow-2xl">
-                    <div className="absolute inset-0">
-                      <Image
-                        src={urlFor(mostRecentSermons[0].posterImage)
-                          .width(400)
-                          .height(400)
-                          .format("webp")
-                          .quality(95)
-                          .url()}
-                        className="w-full h-full object-contain opacity-20"
-                        width={1920}
-                        height={1080}
-                        alt={`${mostRecentSermons[0].posterImage.alt || "most recent sermon poster"}`}
-                      />
-                    </div>
+              {mostRecentSermons && (
+                <div className="flex flex-col gap-2 justify-center items-center mt-12 lg:mt-0 ">
+                  <p className="text-white leading-relaxed tracking-wider text-sm md:text-xs">
+                    Listen to our most recent sermon
+                  </p>
+                  <a
+                    href={`${mostRecentSermons[0].googleDriveLink}`}
+                    target="_blank"
+                    className="w-full max-w-md mx-auto lg:max-w-none lg:w-96 flex items-center justify-center"
+                  >
+                    <div className="relative w-full aspect-video lg:w-80 lg:h-64 bg-black/30 backdrop-blur-sm rounded-2xl border border-white/20 overflow-hidden shadow-2xl">
+                      <div className="absolute inset-0">
+                        <Image
+                          src={urlFor(mostRecentSermons[0].posterImage)
+                            .width(400)
+                            .height(400)
+                            .format("webp")
+                            .quality(95)
+                            .url()}
+                          className="w-full h-full object-contain opacity-20"
+                          width={1920}
+                          height={1080}
+                          alt={`${mostRecentSermons[0].posterImage.alt || "most recent sermon poster"}`}
+                        />
+                      </div>
 
-                    {/* Video thumbnail/poster gradient overlay */}
-                    <div className="absolute inset-0 bg-black opacity-30" />
+                      {/* Video thumbnail/poster gradient overlay */}
+                      <div className="absolute inset-0 bg-black opacity-30" />
 
-                    {/* Play button */}
-                    <div className="absolute inset-0 flex items-center justify-center z-20">
-                      <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white hover:scale-110 transition-all duration-300 cursor-pointer group">
-                        <svg
-                          className="w-8 h-8 text-gray-800 ml-1 group-hover:text-black"
-                          fill="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M8 5v14l11-7z" />
-                        </svg>
+                      {/* Play button */}
+                      <div className="absolute inset-0 flex items-center justify-center z-20">
+                        <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white hover:scale-110 transition-all duration-300 cursor-pointer group">
+                          <svg
+                            className="w-8 h-8 text-gray-800 ml-1 group-hover:text-black"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path d="M8 5v14l11-7z" />
+                          </svg>
+                        </div>
+                      </div>
+
+                      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
+                        <h3 className="text-white text-sm font-medium">
+                          {mostRecentSermons[0].title || "Latest Sermon"}
+                        </h3>
+                      </div>
+
+                      <div className="absolute top-3 right-3 px-2 py-1 bg-black/70 text-white text-xs rounded-md">
+                        {formatDuration(mostRecentSermons[0].duration)}
                       </div>
                     </div>
-
-                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
-                      <h3 className="text-white text-sm font-medium">
-                        {mostRecentSermons[0].title || "Latest Sermon"}
-                      </h3>
-                    </div>
-
-                    <div className="absolute top-3 right-3 px-2 py-1 bg-black/70 text-white text-xs rounded-md">
-                      {formatDuration(mostRecentSermons[0].duration)}
-                    </div>
-                  </div>
-                </a>
-              </div>
+                  </a>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -336,6 +351,7 @@ console.log(homepage)
                         .format("webp")
                         .quality(95)
                         .url()}
+                      sizes="360px"
                       alt={service.title}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -403,9 +419,10 @@ console.log(homepage)
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {mostRecentSermons.map((sermon, index) => (
-                <SermonCard key={index} sermon={sermon} />
-              ))}
+              {mostRecentSermons &&
+                mostRecentSermons.map((sermon, index) => (
+                  <SermonCard key={index} sermon={sermon} />
+                ))}
             </div>
           </div>
         </div>
@@ -578,7 +595,6 @@ console.log(homepage)
           </div>
         </div>
 
-        {/* Optional: Decorative elements for visual interest */}
         <div className="absolute top-20 right-10 w-32 h-32 bg-gray-100 rounded-full opacity-50 blur-3xl"></div>
         <div className="absolute bottom-20 left-10 w-24 h-24 bg-gray-200 rounded-full opacity-30 blur-2xl"></div>
       </section>

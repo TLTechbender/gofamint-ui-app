@@ -1,4 +1,4 @@
-import VerifyTokenComponent from "../../../../components/verifyTokenComponent";
+import VerifyTokenComponent from "../../../../components/auth/verifyTokenComponent";
 
 export default async function VerifyEmailPage({
   params,

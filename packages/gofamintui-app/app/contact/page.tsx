@@ -1,9 +1,11 @@
-import ContactInformationComponent from "@/components/contactInformationComponent";
+
 import { ContactInfo } from "@/sanity/interfaces/contact";
 import { getFellowshipContactInfo } from "@/sanity/queries/contact";
 import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
 import { Metadata } from "next";
 import { urlFor } from "@/sanity/sanityClient";
+import UnderConstructionPage from "@/components/underConstructionPage";
+import ContactInformationComponent from "@/components/contact/contactInformationComponent";
 
 // Generate dynamic metadata based on contact information
 export async function generateMetadata(): Promise<Metadata> {
@@ -11,20 +13,17 @@ export async function generateMetadata(): Promise<Metadata> {
     getFellowshipContactInfo
   );
 
-  // Create dynamic title and description
   const fellowshipName = contactInfo.fellowshipName || "Our Fellowship";
   const title = `Contact ${fellowshipName} - Connect with Our Community`;
   const description = `Get in touch with ${fellowshipName}! ${contactInfo.address ? `Visit us at ${contactInfo.address.street}, ${contactInfo.address.city}, ${contactInfo.address.state}.` : ""} ${contactInfo.contactPhone ? `Call us at ${contactInfo.contactPhone}.` : ""} ${contactInfo.contactEmail ? `Email us at ${contactInfo.contactEmail}.` : ""} Join our welcoming fellowship community.`;
 
-  // Generate social media links array
   const socialMediaLinks: string[] = [];
   if (contactInfo.socialMedia) {
-    Object.entries(contactInfo.socialMedia).forEach(([platform, url]) => {
+    Object.entries(contactInfo.socialMedia).forEach(([url]) => {
       if (url) socialMediaLinks.push(url);
     });
   }
 
-  // Generate keywords based on contact info
   const dynamicKeywords = [
     "contact us",
     `${fellowshipName.toLowerCase()} contact`,
@@ -54,7 +53,6 @@ export async function generateMetadata(): Promise<Metadata> {
     );
   }
 
-  // Generate service-related keywords
   if (contactInfo.serviceHours && contactInfo.serviceHours.length > 0) {
     const serviceTypes = contactInfo.serviceHours
       .map((service) => service.serviceType?.toLowerCase())
@@ -77,7 +75,7 @@ export async function generateMetadata(): Promise<Metadata> {
     );
     if (firstServiceWithPoster?.posterImage) {
       images.push({
-        url: urlFor(firstServiceWithPoster.posterImage as any)
+        url: urlFor(firstServiceWithPoster.posterImage)
           .width(1200)
           .height(630)
           .url(),
@@ -92,14 +90,14 @@ export async function generateMetadata(): Promise<Metadata> {
   // Fallback images
   images.push(
     {
-      url: "/images/contact-fellowship.jpg",
+      url: "",
       width: 1200,
       height: 630,
       alt: `${fellowshipName} contact information and community`,
       type: "image/jpeg",
     },
     {
-      url: "/images/fellowship-welcome.jpg",
+      url: "",
       width: 800,
       height: 600,
       alt: `Welcome to ${fellowshipName} - Connect with our community`,
@@ -112,8 +110,8 @@ export async function generateMetadata(): Promise<Metadata> {
     description,
     keywords: dynamicKeywords,
     authors: [{ name: fellowshipName }],
-    creator: fellowshipName,
-    publisher: fellowshipName,
+    creator: "Bolarinwa Paul Ayomide (https://github.com/TLTechbender)",
+    publisher: "Gofamint Students' Fellowship UI",
 
     // Open Graph metadata
     openGraph: {
@@ -130,7 +128,7 @@ export async function generateMetadata(): Promise<Metadata> {
     twitter: {
       card: "summary_large_image",
       title,
-      description: description.substring(0, 200) + "...", // Twitter has character limits
+      description: description.substring(0, 200) + "...", // Twitter has character limits sha
       images: [images[0].url],
       creator: contactInfo.socialMedia?.twitter
         ? `@${contactInfo.socialMedia.twitter.split("/").pop()}`
@@ -188,15 +186,16 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export const dynamic = "force-dynamic";
-
-
-
 export default async function ContactInformation() {
-  // Fetch contact information data using your Sanity fetch wrapper and query
   const contactInfo: ContactInfo = await sanityFetchWrapper(
-    getFellowshipContactInfo
+    getFellowshipContactInfo,
+    {},
+    ["contactInfo"]
   );
+
+  if (!contactInfo || Object.keys(contactInfo).length === 0) {
+    return <UnderConstructionPage />;
+  }
 
   return <ContactInformationComponent contactInfo={contactInfo} />;
 }

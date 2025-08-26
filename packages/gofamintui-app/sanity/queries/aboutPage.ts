@@ -1,56 +1,65 @@
-export const aboutPageQuery = `*[_type == "aboutpage"][0]{
-    _id,
-    _rev,
- 
-    heroSection {
-      backgroundImage {
-        asset->{
-          _id,
-          url,
-          metadata {
-            dimensions {
-              width,
-              height
-            }
+export const aboutPageQuery = `
+*[_type == "aboutpage"][0]{
+  heroSection {
+    backgroundImage {
+      asset->{
+        _id,
+        url,
+        metadata {
+          lqip,
+          dimensions {
+            width,
+            height
           }
-        },
-        hotspot,
-        crop
+        }
       },
-      title,
-      subtitle
+      hotspot,
+      crop
     },
-    contentSections[] {
-      sectionId,
-      title,
-      subtitle,
-      content
-    },
-    imageTextSections[] {
-      sectionId,
-      title,
-      subtitle,
-      image {
-        asset->{
-          _id,
-          url,
-          metadata {
-            dimensions {
-              width,
-              height
-            }
+    title,
+    subtitle
+  },
+  establishedSection {
+    yearLabel,
+    title
+  },
+  whoWeAreSection {
+    label,
+    content
+  },
+  beliefsSection {
+    sectionLabel,
+    title,
+    convictionsTitle,
+    convictions,
+    faithLabel,
+    faithTitle,
+    faithPoints
+  },
+  imageTextSections[] {
+  
+    title,
+    subtitle,
+    image {
+      asset->{
+        _id,
+        url,
+        metadata {
+          lqip,
+          dimensions {
+            width,
+            height
           }
-        },
-        alt,
-        caption,
-        hotspot,
-        crop
+        }
       },
-      imagePosition,
-      content,
-      styling {
-        backgroundColor,
-        paddingSize
-      }
-    }
-  }`;
+      hotspot,
+      crop,
+      alt,
+      caption
+    },
+    imagePosition,
+    content
+  }
+}
+
+`;

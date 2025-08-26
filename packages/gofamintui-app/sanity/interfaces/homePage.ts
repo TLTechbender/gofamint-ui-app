@@ -65,27 +65,7 @@ export interface Homepage {
       posterImage: SanityImage;
     }[];
   };
-  journeyPlannerSection: {
-    title: string;
-    description: string;
-  };
-  messagesSection: {
-    title: string;
-    subtitle: string;
-    viewMoreLink: string;
-    featuredMessages: {
-      title: string;
-      poster: SanityImage;
-      duration: string;
-      date: string;
-      preacher: string;
-      description: string;
-      audioUrl?: string;
-      videoUrl?: string;
-      detailsLink: string;
-      learnMoreLink: string;
-    }[];
-  };
+
   testimonialsSection: {
     backgroundImage: SanityImage;
     title: string;

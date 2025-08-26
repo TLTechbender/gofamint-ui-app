@@ -19,7 +19,7 @@ export async function sendVerifiyUserEmail(
   token: string,
   firstName: string
 ) {
-  const verificationUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/verify-email/${token}?email=${email}`;
+  const verificationUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/verify-email/${token}?email=${email}`;
 
   const mailOptions = {
     from: `${process.env.NEXT_SMTP_EMAIL_ADDRESS}`,

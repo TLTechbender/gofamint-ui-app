@@ -191,8 +191,10 @@ export default defineType({
               name: 'url',
               title: 'URL',
               type: 'string',
+              description:
+                'These are quick links to pages on the website bro, ensure to keep it internal',
               validation: (rule) => rule.required(),
-              placeholder: '/about, /events, https://example.com',
+              placeholder: '/about, /events',
             }),
           ],
           preview: {
@@ -212,7 +214,7 @@ export default defineType({
       of: [
         {
           type: 'object',
-          name: 'socialLink', // Add explicit name for the object type
+          name: 'socialLink',
           title: 'Social Link',
           fields: [
             defineField({
@@ -253,92 +255,6 @@ export default defineType({
         },
       ],
     }),
-
-    // Newsletter Section
-    defineField({
-      name: 'newsletter',
-      title: 'Newsletter Section',
-      type: 'object',
-      fields: [
-        defineField({
-          name: 'title',
-          title: 'Newsletter Title',
-          type: 'string',
-          initialValue: 'Stay Connected',
-        }),
-        defineField({
-          name: 'description',
-          title: 'Newsletter Description',
-          type: 'text',
-          rows: 2,
-          initialValue:
-            'Get updates on events, sermons, and community news delivered to your inbox.',
-        }),
-        defineField({
-          name: 'buttonText',
-          title: 'Subscribe Button Text',
-          type: 'string',
-          initialValue: 'Subscribe',
-        }),
-        defineField({
-          name: 'placeholder',
-          title: 'Email Input Placeholder',
-          type: 'string',
-          initialValue: 'Enter your email address',
-        }),
-        defineField({
-          name: 'isEnabled',
-          title: 'Show Newsletter Section',
-          type: 'boolean',
-          initialValue: true,
-        }),
-      ],
-    }),
-
-    // Footer Bottom
-    defineField({
-      name: 'footerBottom',
-      title: 'Footer Bottom Section',
-      type: 'object',
-      fields: [
-        defineField({
-          name: 'copyrightText',
-          title: 'Copyright Text',
-          type: 'string',
-          description: 'Leave blank to use default format with fellowship name and current year',
-        }),
-
-        defineField({
-          name: 'developerCredit',
-          title: 'Developer Credit',
-          type: 'object',
-          fields: [
-            defineField({
-              name: 'show',
-              title: 'Show Developer Credit',
-              type: 'boolean',
-              initialValue: true,
-            }),
-            defineField({
-              name: 'techCreditText',
-              title: 'Credit Text',
-              type: 'string',
-              initialValue: 'Built with ❤️ and Next.js',
-            }),
-            defineField({
-              name: 'developerName',
-              title: 'Developer Name ',
-              type: 'string',
-            }),
-            defineField({
-              name: 'link',
-              title: 'Developer Link (Optional)',
-              type: 'url',
-            }),
-          ],
-        }),
-      ],
-    }),
   ],
 
   preview: {
@@ -346,7 +262,7 @@ export default defineType({
       title: 'logo.churchName',
       subtitle: 'contact.email',
     },
-    prepare({title, subtitle}) {
+    prepare({subtitle}) {
       return {
         title: `Footer - Gofamintui `,
         subtitle: subtitle,

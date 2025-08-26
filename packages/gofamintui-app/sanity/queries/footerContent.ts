@@ -57,19 +57,7 @@ export const footerQuery = `*[_type == "footer"][0]{
       placeholder,
       isEnabled
     },
-    footerBottom {
-      copyrightText,
-      legalLinks[] {
-        name,
-        url
-      },
-      developerCredit {
-        show,
-        techCreditText,
-       developerName,
-        link
-      }
-    }
+    
   }`;
 
 export const logoQuery = `*[_type == "footer"][0]{

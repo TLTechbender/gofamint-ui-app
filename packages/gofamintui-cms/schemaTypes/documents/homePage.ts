@@ -24,12 +24,13 @@ export default defineType({
           title: 'Meta Description',
           type: 'text',
           rows: 3,
-          validation: (Rule) => Rule.required().min(50).max(160),
+          validation: (Rule) => Rule.required().min(15).max(160),
         }),
         defineField({
           name: 'keywords',
           title: 'Keywords',
           type: 'array',
+          description: 'Helps search engines index the page',
           of: [{type: 'string'}],
           validation: (Rule) => Rule.required().min(5),
         }),
@@ -118,7 +119,7 @@ export default defineType({
             }),
             defineField({
               name: 'link',
-
+              description: 'This link must be internal abeg',
               title: 'Button Link',
               type: 'string',
               validation: (Rule) => Rule.required(),
@@ -139,6 +140,7 @@ export default defineType({
             }),
             defineField({
               name: 'link',
+              description: 'This link must be internal abeg',
               title: 'Button Link',
               type: 'string',
               validation: (Rule) => Rule.required(),
@@ -308,35 +310,7 @@ export default defineType({
       ],
     }),
 
-    // Journey Planner Section
-    defineField({
-      name: 'journeyPlannerSection',
-      title: 'Journey Planner Section',
-      type: 'object',
-      validation: (Rule) => Rule.required(),
-      fields: [
-        defineField({
-          name: 'isEnabled',
-          title: 'Enable Journey Planner',
-          type: 'boolean',
-          initialValue: true,
-          validation: (Rule) => Rule.required(),
-        }),
-        defineField({
-          name: 'title',
-          title: 'Section Title',
-          type: 'string',
-          initialValue: 'Plan Your Journey',
-        }),
-        defineField({
-          name: 'description',
-          title: 'Section Description',
-          type: 'text',
-          rows: 2,
-        }),
-      ],
-    }),
-
+   
     // Testimonials Section
     defineField({
       name: 'testimonialsSection',
@@ -371,7 +345,7 @@ export default defineType({
           name: 'testimonials',
           title: 'Testimonials',
           type: 'array',
-          validation: (Rule) => Rule.required().min(1).max(12),
+          validation: (Rule) => Rule.required().min(1).max(6),
           of: [
             {
               type: 'object',
@@ -387,7 +361,7 @@ export default defineType({
                   title: 'Testimonial Text',
                   type: 'text',
                   rows: 4,
-                  validation: (Rule) => Rule.required().min(50),
+                  validation: (Rule) => Rule.required().min(5).max(200),
                 }),
 
                 defineField({
@@ -437,7 +411,7 @@ export default defineType({
           title: 'Description',
           type: 'text',
           rows: 4,
-          validation: (Rule) => Rule.required().min(50),
+          validation: (Rule) => Rule.required().min(10).max(250),
         }),
 
         defineField({

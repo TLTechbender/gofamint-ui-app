@@ -1,5 +1,7 @@
 import { checkApplicationStatus } from "@/actions/author/apply";
 import ApplyPageClient from "./ApplyPageClient";
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 
 // Type for validation errors to match your server action
 type ValidationErrors = {
@@ -44,25 +46,13 @@ const AlreadyAuthorStatus = () => (
         your next article today.
       </p>
 
-      <a
-        href="/dashboard/blogs"
+      <Link
+        href="/publishing/author"
         className="inline-flex items-center space-x-2 bg-white border border-blue-400 text-blue-500 hover:bg-blue-50 transition-colors duration-300 px-6 py-3 font-medium tracking-wide"
       >
-        <span>Go to Dashboard</span>
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M9 5l7 7-7 7"
-          />
-        </svg>
-      </a>
+        <span>Go to Your author profile</span>
+        <ChevronRight size={24} />
+      </Link>
     </div>
   </div>
 );
@@ -106,8 +96,6 @@ const PendingStatus = () => (
         {`We'll`}
         notify you once a decision has been made.
       </p>
-
-     
     </div>
   </div>
 );
@@ -334,7 +322,6 @@ export default async function ApplyPage() {
 
   return (
     <>
-     
       <div className="bg-black h-16 mb-2 w-full flex-shrink-0" />
       <main className="bg-white">{renderStatusComponent()}</main>
     </>

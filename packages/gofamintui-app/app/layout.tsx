@@ -1,35 +1,30 @@
 import "./globals.css";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
+import Navbar from "@/components/ui/navbar";
+import Footer from "@/components/ui/footer";
 import { Montserrat, Syne } from "next/font/google";
-import ReactQueryProviders from "@/components/reactQueryProvider";
-import ReactToastifyProvider from "@/components/reactToastifyProvider";
+import ReactQueryProviders from "@/components/providers/reactQueryProvider";
+import ReactToastifyProvider from "@/components/providers/reactToastifyProvider";
 import { LogoOnly } from "@/sanity/interfaces/footerContent";
 import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
 import { logoQuery } from "@/sanity/queries/footerContent";
-import { Metadata } from "next";
-import { GoogleMapProvider } from "@/providers/google-map-provider";
-import WhatsAppContactWidget from "@/components/whatsappContactWidget";
-import AuthSessionProvider from "@/components/authSessionProvider";
+import { GoogleMapProvider } from "@/components/providers/google-map-provider";
+import WhatsAppContactWidget from "@/components/ui/whatsappContactWidget";
+import AuthSessionProvider from "@/components/providers/authSessionProvider";
 import { whatsappContactWidgetQuery } from "@/sanity/queries/whatsappContactWidget";
 import { WhatsAppWidgetData } from "@/sanity/interfaces/whatsappContactWidget";
 
-export const dynamic = "force-dynamic";
-
-export const metadata: Metadata = {
-  metadataBase: new URL("https://yourdomain.com"),
-};
-
-interface SiteSettings{
+interface SiteSettings {
   logoData: LogoOnly;
-  whatsappWidgetData: WhatsAppWidgetData
+  whatsappWidgetData: WhatsAppWidgetData;
 }
 
-async function getSiteSettings(): Promise< SiteSettings| null> {
+async function getSiteSettings(): Promise<SiteSettings | null> {
   try {
     const [logoData, whatsappWidgetData] = await Promise.all([
-      sanityFetchWrapper(logoQuery),
-      sanityFetchWrapper(whatsappContactWidgetQuery),
+      sanityFetchWrapper(logoQuery, {}, ["footer"]),
+      sanityFetchWrapper(whatsappContactWidgetQuery, {}, [
+        "whatsappContactWidget",
+      ]),
     ]);
 
     return {
@@ -41,6 +36,8 @@ async function getSiteSettings(): Promise< SiteSettings| null> {
     return null;
   }
 }
+
+//Next.js got some default font's obviously I don't wanna be messing with fonts cos I'm not a designer
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -81,11 +78,21 @@ export default async function RootLayout({
                   <div className="fixed top-0 left-0 right-0 z-50">
                     <Navbar
                       logo={siteSettings?.logoData?.logo}
-                      siteName={siteSettings?.logoData?.logo?.fellowshipName || "Fellowship"}
+                      siteName={
+                        siteSettings?.logoData?.logo?.fellowshipName ||
+                        "Fellowship"
+                      }
                     />
                   </div>
                   <main className="flex-1 overflow-y-auto ">{children}</main>
-                  <WhatsAppContactWidget phoneNumber={siteSettings?.whatsappWidgetData.phoneNumber} message={siteSettings?.whatsappWidgetData.message} title={siteSettings?.whatsappWidgetData.title} subtitle={siteSettings?.whatsappWidgetData.subtitle} buttonText={siteSettings?.whatsappWidgetData.buttonText} />
+                  <WhatsAppContactWidget
+                    //Coulda had nicer props but it is what it is
+                    phoneNumber={siteSettings?.whatsappWidgetData.phoneNumber}
+                    message={siteSettings?.whatsappWidgetData.message}
+                    title={siteSettings?.whatsappWidgetData.title}
+                    subtitle={siteSettings?.whatsappWidgetData.subtitle}
+                    buttonText={siteSettings?.whatsappWidgetData.buttonText}
+                  />
                   <Footer />
                 </div>
               </GoogleMapProvider>

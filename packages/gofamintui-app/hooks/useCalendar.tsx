@@ -1,4 +1,5 @@
-import { getEventsForCalendarQuery } from "@/sanity/queries/events";
+import { FellowshipEvent } from "@/sanity/interfaces/fellowshipEvent";
+import { getEventsForCalendarQuery } from "@/sanity/queries/fellowshipEvent";
 import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
 import { useQuery } from "@tanstack/react-query";
 
@@ -32,14 +33,11 @@ const fetchEventsForMonth = async ({
   };
 
   try {
-   
-
     const events = await sanityFetchWrapper<FellowshipEvent[]>(
       getEventsForCalendarQuery,
       params
     );
-
-  
+console.log('I fetched')
     return {
       events,
       totalCount: events.length,
@@ -54,13 +52,15 @@ const fetchEventsForMonth = async ({
   }
 };
 
+
+//Complicated key, the idea simple sha, if just anything, I mean anything changes we call the refetch
 export const fellowshipEventsKeys = {
   all: ["fellowshipEvents"] as const,
   byMonth: (year: number, month: number) =>
     [...fellowshipEventsKeys.all, year, month] as const,
 };
 
-export const useFellowshipEvents = (year: number, month: number) => {
+export const useCalendar = (year: number, month: number) => {
   return useQuery({
     queryKey: fellowshipEventsKeys.byMonth(year, month),
     queryFn: () => fetchEventsForMonth({ year, month }),

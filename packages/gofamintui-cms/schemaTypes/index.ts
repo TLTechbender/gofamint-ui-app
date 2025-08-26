@@ -5,29 +5,32 @@ import {blogPost} from './documents/blogs'
 import blogsPage from './documents/blogsPage'
 import contact from './documents/contact'
 
-// import events from './documents/events'
 import excecutives from './documents/excecutives'
+import {fellowshipEvent} from './documents/fellowshipEvent'
+import fellowshipEventMetadata from './documents/fellowshipEventMetadata'
 import footerContent from './documents/footerContent'
-
 import gallery from './documents/gallery'
-
 import homePage from './documents/homePage'
+import liveStream from './documents/liveStream'
 import onlineGiving from './documents/onlineGiving'
-import sermonsPage from './documents/sermonsPage'
-import streaming from './documents/streaming'
+import sermonsPageContent from './documents/sermonsPageContent'
+import sermonsPageMetadataAndHeroSection from './documents/sermonsPageMetadataAndHeroSection'
 
 import whatsappContactWidget from './documents/whatsappContactWidget'
 
 export const schemaTypes = [
   homePage,
   aboutPage,
-  sermonsPage,
+  sermonsPageContent,
+  sermonsPageMetadataAndHeroSection,
   gallery,
   onlineGiving,
   excecutives,
   contact,
-  streaming,
-  // events,
+  liveStream,
+
+  fellowshipEvent,
+  fellowshipEventMetadata,
   blogPost,
   blogsPage,
   author,

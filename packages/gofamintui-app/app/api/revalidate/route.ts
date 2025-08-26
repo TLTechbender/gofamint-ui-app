@@ -1,4 +1,6 @@
-import { NextResponse } from "next/server";
+import { isValidSignature, SIGNATURE_HEADER_NAME } from "@sanity/webhook";
+import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 export async function PUT() {
   return new NextResponse("Method Not Allowed", { status: 405 });
@@ -16,39 +18,298 @@ export async function GET() {
   return new NextResponse("Method Not Allowed", { status: 405 });
 }
 
-/**
- * 
- * Now you know we have to strike a balance between how we doing things right
- * 
- * 1. We using sanity on free tier
- * 2. Vercel on free tier
- * 
- * 
- * Cos this app is gonna be having users and a lot of changes is going to be happening I used next.js and cos of the fact that I knew
- * this was very likely to become full staack in the blink of an eye, now thething is now I am also using sqlite too, very long story
- * 
- * 
- * But here is the thing, been reading the next docs a lot and I found SSG, static site generation brilliant thing cos means we can keep the entire app vercel, think about it
- * 
- * normal react we hit the sanity everytime we want to fetch content, sincely we would run out of free tier quickly and search engines would also have a super hard time indexing contnet so we want to use ssg cos we 
- * can easily get more limits from vercel with all they caching and all bro (even vercel ceo uses freee tier and ti's generous, claude pleaes fact check me)but here is the thing if we ssg and content changes we have to always manually call rebuilds, that gets very tirin and expensive real fast,
- * cue ISR, build on demand, we can set it up that if document changes in sanity instead of a full page rebuild only the document that changed is built so it's basically ssg on demand, search engies are happy, we get the snappy next.js load times
- * and all,
- * 
- * 
- * so that's the point of this api route, it's the one the sanity webhook would call whenever content changes mostly
- * 
- * I already have a webhook handling two things, author and blogs wanted to keep that grouped and separate cos of how much stuff going on
- * 
- * like approving authors, deleting or approving blogs and stufff, these two are likely to be queried more often so I thougt to put them togehter and it's for better separaton of cncerns since I am doing more than revalidate path with those two
- * 
- *i am also using them to perfom db operatios
+// Revalidation functions using single tag approach
+async function revalidateHomepage() {
+  console.log("🔄 Revalidating homepage");
+  revalidateTag("homepage");
+  revalidatePath("/");
+  return { tags: ["homepage"] };
+}
 
- so the point of our revalidate api route is simple, for all other pages that are not blogs and authors revalidate on demand, it don't need too much logic, just a bunch of swtich and all and I am done, call revalidate and let's call it quits
+async function revalidateBlogsPage() {
+  console.log("🔄 Revalidating blogs page");
+  revalidateTag("blogsPage");
+  revalidatePath("/blog");
+  return { tags: ["blogsPage"] };
+}
 
- and since for pages where I need ssg to a point and some client side logic in another point I am already using a server component at the top and client and the bottom, next knows what to do with all of that
+async function revalidateAboutPage() {
+  console.log("🔄 Revalidating about page");
+  revalidateTag("aboutPage");
+  revalidatePath("/about");
+  return { tags: ["aboutPage"] };
+}
 
+async function revalidateContactInfo() {
+  console.log("🔄 Revalidating contact info");
+  revalidateTag("contactInfo");
+  revalidatePath("/contact");
+  return { tags: ["contactInfo"] };
+}
 
- so in short the revalidate route is to just revlidate tag and stuff,, I want that ssg feel fr
- */
+//Don't thking I need this, but since next.js can be unpredicatable atimes I would be leaving this revalidate here now until I fee
+//we may need the performance imporvement in future
+async function revalidateFellowshipEvent() {
+  console.log("🔄 Revalidating fellowship events");
+  revalidateTag("fellowshipEvent");
+  revalidateTag("fellowshipEventMetadata");
+  revalidatePath("/events");
+  return { tags: ["fellowshipEvent", "fellowshipEventMetadata"] };
+}
 
+async function revalidateExecutives() {
+  console.log("🔄 Revalidating executives");
+  revalidateTag("executives");
+  revalidatePath("/executives");
+  return { tags: ["executives"] };
+}
+
+async function revalidateGallery() {
+  console.log("🔄 Revalidating gallery");
+  revalidateTag("gallery");
+  revalidatePath("/gallery");
+  return { tags: ["gallery"] };
+}
+
+async function revalidateOnlineGiving() {
+  console.log("🔄 Revalidating online giving");
+  revalidateTag("onlineGiving");
+  revalidatePath("/giving");
+  return { tags: ["onlineGiving"] };
+}
+
+async function revalidateSermons() {
+  console.log("🔄 Revalidating sermons");
+  revalidateTag("sermons");
+  revalidateTag("sermon");
+  revalidateTag("sermonsPageMetadataAndHero");
+  revalidatePath("/sermons");
+  return { tags: ["sermons"] };
+}
+
+async function revalidateLiveStream() {
+  console.log("🔄 Revalidating live stream");
+  revalidateTag("liveStream");
+  revalidatePath("/live");
+  return { tags: ["liveStream"] };
+}
+
+async function revalidateFooter() {
+  console.log("🔄 Revalidating footer");
+  revalidateTag("footer");
+  return { tags: ["footer"] };
+}
+
+async function revalidateWhatsappContactWidget() {
+  console.log("🔄 Revalidating WhatsApp widget");
+  revalidateTag("whatsappContactWidget");
+  return { tags: ["whatsappContactWidget"] };
+}
+
+async function readBody(
+  readable: ReadableStream<Uint8Array> | null
+): Promise<string> {
+  if (!readable) return "";
+
+  const chunks: Buffer[] = [];
+  const reader = readable.getReader();
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(Buffer.from(value));
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  return Buffer.concat(chunks).toString("utf8");
+}
+
+const secret = process.env.SANITY_WEBHOOK_SECRET!;
+
+interface WebhookPayload {
+  tags?: string[];
+  _type?: string;
+  _id?: string;
+}
+
+export async function POST(request: NextRequest) {
+  console.log("🚀 Combined webhook for all content types received");
+
+  try {
+    // Check signature
+    const signature = request.headers.get(SIGNATURE_HEADER_NAME);
+    if (!signature) {
+      console.log("❌ No signature found");
+      return NextResponse.json(
+        { success: false, message: "Missing signature" },
+        { status: 400 }
+      );
+    }
+
+    // Read body
+    const body = await readBody(request.body);
+    if (!body) {
+      console.log("❌ Empty body");
+      return NextResponse.json(
+        { success: false, message: "Empty body" },
+        { status: 400 }
+      );
+    }
+
+    // Validate signature
+    if (!secret) {
+      console.log("❌ No webhook secret");
+      return NextResponse.json(
+        { success: false, message: "Server config error" },
+        { status: 500 }
+      );
+    }
+
+    const isValid = await isValidSignature(body, signature, secret);
+    if (!isValid) {
+      console.log("❌ Invalid signature");
+      return NextResponse.json(
+        { success: false, message: "Invalid signature" },
+        { status: 401 }
+      );
+    }
+
+    let parsedBody: WebhookPayload;
+    try {
+      parsedBody = JSON.parse(body);
+      console.log("📄 Parsed webhook payload:", parsedBody);
+    } catch (e) {
+      console.log("❌ Invalid JSON");
+      return NextResponse.json(
+        { success: false, message: "Invalid JSON" },
+        { status: 400 }
+      );
+    }
+
+    // Check if we have tags array or fallback to _type
+    const tagsToProcess =
+      parsedBody.tags || (parsedBody._type ? [parsedBody._type] : []);
+
+    if (tagsToProcess.length === 0) {
+      console.log("⚠️ No tags or document type found in payload");
+      return NextResponse.json(
+        {
+          success: true,
+          message: "No tags or document type found - nothing to revalidate",
+          operation: "IGNORED",
+        },
+        { status: 200 }
+      );
+    }
+
+    console.log(`📄 Processing tags: ${tagsToProcess.join(", ")}`);
+
+    // Process each tag and collect results
+    const revalidationResults = [];
+
+    for (const tag of tagsToProcess) {
+      let revalidationResult;
+
+      switch (tag) {
+        case "homepage":
+          revalidationResult = await revalidateHomepage();
+          break;
+
+        //todo I need to ensure consistent use of camel case man
+        case "aboutpage":
+          revalidationResult = await revalidateAboutPage();
+          break;
+
+        case "blogsPage":
+          revalidationResult = await revalidateBlogsPage();
+          break;
+
+        case "contactInfo":
+          revalidationResult = await revalidateContactInfo();
+          break;
+
+        case "fellowshipEvent":
+          revalidationResult = await revalidateFellowshipEvent();
+          break;
+
+        case "executives":
+          revalidationResult = await revalidateExecutives();
+          break;
+
+        case "gallery":
+          revalidationResult = await revalidateGallery();
+          break;
+
+        case "onlineGiving":
+          revalidationResult = await revalidateOnlineGiving();
+          break;
+
+        case "sermonsPageMetadataAndHero":
+        case "sermon":
+          revalidationResult = await revalidateSermons();
+          break;
+
+        case "liveStream":
+          revalidationResult = await revalidateLiveStream();
+          break;
+
+        case "footer":
+          revalidationResult = await revalidateFooter();
+          break;
+
+        case "whatsappContactWidget":
+          revalidationResult = await revalidateWhatsappContactWidget();
+          break;
+
+        default:
+          console.log(`⚠️ Unsupported tag: ${tag}`);
+          continue;
+      }
+
+      if (revalidationResult) {
+        revalidationResults.push(revalidationResult);
+      }
+    }
+
+    if (revalidationResults.length === 0) {
+      return NextResponse.json(
+        {
+          success: true,
+          message: `No supported tags found in: ${tagsToProcess.join(", ")}`,
+          operation: "IGNORED",
+          processedTags: tagsToProcess,
+        },
+        { status: 200 }
+      );
+    }
+
+    // Return success response
+    console.log(
+      `✅ Successfully processed ${revalidationResults.length} tag(s)`
+    );
+    return NextResponse.json(
+      {
+        success: true,
+        message: `Successfully revalidated ${revalidationResults.length} tag(s)`,
+        operation: "REVALIDATED",
+        revalidated: revalidationResults,
+        processedTags: tagsToProcess,
+        documentId: parsedBody._id,
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("💥 Webhook error:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Processing failed",
+        message: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
+  }
+}

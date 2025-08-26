@@ -151,12 +151,11 @@ html {
   opacity: 1;
 }
 
-
- @keyframes slideLeftWelcomeSection {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-50%);
-          }
-        }
+@keyframes slideLeftWelcomeSection {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}

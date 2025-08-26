@@ -16,6 +16,8 @@ import { revalidateTag } from "next/cache";
 // Use a single webhook secret for both document types
 const secret = process.env.SANITY_WEBHOOK_SECRET!;
 
+//todo: I need some more revalidating here man, come back later bro
+
 // Blog webhook payload interface
 interface BlogWebHookPayload {
   excerpt: string;
@@ -224,6 +226,8 @@ async function handleAuthorWebhook(authorData: Author) {
           operation: "AUTHOR_ALREADY_APPROVED",
         };
       }
+
+      //todo: implement for blogs  revalidatePath(`/${issueNumber}`);
     } else {
       // Author exists in Sanity but is NOT approved (SUSPENDED)
       console.log(
