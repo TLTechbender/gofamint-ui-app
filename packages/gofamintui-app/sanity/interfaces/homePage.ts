@@ -1,8 +1,33 @@
 import { SanityImage } from "./sanityImage";
 
+interface SanityVideoMetadata {
+  duration?: number;
+  dimensions?: {
+    width: number;
+    height: number;
+    aspectRatio: number;
+  };
+  size?: number;
+  mimeType?: string;
+  [key: string]: unknown;
+}
+
+//Keeping this export here cos this be the only place I be using it
+export interface SanityVideoAsset {
+  asset: {
+    _id: string;
+    metadata: Required<SanityVideoMetadata>;
+    url: string;
+  };
+}
+
+interface SliderImage {
+  image: SanityImage;
+}
 export interface Homepage {
   _id: string;
   _type: "homepage";
+
   seo: {
     title: string;
     description: string;
@@ -11,6 +36,8 @@ export interface Homepage {
   };
   heroSection: {
     backgroundImage: SanityImage;
+    backgroundVideo: SanityVideoAsset;
+
     title: string;
     subtitle: string;
     primaryButton: {
@@ -25,6 +52,7 @@ export interface Homepage {
   welcomeSection: {
     title: string;
     description: string;
+    imageSlider: SliderImage[];
   };
   servicesSection: {
     title: string;
@@ -37,23 +65,7 @@ export interface Homepage {
       posterImage: SanityImage;
     }[];
   };
-  messagesSection: {
-    title: string;
-    subtitle: string;
-    viewMoreLink: string;
-    featuredMessages: {
-      title: string;
-      poster: SanityImage;
-      duration: string;
-      date: string;
-      preacher: string;
-      description: string;
-      audioUrl?: string;
-      videoUrl?: string;
-      detailsLink: string;
-      learnMoreLink: string;
-    }[];
-  };
+
   testimonialsSection: {
     backgroundImage: SanityImage;
     title: string;
@@ -69,18 +81,6 @@ export interface Homepage {
   ctaSection: {
     title: string;
     description: string;
-    primaryButton: {
-      text: string;
-      link: string;
-    };
-    secondaryButton: {
-      text: string;
-      link: string;
-    };
-  };
-  journeyPlannerSection: {
-    isEnabled: boolean;
-    title?: string;
-    description?: string;
+    ctaBigImage: SanityImage;
   };
 }

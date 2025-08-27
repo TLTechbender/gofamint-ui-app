@@ -33,8 +33,7 @@ const GoogleMap = ({ address, mapId, className, onLoad }: GoogleMapProps) => {
 
         if (data.status === "OK" && data.results[0]?.geometry?.location) {
           const { lat, lng } = data.results[0].geometry.location;
-          console.log(lat, lng);
-
+      
           setCoordinates({ lat, lng });
         } else {
           throw new Error(

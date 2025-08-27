@@ -24,12 +24,13 @@ export default defineType({
           title: 'Meta Description',
           type: 'text',
           rows: 3,
-          validation: (Rule) => Rule.required().min(50).max(160),
+          validation: (Rule) => Rule.required().min(15).max(160),
         }),
         defineField({
           name: 'keywords',
           title: 'Keywords',
           type: 'array',
+          description: 'Helps search engines index the page',
           of: [{type: 'string'}],
           validation: (Rule) => Rule.required().min(5),
         }),
@@ -54,13 +55,44 @@ export default defineType({
       fields: [
         defineField({
           name: 'backgroundImage',
-          title: 'Background Image',
+          title: 'Hero Background Image',
           type: 'image',
+          description:
+            'This image serves as a fallback or placeholder while the video loads. Use a high-quality, lightweight image.',
           options: {
             hotspot: true,
           },
           validation: (Rule) => Rule.required(),
         }),
+        defineField({
+          name: 'backgroundVideo',
+          title: 'Hero Background Video',
+          type: 'file',
+          description:
+            'Upload a muted video (no sound) for the hero section background. Keep the file under 10MB for performance sakes.',
+          validation: (Rule) => Rule.required(),
+          options: {
+            accept: 'video/*',
+          },
+          preview: {
+            select: {
+              title: 'asset.originalFilename',
+              subtitle: 'asset.mimeType',
+              size: 'asset.size',
+            },
+            prepare(selection) {
+              const {title, subtitle, size} = selection
+
+              const sizeInMB = size ? (size / (1024 * 1024)).toFixed(2) : ''
+
+              return {
+                title: title || 'Background Video Hero Section',
+                subtitle: `${subtitle || 'video'} • ${sizeInMB}MB`,
+              }
+            },
+          },
+        }),
+
         defineField({
           name: 'title',
           title: 'Hero Title',
@@ -87,6 +119,7 @@ export default defineType({
             }),
             defineField({
               name: 'link',
+              description: 'This link must be internal abeg',
               title: 'Button Link',
               type: 'string',
               validation: (Rule) => Rule.required(),
@@ -107,6 +140,7 @@ export default defineType({
             }),
             defineField({
               name: 'link',
+              description: 'This link must be internal abeg',
               title: 'Button Link',
               type: 'string',
               validation: (Rule) => Rule.required(),
@@ -136,6 +170,54 @@ export default defineType({
           type: 'text',
           rows: 4,
           validation: (Rule) => Rule.required().min(50),
+        }),
+
+        defineField({
+          name: 'imageSlider',
+          title: 'Image Slider',
+          type: 'array',
+          description: 'Images for the very cool slider effect we got',
+          of: [
+            {
+              type: 'object',
+              name: 'slideImage',
+              title: 'Slide Image',
+              fields: [
+                {
+                  name: 'image',
+                  title: 'Image',
+                  type: 'image',
+                  options: {
+                    hotspot: true,
+                  },
+                  validation: (Rule) => Rule.required(),
+                },
+              ],
+              preview: {
+                select: {
+                  media: 'image',
+                  title: 'image.asset.originalFilename',
+                },
+                prepare(selection) {
+                  const {media, title} = selection
+                  return {
+                    title: title || 'Slider Image',
+                    media: media,
+                  }
+                },
+              },
+            },
+          ],
+          options: {
+            layout: 'grid', // Shows images in a grid layout in Sanity Studio
+          },
+          validation: (Rule) =>
+            Rule.required()
+              .min(3)
+              .max(20)
+              .error(
+                'Slider must have between 3-20 images, capping this cos large moving images could lead to peformance problems down the road',
+              ),
         }),
       ],
     }),
@@ -228,130 +310,7 @@ export default defineType({
       ],
     }),
 
-    //Most likely this be c
-    // Messages Section
-    // defineField({
-    //   name: 'messagesSection',
-    //   title: 'Recent Messages Section',
-    //   type: 'object',
-    //   validation: (Rule) => Rule.required(),
-    //   fields: [
-    //     defineField({
-    //       name: 'title',
-    //       title: 'Section Title',
-    //       type: 'string',
-    //       initialValue: 'Revisit Recent Messages',
-    //       validation: (Rule) => Rule.required(),
-    //     }),
-    //     defineField({
-    //       name: 'subtitle',
-    //       title: 'Section Subtitle',
-    //       type: 'string',
-    //       initialValue: "Catch Up on God's Word from his servants and remain blessed",
-    //       validation: (Rule) => Rule.required(),
-    //     }),
-    //     defineField({
-    //       name: 'viewMoreLink',
-    //       title: 'View More Link',
-    //       type: 'string',
-    //       validation: (Rule) => Rule.required(),
-    //     }),
-    //     defineField({
-    //       name: 'featuredMessages',
-    //       title: 'Featured Messages',
-    //       type: 'array',
-    //       validation: (Rule) => Rule.required().min(1).max(3),
-    //       of: [
-    //         {
-    //           type: 'object',
-    //           fields: [
-    //             defineField({
-    //               name: 'title',
-    //               title: 'Message Title',
-    //               type: 'string',
-    //               validation: (Rule) => Rule.required(),
-    //             }),
-    //             defineField({
-    //               name: 'poster',
-    //               title: 'Message Poster/Thumbnail',
-    //               type: 'image',
-    //               options: {
-    //                 hotspot: true,
-    //               },
-    //               validation: (Rule) => Rule.required(),
-    //             }),
-    //             defineField({
-    //               name: 'duration',
-    //               title: 'Duration',
-    //               type: 'string',
-    //               placeholder: 'e.g., 42 mins',
-    //               validation: (Rule) => Rule.required(),
-    //             }),
-    //             defineField({
-    //               name: 'date',
-    //               title: 'Message Date',
-    //               type: 'date',
-    //               validation: (Rule) => Rule.required(),
-    //             }),
-    //             defineField({
-    //               name: 'preacher',
-    //               title: 'Preacher/Speaker',
-    //               type: 'string',
-    //               validation: (Rule) => Rule.required(),
-    //             }),
-    //             defineField({
-    //               name: 'description',
-    //               title: 'Message Description',
-    //               type: 'text',
-    //               rows: 3,
-    //               validation: (Rule) => Rule.required().min(30),
-    //             }),
-    //             defineField({
-    //               name: 'audioUrl',
-    //               title: 'Audio URL',
-    //               type: 'url',
-    //             }),
-    //             defineField({
-    //               name: 'videoUrl',
-    //               title: 'Video URL',
-    //               type: 'url',
-    //             }),
-    //             defineField({
-    //               name: 'detailsLink',
-    //               title: 'View Details Link',
-    //               type: 'string',
-    //               validation: (Rule) => Rule.required(),
-    //             }),
-    //             defineField({
-    //               name: 'learnMoreLink',
-    //               title: 'Learn More Link',
-    //               type: 'string',
-    //               validation: (Rule) => Rule.required(),
-    //             }),
-    //           ],
-    //           preview: {
-    //             select: {
-    //               title: 'title',
-    //               date: 'date',
-    //               media: 'poster',
-    //               duration: 'duration',
-    //             },
-    //             prepare(selection) {
-    //               const {title, date, media, duration} = selection
-    //               const formattedDate = date ? new Date(date).toLocaleDateString() : 'No date'
-    //               return {
-    //                 title,
-    //                 subtitle: `${formattedDate} • ${duration || 'No duration'}`,
-    //                 media,
-    //               }
-    //             },
-    //           },
-    //         },
-    //       ],
-    //     }),
-    //   ],
-    // }),
-
+   
     // Testimonials Section
     defineField({
       name: 'testimonialsSection',
@@ -386,7 +345,7 @@ export default defineType({
           name: 'testimonials',
           title: 'Testimonials',
           type: 'array',
-          validation: (Rule) => Rule.required().min(1).max(12),
+          validation: (Rule) => Rule.required().min(1).max(6),
           of: [
             {
               type: 'object',
@@ -402,7 +361,7 @@ export default defineType({
                   title: 'Testimonial Text',
                   type: 'text',
                   rows: 4,
-                  validation: (Rule) => Rule.required().min(50),
+                  validation: (Rule) => Rule.required().min(5).max(200),
                 }),
 
                 defineField({
@@ -435,6 +394,8 @@ export default defineType({
     defineField({
       name: 'ctaSection',
       title: 'Call to Action Section',
+      description:
+        'The naming sucks right?, just something I felt the need to add the vibe should be something that encourages',
       type: 'object',
       validation: (Rule) => Rule.required(),
       fields: [
@@ -450,76 +411,17 @@ export default defineType({
           title: 'Description',
           type: 'text',
           rows: 4,
-          validation: (Rule) => Rule.required().min(50),
+          validation: (Rule) => Rule.required().min(10).max(250),
         }),
-        defineField({
-          name: 'primaryButton',
-          title: 'Primary Button',
-          type: 'object',
-          validation: (Rule) => Rule.required(),
-          fields: [
-            defineField({
-              name: 'text',
-              title: 'Button Text',
-              type: 'string',
-              validation: (Rule) => Rule.required(),
-            }),
-            defineField({
-              name: 'link',
-              title: 'Button Link',
-              type: 'string',
-              validation: (Rule) => Rule.required(),
-            }),
-          ],
-        }),
-        defineField({
-          name: 'secondaryButton',
-          title: 'Secondary Button',
-          type: 'object',
-          validation: (Rule) => Rule.required(),
-          fields: [
-            defineField({
-              name: 'text',
-              title: 'Button Text',
-              type: 'string',
-              validation: (Rule) => Rule.required(),
-            }),
-            defineField({
-              name: 'link',
-              title: 'Button Link',
-              type: 'string',
-              validation: (Rule) => Rule.required(),
-            }),
-          ],
-        }),
-      ],
-    }),
 
-    // Journey Planner Section (from your JourneyPlanner component)
-    defineField({
-      name: 'journeyPlannerSection',
-      title: 'Journey Planner Section',
-      type: 'object',
-      validation: (Rule) => Rule.required(),
-      fields: [
         defineField({
-          name: 'isEnabled',
-          title: 'Enable Journey Planner',
-          type: 'boolean',
-          initialValue: true,
+          name: 'ctaBigImage',
+          title: 'The Image for the CTA Section',
+          type: 'image',
+          options: {
+            hotspot: true,
+          },
           validation: (Rule) => Rule.required(),
-        }),
-        defineField({
-          name: 'title',
-          title: 'Section Title',
-          type: 'string',
-          initialValue: 'Plan Your Journey',
-        }),
-        defineField({
-          name: 'description',
-          title: 'Section Description',
-          type: 'text',
-          rows: 2,
         }),
       ],
     }),

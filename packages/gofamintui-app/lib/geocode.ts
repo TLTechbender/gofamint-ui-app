@@ -11,7 +11,7 @@ export const reverseGeocode = async (lat: number, lng: number): Promise<string> 
     }
     return `${lat}, ${lng}`; // Fallback to coordinates if address not found
   } catch (error) {
-    console.error('Reverse geocoding error:', error);
+  
     return `${lat}, ${lng}`;
   }
 };

@@ -1,5 +1,7 @@
 "use server";
 
+//There is no reason for me to do this other than the fact that this was my first server action, so I would be leaving this here as kinda like a reminder of a small milestone
+
 import { Footer } from "@/sanity/interfaces/footerContent";
 import { footerQuery } from "@/sanity/queries/footerContent";
 import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";

@@ -6,6 +6,7 @@ import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
 
 // Generate metadata function
 export async function generateMetadata(): Promise<Metadata> {
+  //Should I try catch? maybe not but I did it anyway
   try {
     const givingsDetails =
       await sanityFetchWrapper<OnlineGiving[]>(onlineGivingQuery);
@@ -83,24 +84,29 @@ export async function generateMetadata(): Promise<Metadata> {
       title,
       description,
       keywords,
-      authors: [{ name: "Your Church Name" }],
-      creator: "Your Church Name",
-      publisher: "Your Church Name",
-
+      authors: [
+        {
+          name: "Gofamint Students' Fellowship UI Chapter",
+          url: `${process.env.NEXT_PUBLIC_SITE_URL}/about`,
+        },
+      ],
+      creator: "Bolarinwa Paul Ayomide (https://github.com/TLTechbender)",
+      publisher: "Gofamint Students' Fellowship UI",
+      category: "Chruch",
       // Open Graph metadata
       openGraph: {
         title,
         description,
         type: "website",
-        url: "/online-giving",
+        url: `${process.env.NEXT_PUBLIC_SITE_URL}/giving`,
         siteName: "Your Church Name",
         locale: "en_US",
         images: [
           {
-            url: "/images/online-giving-og.jpg", // Add your giving page image
+            url: `${process.env.NEXT_PUBLIC_SITE_URL}/onlineGiving`,
             width: 1200,
             height: 630,
-            alt: "Online Giving - Support Our Ministry",
+            alt: "Online Giving - Support Our Ministry GSF UI",
             type: "image/jpeg",
           },
         ],
@@ -113,12 +119,12 @@ export async function generateMetadata(): Promise<Metadata> {
         description,
         site: "@yourchurchtwitter",
         creator: "@yourchurchtwitter",
-        images: ["/images/online-giving-og.jpg"],
+        images: [`${process.env.NEXT_PUBLIC_SITE_URL}/onlineGiving`],
       },
 
       // Additional metadata
       alternates: {
-        canonical: "/online-giving",
+        canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/giving`,
       },
 
       // Structured data and giving-specific metadata
@@ -159,17 +165,12 @@ export async function generateMetadata(): Promise<Metadata> {
         title: "Online Giving",
       },
 
-      // Verification codes
       verification: {
-        google: "your-google-verification-code",
+        google: `${process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION_CODE}`,
       },
 
-      // Category and classification
-      applicationName: "Your Church Name - Online Giving",
-      category: "Religion & Spirituality",
       classification: "Donation Platform",
 
-      // Security and trust indicators
       referrer: "strict-origin-when-cross-origin",
     };
   } catch (error) {
@@ -177,7 +178,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
     // Fallback metadata
     return {
-      title: "Online Giving | Your Church Name",
+      title: "Online Giving | GSF UI",
       description:
         "Support our church ministry through secure online giving. Multiple donation options available with easy receipt submission.",
       keywords: [
@@ -193,10 +194,11 @@ export async function generateMetadata(): Promise<Metadata> {
         description:
           "Support our church ministry through secure online giving.",
         type: "website",
-        url: "/online-giving",
+        url: `${process.env.NEXT_PUBLIC_SITE_URL}/giving`,
+
         images: [
           {
-            url: "/images/online-giving-og.jpg",
+            url: `${process.env.NEXT_PUBLIC_SITE_URL}/onlineGiving`,
             width: 1200,
             height: 630,
             alt: "Online Giving",
@@ -206,10 +208,10 @@ export async function generateMetadata(): Promise<Metadata> {
 
       twitter: {
         card: "summary_large_image",
-        title: "Online Giving | Your Church Name",
+        title: "Online Giving | GSF UI",
         description:
           "Support our church ministry through secure online giving.",
-        images: ["/images/online-giving-og.jpg"],
+        images: [`${process.env.NEXT_PUBLIC_SITE_URL}/onlineGiving`],
       },
 
       robots: {
@@ -219,7 +221,6 @@ export async function generateMetadata(): Promise<Metadata> {
     };
   }
 }
-
 
 export const dynamic = "force-dynamic";
 

@@ -1,225 +1,296 @@
+import React, { Suspense } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
+import { urlFor } from "@/sanity/sanityClient";
+import { BlogPost } from "@/sanity/interfaces/blog";
+import { SearchInput } from "./blogsClient/searchInput";
+import BlogsPageClient from "./blogsClient/blogsPageClient";
+import { getMostRecentBlogPostQuery } from "@/sanity/queries/mostRecentblogpost";
+import { blogsPageMetadataAndHeroQuery } from "@/sanity/queries/blogsPageMetaDataAndHero";
 import { Metadata } from "next";
-import BlogsPageClient from "@/components/blogsPageClient";
-import { Suspense } from "react";
-import { Search } from "lucide-react";
+import { BlogsPageMetadataAndHero } from "@/sanity/interfaces/blogsPageMetadataAndHero";
 
 export async function generateMetadata(): Promise<Metadata> {
-  try {
-    // Static metadata for blogs page
-    const title = "Spiritual Blogs | GSF UI";
-    const description =
-      "Read our spirit-filled blogs and inspiring articles from Gofamint Students' Fellowship, University of Ibadan. Discover profound spiritual insights, testimonies, and faith-building content that will strengthen your walk with God.";
+  const dynamicMetaData = await sanityFetchWrapper<BlogsPageMetadataAndHero>(
+    blogsPageMetadataAndHeroQuery,
+    {},
+    ["blogsPage"]
+  );
 
-    const keywords = [
-      "GSF UI blogs",
-      "spiritual blogs",
-      "spirit-filled articles",
-      "Christian student blogs",
-      "faith-based content",
-      "spiritual insights",
-      "testimonies",
-      "inspirational articles",
-      "Gofamint Students Fellowship blogs",
-      "University of Ibadan Christian content",
-      "devotional content",
-      "spiritual growth articles",
-      "faith testimonies",
-      "Christian inspiration",
-      "spiritual encouragement",
-    ];
+  const optimizedImageUrl = dynamicMetaData?.seo?.ogImage?.asset?.url
+    ? `${dynamicMetaData.seo.ogImage.asset.url}?w=1200&h=630&fit=crop&auto=format`
+    : null;
 
-    // Free spiritual/reading image from Unsplash
-    const featuredImageUrl =
-      "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1200&h=630&fit=crop&crop=center";
-    const imageAlt =
-      "GSF UI Spiritual Blogs - Read spirit-filled articles and testimonies";
+  const title =
+    dynamicMetaData?.seo?.title ||
+    "GSF UI – Gofamint Students' Fellowship, University of Ibadan";
+  const description =
+    dynamicMetaData?.seo?.description ||
+    "Join us at Gofamint Students' Fellowship, University of Ibadan for spiritual growth, fellowship, and community service.";
+  const keywords =
+    dynamicMetaData?.seo?.keywords ||
+    "GSF UI, Gofamint Students Fellowship, University of Ibadan, Christian Fellowship, Students Ministry, Nigeria";
 
-    return {
-      title,
-      description,
-      keywords,
-      authors: [
-        {
-          name: "Gofamint Students' Fellowship UI Chapter",
-          url: "https://gofamintui.org",
-        },
-      ],
-      creator: "Bolarinwa Paul Ayomide (https://github.com/TLTechbender)",
-      publisher: "Gofamint Students' Fellowship UI",
-      category: "Spiritual Content",
-      robots: {
+  return {
+    title,
+    description,
+    keywords,
+    authors: [
+      {
+        name: "Gofamint Students' Fellowship UI Chapter",
+        url: `${process.env.NEXT_PUBLIC_SITE_URL}`,
+      },
+    ],
+    creator: "Bolarinwa Paul Ayomide (https://github.com/TLTechbender)",
+    publisher: "Gofamint Students' Fellowship UI",
+    category: "Church",
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
         index: true,
         follow: true,
-        googleBot: {
-          index: true,
-          follow: true,
-          "max-video-preview": -1,
-          "max-image-preview": "large",
-          "max-snippet": -1,
-        },
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
       },
-      openGraph: {
-        title,
-        description,
-        url: "https://gofamintui.org/blogs",
-        siteName: "GSF UI",
-        images: [
-          {
-            url: featuredImageUrl,
-            width: 1200,
-            height: 630,
-            alt: imageAlt,
-            type: "image/jpeg",
-          },
-        ],
-        locale: "en_NG",
-        type: "website",
-        countryName: "Nigeria",
-      },
-      twitter: {
-        card: "summary_large_image",
-        title,
-        description,
-        site: "@gofamintui",
-        creator: "@gofamintui",
-        images: [
-          {
-            url: featuredImageUrl,
-            alt: imageAlt,
-          },
-        ],
-      },
-      alternates: {
-        canonical: "https://gofamintui.org/blogs",
-      },
-      other: {
-        "theme-color": "#ffffff",
-        "color-scheme": "light",
-      },
-      metadataBase: new URL("https://gofamintui.org"),
-    };
-  } catch (error) {
-    console.error("Error generating blogs metadata:", error);
-
-    // Fallback metadata if something goes wrong
-    return {
-      title: "Spiritual Blogs | GSF UI",
-      description:
-        "Read our spirit-filled blogs and inspiring articles from Gofamint Students' Fellowship, University of Ibadan.",
-      keywords: [
-        "GSF UI blogs",
-        "spiritual blogs",
-        "spirit-filled articles",
-        "Christian student blogs",
-        "Gofamint Students Fellowship blogs",
-      ],
-      openGraph: {
-        title: "Spiritual Blogs | GSF UI",
-        description:
-          "Read our spirit-filled blogs and inspiring articles from Gofamint Students' Fellowship, University of Ibadan.",
-        type: "website",
-        url: "https://gofamintui.org/blogs",
-        siteName: "GSF UI",
-      },
-      twitter: {
-        card: "summary",
-        title: "Spiritual Blogs | GSF UI",
-        description:
-          "Read our spirit-filled blogs and inspiring articles from Gofamint Students' Fellowship, University of Ibadan.",
-      },
-    };
-  }
+    },
+    verification: {
+      google: `${process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION_CODE}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${process.env.NEXT_PUBLIC_SITE_URL}`,
+      siteName: "GSF UI",
+      images: optimizedImageUrl
+        ? [
+            {
+              url: optimizedImageUrl,
+              width: 1200,
+              height: 630,
+              alt: dynamicMetaData?.seo?.ogImage?.alt || title,
+              type: "image/jpeg",
+            },
+          ]
+        : [],
+      locale: "en_NG",
+      type: "website",
+      countryName: "Nigeria",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      site: "@gofamintui",
+      creator: "@gofamintui",
+      images: optimizedImageUrl
+        ? [
+            {
+              url: optimizedImageUrl,
+              alt: dynamicMetaData?.seo?.ogImage?.alt || title,
+            },
+          ]
+        : [],
+    },
+    alternates: {
+      canonical: `${process.env.NEXT_PUBLIC_SITE_URL}`,
+    },
+    other: {
+      "theme-color": "#ffffff",
+      "color-scheme": "light",
+    },
+    metadataBase: new URL(`${process.env.NEXT_PUBLIC_SITE_URL}`),
+  };
 }
 
-export const dynamic = "force-dynamic";
-const BlogPostSkeleton = () => {
+const BlogsPageSkeleton = () => {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden h-full flex flex-col animate-pulse">
-      {/* Image Skeleton */}
-      <div className="relative aspect-[16/9] bg-gray-200"></div>
-
-      {/* Content Skeleton */}
-      <div className="p-6 flex-1 flex flex-col">
-        {/* Meta Information Skeleton */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <div className="h-4 bg-gray-200 rounded w-24"></div>
-            <div className="h-4 bg-gray-200 rounded w-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-16"></div>
-          </div>
-          <div className="flex items-center space-x-3">
-            <div className="h-4 bg-gray-200 rounded w-8"></div>
-            <div className="h-4 bg-gray-200 rounded w-8"></div>
-          </div>
-        </div>
-
-        {/* Title Skeleton */}
-        <div className="space-y-3 mb-4">
-          <div className="h-6 bg-gray-200 rounded w-full"></div>
-          <div className="h-6 bg-gray-200 rounded w-3/4"></div>
-        </div>
-
-        {/* Excerpt Skeleton */}
-        <div className="space-y-2 mb-6 flex-1">
-          <div className="h-4 bg-gray-200 rounded w-full"></div>
-          <div className="h-4 bg-gray-200 rounded w-full"></div>
-          <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-        </div>
-
-        {/* Author Skeleton */}
-        <div className="flex items-center justify-between pt-5 border-t border-gray-100 mt-auto">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-            <div className="h-4 bg-gray-200 rounded w-24"></div>
-          </div>
-          <div className="h-5 bg-gray-200 rounded w-5"></div>
+    <div className="container mx-auto px-4 py-8">
+      {/* Search skeleton */}
+      <div className="mb-8">
+        <div className="max-w-md mx-auto">
+          <div className="w-full h-10 bg-gray-200 rounded-lg animate-pulse"></div>
         </div>
       </div>
-    </div>
-  );
-};
 
-// Fallback component for the Suspense boundary during initial load
-const BlogsPageLoadingFallback = () => {
-  return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="container mx-auto px-4 max-w-7xl">
-        {/* Search Input Skeleton */}
-        <div className="mb-10 max-w-xl mx-auto">
-          <div className="relative h-12 bg-gray-200 rounded-lg animate-pulse shadow-sm">
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 text-gray-400">
-              <Search className="w-5 h-5" />
+      {/* Grid skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-[repeat(auto-fit,minmax(400px,1fr))] gap-6 mx-auto w-full max-w-6xl">
+        {[...Array(6)].map((_, index) => (
+          <div
+            key={index}
+            className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+          >
+            <div className="aspect-[16/9] bg-gray-200 animate-pulse"></div>
+            <div className="p-6">
+              <div className="h-4 bg-gray-200 rounded animate-pulse mb-3"></div>
+              <div className="h-6 bg-gray-200 rounded animate-pulse mb-3"></div>
+              <div className="h-4 bg-gray-200 rounded animate-pulse mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded animate-pulse mb-4 w-3/4"></div>
+              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-24"></div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Skeleton grid for blog posts */}
-        <div className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mx-auto w-full">
-            {[...Array(6)].map((_, index) => (
-              <BlogPostSkeleton key={index} />
-            ))}
-          </div>
-        </div>
-
-        {/* Loading text for infinite scroll */}
-        <div className="flex justify-center items-center py-12">
-          <div className="flex items-center space-x-3 text-gray-600 font-medium">
-            <div className="animate-spin rounded-full h-7 w-7 border-b-3 border-blue-500"></div>
-            <span>Loading initial posts...</span>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );
 };
 
 export default async function BlogsPage() {
+  const blogsPageDataForHeroSection =
+    await sanityFetchWrapper<BlogsPageMetadataAndHero>(
+      blogsPageMetadataAndHeroQuery,
+      {},
+      ["blogsPage"]
+    );
+
+  const latestPost = await sanityFetchWrapper<BlogPost>(
+    getMostRecentBlogPostQuery,
+    {},
+    ["blogsPage"]
+  );
+
   return (
-    <Suspense fallback={<BlogsPageLoadingFallback />}>
-      <div>
-        <BlogsPageClient />
-      </div>
-    </Suspense>
+    <>
+      <main className="bg-white">
+        {/* Compact Hero Section with Enhanced Featured Post */}
+
+        <section className="relative min-h-[60vh] h-full max-h-[100vh] flex items-center overflow-hidden">
+          <div className="bg-black h-16 mb-2 w-full flex-shrink-0 absolute top-0 z-10" />
+
+          {/* Background Image with Clean Overlay */}
+          <div className="absolute inset-0 z-0">
+            <Image
+              src={urlFor(
+                blogsPageDataForHeroSection.heroSection.backgroundImage.asset
+              )
+                .quality(80)
+                .width(1920)
+                .height(1080)
+                .url()}
+              alt={`${blogsPageDataForHeroSection.heroSection.backgroundImage.alt || `background page hero image`}`}
+              fill
+              className="object-cover absolute inset-0 z-0"
+              priority
+            />
+            {/* Clean overlay for text readability */}
+            <div className="absolute inset-0 bg-black/50" />
+          </div>
+
+          {/* Hero Content - Clean Layout */}
+          <div className="relative z-10 w-full py-16 md:py-20">
+            <div className="container mx-auto px-6 md:px-8 max-w-6xl">
+              <div className="grid md:grid-cols-12 gap-12 md:gap-16 items-center">
+                {/* Left side - Main title */}
+                <div className="md:col-span-6 space-y-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-px bg-blue-400"></div>
+                    <span className="text-sm font-medium text-blue-400 tracking-widest uppercase">
+                      {blogsPageDataForHeroSection.heroSection.title}
+                    </span>
+                  </div>
+                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-light text-white leading-tight tracking-tight">
+                    {blogsPageDataForHeroSection.heroSection.subtitle}
+                  </h1>
+                </div>
+
+                {/* Right side - Clean Featured post */}
+                {latestPost && (
+                  <div className="md:col-span-6">
+                    <Link
+                      href={`/blog/${latestPost.slug.current}`}
+                      className="group block"
+                    >
+                      <div className="bg-white p-8 md:p-10 transition-all duration-300 hover:shadow-lg">
+                        {/* Featured badge - Clean version */}
+                        <div className="flex items-center space-x-3 mb-6">
+                          <div className="w-6 h-px bg-blue-400"></div>
+                          <span className="text-xs font-medium text-blue-400 tracking-widest uppercase">
+                            Latest Article
+                          </span>
+                        </div>
+
+                        {/* Title - Clean typography */}
+                        <h3 className="text-xl md:text-2xl font-light text-black group-hover:text-blue-500 transition-colors duration-300 mb-4 leading-tight line-clamp-2">
+                          {latestPost.title}
+                        </h3>
+
+                        {/* Excerpt - Clean styling */}
+                        <p className="text-black font-light text-base leading-relaxed line-clamp-3 mb-6">
+                          {latestPost.excerpt}
+                        </p>
+
+                        {/* Meta info - Minimalist */}
+                        <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-blue-400 flex items-center justify-center">
+                              <span className="text-xs font-medium text-white">
+                                {latestPost.author.firstName.charAt(0)}
+                                {latestPost.author.lastName.charAt(0)}
+                              </span>
+                            </div>
+                            <span className="text-gray-600 text-sm font-light">
+                              {latestPost.author.firstName}{" "}
+                              {latestPost.author.lastName}
+                            </span>
+                          </div>
+                          <span className="text-blue-400 text-sm font-medium">
+                            {latestPost.readingTime} min read
+                          </span>
+                        </div>
+
+                        {/* Clean hover indicator */}
+                        <div className="flex items-center justify-end mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <span className="text-sm font-medium text-blue-400 mr-2">
+                            Read Article
+                          </span>
+                          <ArrowRight size={16} className="text-blue-400" />
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+        {/* Main Content Container */}
+        <div className="flex flex-col ">
+          {/* Search & Filter Section - Sticky */}
+          <section className="sticky top-0 z-20 bg-white py-6 md:py-8 border-b border-gray-100 shadow-sm">
+            <div className="container mx-auto px-6 md:px-8 max-w-6xl">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div>
+                  <h2 className="text-2xl md:text-3xl font-light text-black mb-2">
+                    Articles
+                  </h2>
+                </div>
+
+                {/* Static Search Bar - For demo purposes */}
+                <div className="relative max-w-md w-full">
+                  <SearchInput />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Blog Posts Grid - Scrollable Container */}
+          <>
+            <section className="flex-1 bg-white h-screen overflow-y-scroll">
+              <Suspense fallback={<BlogsPageSkeleton />}>
+                <BlogsPageClient />
+              </Suspense>
+            </section>
+          </>
+        </div>
+      </main>
+    </>
   );
 }

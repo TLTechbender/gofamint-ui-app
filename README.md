@@ -2,6 +2,8 @@
 
 This contains all the code for the Lord's web app, I would most likely document it too bro.
 
+Update: got rid of a lot of api routes bro, now I am using next.js server actions, the experience has been plesant, bro reading docs sweet like mad
+
 ## 🏗️ Architecture Overview
 
 ```

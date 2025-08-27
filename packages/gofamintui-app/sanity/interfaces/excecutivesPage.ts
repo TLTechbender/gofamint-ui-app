@@ -1,4 +1,12 @@
+import { SanityImage } from "./sanityImage";
+
 export interface ExcecutivesPageData {
+  seo: {
+    title: string;
+    description: string;
+    keywords: string[];
+    ogImage: SanityImage;
+  };
   heroSection: {
     title: string;
     subtitle: string;
@@ -24,7 +32,6 @@ export interface ExcecutivesPageData {
     };
     title: string;
     subtitle: string;
-   
   };
   infoSection: {
     title: string;

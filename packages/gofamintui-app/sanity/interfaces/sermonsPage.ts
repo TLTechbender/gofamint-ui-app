@@ -10,11 +10,11 @@ export interface Sermon {
   posterImage: SanityImage;
 }
 
-export interface Sermons {
-  _id: string;
-  _rev: string;
-  _createdAt: string;
-  _updatedAt: string;
+export interface SermonsCountResponse {
+  count: number;
+}
+
+export interface SermonsMetadataAndHero {
   seo: {
     title: string;
     description: string;
@@ -25,10 +25,5 @@ export interface Sermons {
     backgroundImage: SanityImage;
     title: string;
     subtitle: string;
-  }
-  sermons: Sermon[];
-}
-
-export interface SermonsCountResponse {
-  count: number;
+  };
 }

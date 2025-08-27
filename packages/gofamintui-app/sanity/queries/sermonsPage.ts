@@ -1,68 +1,83 @@
-
 export const buildSermonsQuery = (hasSearch = false) => {
   const baseFields = `
-        title,
-        date,
-        duration,
-        telegramLink,
-        googleDriveLink,
-        slug,
-        description,
-        posterImage {
-          asset-> {
-            _id,
-            url,
-            metadata {
-              dimensions {
-                width,
-                height
-              },
-              lqip
-            }
+    title,
+    date,
+    duration,
+    telegramLink,
+    googleDriveLink,
+    slug,
+    description,
+    posterImage {
+      asset-> {
+        _id,
+        url,
+        metadata {
+          dimensions {
+            width,
+            height
           },
-          hotspot,
-          crop
+          lqip
         }
-      `;
+      },
+      hotspot,
+      crop
+    }
+  `;
+
+  const smartSearchCondition = `
+    (
+      title match $search + "*" || 
+      pt::text(description) match $search + "*" ||
+      lower(title) match lower($search) + "*" ||
+      lower(pt::text(description)) match lower($search) + "*" ||
+      title match "*" + $search + "*" ||
+      pt::text(description) match "*" + $search + "*"
+    )
+  `;
 
   if (hasSearch) {
     return `
-          *[_type == "sermons"][0].sermons[
-            title match $search + "*" || pt::text(description) match $search + "*"
-          ] | order(date desc) [$start...$end] {
-            ${baseFields}
-          }
-        `;
+      *[_type == "sermon" && ${smartSearchCondition}] | order(date desc) [$start...$end] {
+        ${baseFields}
+      }
+    `;
   }
 
   return `
-        *[_type == "sermons"][0].sermons | order(date desc) [$start...$end] {
-          ${baseFields}
-        }
-      `;
+    *[_type == "sermon"] | order(date desc) [$start...$end] {
+      ${baseFields}
+    }
+  `;
 };
 
 export const buildSermonsCountQuery = (hasSearch = false) => {
-    if (hasSearch) {
-      return `
-          count(*[_type == "sermons"][0].sermons[
-            title match $search + "*" || pt::text(description) match $search + "*"
-          ])
-        `;
-    }
-  
-    return `count(*[_type == "sermons"][0].sermons)`;
-  };
-  
+  const smartSearchCondition = `
+    (
+      title match $search + "*" || 
+      pt::text(description) match $search + "*" ||
+      lower(title) match lower($search) + "*" ||
+      lower(pt::text(description)) match lower($search) + "*" ||
+      title match "*" + $search + "*" ||
+      pt::text(description) match "*" + $search + "*"
+    )
+  `;
+
+  if (hasSearch) {
+    return `
+      count(*[_type == "sermon" && ${smartSearchCondition}])
+    `;
+  }
+
+  return `count(*[_type == "sermon"])`;
+};
 
 export const recentSermonsQuery = `
-*[_type == "sermons"][0].sermons[] | order(date desc) [0...3] {
+*[_type == "sermon"] | order(date desc) [0...3] {
   title,
   date,
   duration,
   telegramLink,
   googleDriveLink,
-  slug,
   posterImage {
     asset-> {
       _id,
@@ -80,10 +95,8 @@ export const recentSermonsQuery = `
   }
 }`;
 
-
-
-export const sermonsPageHeroSection = `
-  *[_type == "sermons"][0] {
+export const sermonsPageHeroMetaDataAndHeroSection = `
+  *[_type == "sermonsPageMetadataAndHero"][0] {
     heroSection {
       backgroundImage {
         asset-> {
@@ -102,6 +115,27 @@ export const sermonsPageHeroSection = `
       },
       title,
       subtitle
+    },
+          seo {
+      title,
+      description,
+      keywords,
+      ogImage {
+        asset->{
+          _id,
+          url,
+          metadata {
+            lqip,
+            dimensions {
+              width,
+              height
+            }
+          }
+        },
+        hotspot,
+        crop,
+        alt
+      }
     }
   }
 `;

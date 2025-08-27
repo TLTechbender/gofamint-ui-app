@@ -1,27 +1,20 @@
-// import { createClient } from "@sanity/client";
-// import imageUrlBuilder from "@sanity/image-url";
 
-// export const sanityClient = createClient({
-//   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
-//   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET!,
-//   useCdn: false,
-//   apiVersion: "2025-04-01",
-//   token: process.env.NEXT_SANITY_TOKEN!,
-// });
 
 import { createClient } from "@sanity/client";
 import imageUrlBuilder from "@sanity/image-url";
+import { SanityAsset } from "@sanity/image-url/lib/types/types";
 
 export const sanityClient = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET!,
+  projectId: "276it5za",
+
+  dataset: process.env.NODE_ENV === "production" ? "production" : "development",
   useCdn: false,
   apiVersion: "2025-04-01",
-  token: process.env.NEXT_SANITY_TOKEN!,
-  // Use the new cache configuration
-  fetch: {
-    cache: "no-store",
-  },
+  //No be my fault, i no wan make am public, but it has to be public to be used on the frontend frontend  😿 😿 😿
+  token: process.env.NEXT_PUBLIC_SANITY_TOKEN || process.env.NEXT_SANITY_TOKEN,
+
+  // I don't want either prisma or sanity caching for me, imagine next.js caching is enough problems, switching between too many caching contexts becomes problematic walahi
+
 });
-  const builder = imageUrlBuilder(sanityClient);
-  export const urlFor = (source: string) => builder.image(source);
+const builder = imageUrlBuilder(sanityClient);
+export const urlFor = (source: SanityAsset) => builder.image(source);

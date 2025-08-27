@@ -22,11 +22,27 @@ export const blogPost = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: 'authorDatabaseReferenceId',
+      title: 'Author',
+      type: 'text',
+      readOnly: true,
+      rows: 1,
+      description: 'A reference to keep track of the author in the database',
+      validation: (Rule) => Rule.required(),
+    }),
+
+    
+    defineField({
       name: 'author',
       title: 'Author',
       type: 'reference',
-      to: [{type: 'author'}],
+      to: [{ type: 'author' }],
+      readOnly: true,
       validation: (Rule) => Rule.required(),
+      options: {
+        filter: 'application.status == "approved" && application.isApproved == true',
+        // Show only approved authors in the reference picker
+      },
     }),
     defineField({
       name: 'featuredImage',
@@ -48,9 +64,9 @@ export const blogPost = defineType({
       name: 'excerpt',
       title: 'Excerpt',
       type: 'text',
-      description: 'Brief description of the post (for previews)',
+      description: 'Brief description of the post (for previews) and seo',
       rows: 3,
-      validation: (Rule) => Rule.max(1000),
+      validation: (Rule) => Rule.required().min(10).max(1000),
     }),
     defineField({
       name: 'content',
@@ -76,6 +92,8 @@ export const blogPost = defineType({
               {title: 'Strong', value: 'strong'},
               {title: 'Emphasis', value: 'em'},
               {title: 'Code', value: 'code'},
+              {title: 'Underline', value: 'underline'},
+              {title: 'Strike', value: 'strike-through'},
             ],
             annotations: [
               {
@@ -87,6 +105,12 @@ export const blogPost = defineType({
                     title: 'URL',
                     name: 'href',
                     type: 'url',
+                  },
+                  {
+                    name: 'blank',
+                    type: 'boolean',
+                    title: 'Open in new tab',
+                    initialValue: true,
                   },
                 ],
               },
@@ -107,33 +131,17 @@ export const blogPost = defineType({
       ],
     }),
     defineField({
-      name: 'tags',
-      title: 'Tags',
-      type: 'array',
-      of: [{type: 'string'}],
-      options: {
-        layout: 'tags',
-      },
-    }),
-    defineField({
       name: 'publishedAt',
       title: 'Published At',
       type: 'datetime',
       initialValue: () => new Date().toISOString(),
     }),
     defineField({
-      name: 'isDraft',
-      title: 'Draft',
-      type: 'boolean',
-      initialValue: true,
-      description: 'Set to false to publish the post',
-    }),
-    defineField({
-      name: 'featured',
-      title: 'Featured Post',
+      name: 'isApprovedToBePublished',
+      title: 'Approved to be Published',
       type: 'boolean',
       initialValue: false,
-      description: 'Feature this post on homepage',
+      description: 'Set to true to approve this post for publication',
     }),
     defineField({
       name: 'readingTime',
@@ -142,37 +150,34 @@ export const blogPost = defineType({
       description: 'Estimated reading time in minutes',
     }),
     defineField({
-      name: 'views',
-      title: 'View Count',
-      type: 'number',
-      initialValue: 0,
-      description: 'Number of times this post has been viewed',
-    }),
-    defineField({
       name: 'seo',
       title: 'SEO Settings',
       type: 'object',
+      validation: (Rule) => Rule.required(),
       fields: [
         defineField({
-          name: 'metaTitle',
-          title: 'Meta Title',
+          name: 'title',
+          title: 'Page Title',
           type: 'string',
-          validation: (Rule) => Rule.max(60),
+          initialValue: "GSF UI – Gofamint Students' Fellowship, University of Ibadan",
+          validation: (Rule) => Rule.required(),
         }),
         defineField({
-          name: 'metaDescription',
+          name: 'description',
           title: 'Meta Description',
           type: 'text',
-          validation: (Rule) => Rule.max(160),
+          rows: 3,
+          validation: (Rule) => Rule.required().min(10).max(300),
         }),
+
         defineField({
-          name: 'keywords',
-          title: 'Keywords',
-          type: 'array',
-          of: [{type: 'string'}],
+          name: 'ogImage',
+          title: 'Social Media Image',
+          type: 'image',
           options: {
-            layout: 'tags',
+            hotspot: true,
           },
+          validation: (Rule) => Rule.required(),
         }),
       ],
     }),
@@ -181,7 +186,6 @@ export const blogPost = defineType({
       title: 'Created At',
       type: 'datetime',
       initialValue: () => new Date().toISOString(),
-      hidden: true,
     }),
     defineField({
       name: 'updatedAt',
@@ -210,27 +214,22 @@ export const blogPost = defineType({
   preview: {
     select: {
       title: 'title',
-      authorFirstName: 'author.firstName',
+      authorName: 'author.firstName',
       authorLastName: 'author.lastName',
       media: 'featuredImage',
       publishedAt: 'publishedAt',
-      isDraft: 'isDraft',
-      views: 'views',
+      isApprovedToBePublished: 'isApprovedToBePublished',
     },
     prepare(selection) {
-      const {title, authorFirstName, authorLastName, publishedAt, isDraft, views} = selection
-      const authorName =
-        authorFirstName && authorLastName
-          ? `${authorFirstName} ${authorLastName}`
-          : authorFirstName || 'Unknown Author'
-      const status = isDraft ? '(Draft)' : ''
+      const {title, authorName, authorLastName, publishedAt, isApprovedToBePublished} = selection
+      const status = isApprovedToBePublished ? '✅ Approved' : '⏳ Pending'
       const date = publishedAt ? new Date(publishedAt).toLocaleDateString() : ''
-      const viewCount = views || 0
-      const engagement = `${viewCount} views`
+      const author =
+        authorName && authorLastName ? `${authorName} ${authorLastName}` : 'Unknown Author'
 
       return {
-        title: `${title} ${status}`,
-        subtitle: `by ${authorName} ${date ? `• ${date}` : ''} • ${engagement}`,
+        title: `${title}`,
+        subtitle: `Author: ${author} • ${status} ${date ? `• ${date}` : ''} `,
       }
     },
   },
