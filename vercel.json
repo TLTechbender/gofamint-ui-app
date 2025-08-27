@@ -1,0 +1,7 @@
+{
+  "buildCommand": "cd packages/gofamintui-app && npm run build",
+  "installCommand": "npm install",
+  "framework": null,
+  "outputDirectory": "packages/gofamintui-app/.next",
+  "rootDirectory": "packages/gofamintui-app"
+}
