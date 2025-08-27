@@ -7,31 +7,30 @@
     "packages/*"
   ],
   "scripts": {
-    "install:all": "npm install && npm run install:packages",
+    "install:all": "npm install",
     "install:packages": "npm install --workspaces",
     "install:clean": "npm run clean:all && npm run install:all",
-    "clean:all": "rm -rf node_modules && rm -rf packages/*/node_modules && rm -rf .turbo",
-    "dev": "turbo run dev --parallel",
-    "dev:app": "turbo run dev --filter=gofamintui-app",
-    "dev:cms": "turbo run dev --filter=gofamintui-cms",
-    "build": "turbo run build",
-    "build:app": "turbo run build --filter=gofamintui-app",
-    "build:cms": "turbo run build --filter=gofamintui-cms",
-    "lint": "turbo run lint",
-    "test": "turbo run test",
-    "clean": "turbo run clean && rm -rf node_modules",
-    "type-check": "turbo run type-check",
+    "clean:all": "rm -rf node_modules && rm -rf packages/*/node_modules",
+    "dev": "npm run dev:app & npm run dev:cms & wait",
+    "dev:app": "npm run dev -w gofamintui-app",
+    "dev:cms": "npm run dev -w gofamintui-cms",
+    "dev:both": "npm run dev:app & npm run dev:cms & wait",
+    "build": "npm run build:cms && npm run build:app",
+    "build:app": "npm run build -w gofamintui-app",
+    "build:cms": "npm run build -w gofamintui-cms",
+    "build:parallel": "npm run build --workspaces --if-present",
+    "lint": "npm run lint -w gofamintui-app && npm run lint -w gofamintui-cms",
+    "lint:parallel": "npm run lint --workspaces --if-present",
+    "lint:fix": "npm run lint -w gofamintui-app -- --fix && npm run lint -w gofamintui-cms -- --fix",
+    "test": "npm run test --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present && rm -rf node_modules",
+    "type-check": "npm run type-check --workspaces --if-present",
     "docker:dev": "docker-compose up -d",
     "docker:prod": "docker-compose -f docker-compose.prod.yml up -d",
     "docker:build": "docker-compose build"
   },
   "devDependencies": {
-    "@turbo/gen": "^2.4.4",
-    "@typescript-eslint/eslint-plugin": "^8.41.0",
-    "@typescript-eslint/parser": "^8.41.0",
-    "eslint": "^9.34.0",
-    "prettier": "^3.5.3",
-    "turbo": "^2.5.4"
+    "prettier": "^3.5.3"
   },
   "engines": {
     "node": ">=18.0.0"
