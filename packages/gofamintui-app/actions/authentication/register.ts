@@ -1,9 +1,12 @@
 "use server";
-import { createNewUser } from "@/auth";
+
+import { getUserByEmail, getUserByPhoneNumber, getUserByUsername } from "@/auth";
 import { sendVerifiyUserEmail } from "@/lib/email/emailHandler";
 import { RegisterActionState } from "@/lib/formActionStates/registerActionState";
 import { registerSchemaServer } from "@/lib/formSchemas/registerSchemaServer";
 import generateToken from "@/lib/tokenHandler/generateToken";
+import bcrypt from "bcrypt";
+import { prisma } from "@/lib/prisma/prisma";
 
 export default async function registerNewUser(
   formData: FormData
@@ -46,6 +49,96 @@ export default async function registerNewUser(
       password,
       userName,
     };
+
+    async function createNewUser(userData: {
+      email: string;
+      userName: string;
+      firstName: string;
+      lastName: string;
+      password: string;
+      phoneNumber: string;
+    }) {
+      try {
+        const [
+          existingUserByEmail,
+          existingUserByUsername,
+          existingUserByPhone,
+        ] = await Promise.all([
+          getUserByEmail(userData.email),
+          getUserByUsername(userData.userName),
+          getUserByPhoneNumber(userData.phoneNumber),
+        ]);
+
+        if (existingUserByEmail) {
+          if (!existingUserByEmail.isVerified) {
+            return {
+              success: false,
+              user: existingUserByEmail,
+              message: "Email already exists but requires verification",
+              field: "emailVerification",
+            };
+          }
+          return {
+            success: false,
+            user: null,
+            message: "User with this email already exists",
+            field: "email",
+          };
+        }
+
+        if (existingUserByUsername) {
+          if (!existingUserByUsername.isVerified) {
+            return {
+              success: false,
+              user: existingUserByUsername,
+              message: "Username already exists but requires verification",
+              field: "userNameVerification",
+            };
+          }
+          return {
+            success: false,
+            user: null,
+            message: "Username is already taken",
+            field: "userName",
+          };
+        }
+
+        if (existingUserByPhone) {
+          return {
+            success: false,
+            user: null,
+            message: "Phone number is already registered",
+            field: "phoneNumber",
+          };
+        }
+
+        const hashedPassword = await bcrypt.hash(userData.password, 12);
+
+        const newUser = await prisma.user.create({
+          data: {
+            ...userData,
+            password: hashedPassword,
+            bio: null,
+            isAuthor: false,
+          },
+        });
+
+        return {
+          success: true,
+          user: newUser,
+          message: "User created successfully",
+          field: null,
+        };
+      } catch (error) {
+        console.error("Failed to create new user:", error);
+        return {
+          success: false,
+          user: null,
+          message: "User creation failed due to server error",
+          field: null,
+        };
+      }
+    }
 
     const createNewUserResponse = await createNewUser({
       firstName: userData.firstName,
