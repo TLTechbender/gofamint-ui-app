@@ -219,9 +219,9 @@ const OnlineGivingComponent = ({
                 <div className="w-6 h-px bg-blue-400"></div>
               </div>
               <blockquote className="text-2xl md:text-3xl font-light text-black mb-8 leading-relaxed italic">
-                "Each of you should give what you have decided in your heart to
+                {` "Each of you should give what you have decided in your heart to
                 give, not reluctantly or under compulsion, for God loves a
-                cheerful giver."
+                cheerful giver."`}
               </blockquote>
               <cite className="text-base text-gray-600 font-light tracking-wide">
                 — 2 Corinthians 9:7
@@ -324,8 +324,8 @@ const OnlineGivingComponent = ({
                   Online Payments Coming Soon
                 </h3>
                 <p className="text-black font-light mb-8 leading-relaxed">
-                  We're working on integrating secure online payment options for
-                  your convenience.
+                    {`We're working on integrating secure online payment options for
+                  your convenience.`}
                 </p>
                 <button
                   onClick={() => setSelectedBankType("nigerian")}
@@ -443,9 +443,9 @@ const OnlineGivingComponent = ({
               Thank You for Your Generosity
             </h3>
             <p className="text-lg text-black font-light max-w-3xl mx-auto leading-relaxed">
-              Your donation is more than a gift—it's a seed of hope that will
+              {`Your donation is more than a gift—it's a seed of hope that will
               grow into blessings for our community. We are deeply grateful for
-              your heart of giving and your partnership in our mission.
+              your heart of giving and your partnership in our mission.`}
             </p>
           </div>
         </div>

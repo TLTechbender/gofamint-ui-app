@@ -197,7 +197,7 @@ function AuthorNotFoundError() {
           </h1>
 
           <p className="text-gray-600 mb-6 leading-relaxed">
-            We couldn't find your author profile details. This might be because:
+            {` We couldn't find your author profile details. This might be because:`}
           </p>
 
           <ul className="text-left text-sm text-gray-500 mb-8 space-y-2">

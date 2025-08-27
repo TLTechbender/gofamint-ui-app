@@ -99,7 +99,7 @@ const GalleryListClient = () => {
     if (searchInputRef.current && !searchParams.get("search")) {
       searchInputRef.current.focus();
     }
-  }, []); // Empty dependency array - only run on mount
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="min-h-screen">

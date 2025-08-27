@@ -15,6 +15,7 @@ import {
 
 import Link from "next/link";
 import { applyToBecomeAuthor } from "@/actions/author/apply";
+import Image from "next/image";
 
 type ValidationErrors = {
   bio?: string[];
@@ -312,7 +313,6 @@ const ApplyPageClient = () => {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              
                 <Link
                   href="/publishing"
                   className="px-6 py-3 bg-blue-500 text-white hover:bg-blue-600 rounded-lg transition-colors text-center"
@@ -398,8 +398,9 @@ const ApplyPageClient = () => {
                         {/**
                          * Wahala for next.js Image
                          */}
-                        <img
+                        <Image
                           src={imagePreview}
+                          sizes="128px"
                           alt="Profile preview"
                           className="w-full h-full object-cover"
                         />
@@ -460,7 +461,8 @@ const ApplyPageClient = () => {
               {/* Bio */}
               <div className="space-y-3">
                 <label className="block text-lg font-medium text-black">
-                  About You (this should be like you writing a short bio about yourself) <span className="text-blue-500">*</span>
+                  About You (this should be like you writing a short bio about
+                  yourself) <span className="text-blue-500">*</span>
                 </label>
                 <textarea
                   {...register("bio")}
@@ -477,7 +479,6 @@ const ApplyPageClient = () => {
                     {errors.bio.message}
                   </p>
                 )}
-              
               </div>
 
               {/* Submit Button */}
