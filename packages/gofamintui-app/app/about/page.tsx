@@ -209,6 +209,11 @@ export async function generateMetadata(): Promise<Metadata> {
         "max-image-preview": "large",
         "max-snippet": -1,
       },
+
+
+
+
+      
     },
     verification: {
       google: `${process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION_CODE}`,

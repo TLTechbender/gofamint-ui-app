@@ -5,11 +5,15 @@
   "main": "package.json",
   "license": "UNLICENSED",
   "scripts": {
-    "dev": "sanity dev",
-    "start": "sanity start",
+    "dev": "sanity dev --port 3333",
+    "start": "sanity start --port 3333",
     "build": "sanity build",
     "deploy": "sanity deploy",
-    "deploy-graphql": "sanity graphql deploy"
+    "deploy-graphql": "sanity graphql deploy",
+    "clean": "rm -rf dist && rm -rf .sanity",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "type-check": "tsc --noEmit",
+    "test": "echo \"No tests specified\" && exit 0"
   },
   "keywords": [
     "sanity"
@@ -28,11 +32,5 @@
     "eslint": "^9.9.0",
     "prettier": "^3.0.2",
     "typescript": "^5.1.6"
-  },
-  "prettier": {
-    "semi": false,
-    "printWidth": 100,
-    "bracketSpacing": false,
-    "singleQuote": true
   }
 }
