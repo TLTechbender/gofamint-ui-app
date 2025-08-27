@@ -1,10 +1,8 @@
-# 🌟 GoFamint UI
+# GoFamint UI
 
-> A modern, full-stack web application built with Next.js and Sanity CMS, powered by Turborepo for optimal development experience for Gofamint Students Fellowship, University of Ibadan
+> A modern, full-stack web application built with Next.js and Sanity CMS for Gofamint Students Fellowship, University of Ibadan
 
-
-
-## 📋 Table of Contents
+## Table of Contents
 
 - [Overview](#overview)
 - [Architecture](#architecture)
@@ -21,63 +19,53 @@
 - [Contributing](#contributing)
 - [License](#license)
 
-## 🎯 Overview
+## Overview
 
-GoFamint UI is a modern, full-stack web application designed with scalability, performance and developer experience in mind. Built using a monorepo architecture with Turborepo, it features a Next.js frontend application with server actions and a Sanity CMS for content management.
+GoFamint UI is a modern, full-stack web application designed with scalability, performance and developer experience in mind. It features a Next.js frontend application with server actions and a Sanity CMS for content management.
 
-### ✨ Key Features
+### Key Features
 
-- 🚀 **Modern Stack**: Next.js 15+ with App Router and Server Actions
-- 🎨 **Beautiful UI**: Tailwind CSS  for responsive design and fast development
-- 🔐 **Authentication**: NextAuth.js with custom middleware and Google OAuth
-- 📝 **Content Management**: Sanity Studio with custom schema types
-- 🏗️ **Monorepo**: Turborepo for efficient development workflow
-- 🐳 **Docker Ready**: Containerization support (coming soon)
-- 🔒 **Type Safety**: Full TypeScript implementation across all packages
-- 📧 **Email Integration**: SMTP configuration for notifications
-- 🗃️ **Database**: Prisma ORM with custom middleware
-- ⚡ **Server Actions**: Modern data fetching without traditional API routes
-- 🎯 **Custom Hooks**: Reusable React hooks for common functionality
+- Modern Stack: Next.js 15+ with App Router and Server Actions
+- Beautiful UI: Tailwind CSS for responsive design and fast development
+- Authentication: NextAuth.js with custom middleware and Google OAuth
+- Content Management: Sanity Studio with custom schema types
+- Type Safety: Full TypeScript implementation
+- Email Integration: SMTP configuration for notifications
+- Database: Prisma ORM with custom middleware
+- Server Actions: Modern data fetching without traditional API routes
+- Custom Hooks: Reusable React hooks for common functionality
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 gofamint-ui/
-├── packages/
-│   ├── gofamintui-app/         # Next.js Frontend Application
-│   │   ├── .next/             # Next.js build output
-│   │   ├── actions/           # Server Actions (replaces API routes)
-│   │   ├── app/               # App Router directory
-│   │   ├── components/        # Reusable React components
-│   │   ├── hooks/             # Custom React hooks
-│   │   ├── lib/               # Utility functions & configurations
-│   │   ├── prisma/            # Database schema & migrations
-│   │   ├── public/            # Static assets
-│   │   └── sanity/            # Sanity client & schemas
-│   └── gofamintui-cms/         # Sanity Studio CMS
-│       ├── .sanity/           # Sanity build artifacts
-│       ├── schemaTypes/       # Content type definitions
-│       ├── static/            # Static CMS assets
-│       └── sanity.config.ts   # Sanity Studio configuration
-├── package.json               # Root workspace configuration
-├── turbo.json                 # Turborepo build configuration
-└── README.md                  # Project documentation
+├── app/                   # App Router directory
+├── components/            # Reusable React components
+├── hooks/                 # Custom React hooks
+├── lib/                   # Utility functions & configurations
+├── prisma/                # Database schema & migrations
+├── public/                # Static assets
+├── sanity/                # Sanity client & schemas
+├── actions/               # Server Actions (replaces API routes)
+├── package.json           # Package configuration
+├── next.config.js         # Next.js configuration
+└── README.md              # Project documentation
 ```
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-### Frontend (`gofamintui-app`)
+### Frontend
 - **Framework**: [Next.js 15+](https://nextjs.org/) with App Router
 - **Language**: TypeScript
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/) 
 - **Database**: [Prisma ORM](https://prisma.io/)
 - **Authentication**: [NextAuth.js](https://next-auth.js.org/) with custom auth configuration
 - **Content**: Sanity CMS integration with custom schemas
-- **API Layer**: React Server Actions (traditional API routes) + a Few Api routes
+- **API Layer**: React Server Actions + API routes
 - **State Management**: React Server Components + Server Actions
 - **Middleware**: Custom authentication and routing middleware
 
-### CMS (`gofamintui-cms`)
+### CMS
 - **Platform**: [Sanity Studio](https://sanity.io/)
 - **Language**: TypeScript
 - **Schema Types**: Custom content type definitions
@@ -85,13 +73,12 @@ gofamint-ui/
 - **Environment**: Production dataset with webhook integration
 
 ### Development & Tooling
-- **Monorepo**: [Turborepo](https://turbo.build/)
-- **Package Manager**: npm with workspaces
+- **Package Manager**: npm
 - **Linting**: ESLint with TypeScript support
 - **Formatting**: Prettier
 - **Containerization**: Docker (planned)
 
-## 📋 Prerequisites
+## Prerequisites
 
 Before you begin, ensure you have the following installed:
 
@@ -100,7 +87,7 @@ Before you begin, ensure you have the following installed:
 - **Git** for version control
 - **Docker** (optional, for containerized development)
 
-## 🚀 Installation
+## Installation
 
 ### 1. Clone the Repository
 
@@ -112,70 +99,49 @@ cd gofamint-ui-app
 ### 2. Install Dependencies
 
 ```bash
-# Install all dependencies for the entire monorepo
-npm run install:all
-
-# Alternative: Clean install (removes existing node_modules first)
-npm run install:clean
+# Install all dependencies
+npm install
 ```
 
 ### 3. Environment Setup
 
-Create environment files for both packages:
+Create environment files:
 
 ```bash
-# Copy example environment files
-cp packages/gofamintui-app/.env.example packages/gofamintui-app/.env.local
-cp packages/gofamintui-cms/.env.example packages/gofamintui-cms/.env.local
+# Copy example environment file
+cp .env.example .env.local
 ```
 
 Configure your environment variables (see [Environment Variables](#environment-variables) section).
 
-## 💻 Development
+## Development
 
-### Start All Services
+### Start Development Server
 
 ```bash
-# Start both app and CMS in development mode
+# Start the Next.js application in development mode
 npm run dev
 ```
 
-This will start:
-- **Next.js App**: http://localhost:3000
-- **Sanity Studio**: http://localhost:3333
+This will start the Next.js App at http://localhost:3000
 
-### Start Individual Services
+## Building
 
-```bash
-# Start only the Next.js application
-npm run dev:app
-
-# Start only the Sanity CMS
-npm run dev:cms
-```
-
-
-
-## 🏗️ Building
-
-### Build All Packages
+### Build Application
 
 ```bash
-# Build the entire monorepo
+# Build the application
 npm run build
 ```
 
-### Build Individual Packages
+### Start Production Server
 
 ```bash
-# Build only the Next.js app
-npm run build:app
-
-# Build only the Sanity CMS
-npm run build:cms
+# Start the built application
+npm start
 ```
 
-## 🚀 Deployment
+## Deployment
 
 The application is designed to be platform-agnostic but optimized for Vercel deployment.
 
@@ -183,14 +149,14 @@ The application is designed to be platform-agnostic but optimized for Vercel dep
 
 ```bash
 # Build the application
-npm run build:app
+npm run build
 
-# The built application will be in packages/gofamintui-app/.next
+# The built application will be in .next/
 ```
 
-## 🔐 Environment Variables
+## Environment Variables
 
-### Next.js App (`packages/gofamintui-app/.env.local`)
+### Next.js App (`.env.local`)
 
 ```bash
 # Sanity Configuration
@@ -221,54 +187,26 @@ NEXT_SMTP_EMAIL_ADDRESS=your_email_address
 NEXT_SMTP_EMAIL_APP_PASSWORD=your_email_password
 ```
 
-### Sanity CMS (`packages/gofamintui-cms/.env.local`)
+## Scripts Reference
 
-```bash
-# Sanity Studio Configuration
-SANITY_STUDIO_PROJECT_ID=your_sanity_project_id
-SANITY_STUDIO_DATASET=production
-```
-
-## 📜 Scripts Reference
-
-### Root Level Commands
+### Available Commands
 
 | Command | Description |
 |---------|-------------|
-| `npm run install:all` | Install dependencies for all packages |
-| `npm run install:packages` | Install workspace dependencies |
-| `npm run install:clean` | Clean install (removes node_modules first) |
-| `npm run clean:all` | Remove all node_modules and build artifacts |
-| `npm run dev` | Start all services in development |
-| `npm run build` | Build all packages |
-| `npm run lint` | Lint all packages |
-| `npm run test` | Run tests across all packages |
+| `npm run dev` | Start development server |
+| `npm run build` | Build the application |
+| `npm run start` | Start production server |
+| `npm run lint` | Lint the codebase |
+| `npm run lint:fix` | Lint and fix issues |
 | `npm run type-check` | TypeScript type checking |
 
-### Package-Specific Commands
+## Docker Support
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev:app` | Start Next.js app only |
-| `npm run dev:cms` | Start Sanity Studio only |
-| `npm run build:app` | Build Next.js app only |
-| `npm run build:cms` | Build Sanity Studio only |
-
-### Docker Commands (Planned)
-
-| Command | Description |
-|---------|-------------|
-| `npm run docker:dev` | Start development containers |
-| `npm run docker:prod` | Start production containers |
-| `npm run docker:build` | Build Docker images |
-
-## 🐳 Docker Support
-
-> **Note**: Docker configuration is planned for future implementation.
+Docker configuration is planned for future implementation.
 
 When implemented, Docker support will include:
 
-- **Development Environment**: Multi-service setup with hot reloading
+- **Development Environment**: Container setup with hot reloading
 - **Production Environment**: Optimized containers for deployment
 - **Database Services**: PostgreSQL/MySQL container integration
 - **Nginx Proxy**: Load balancing and SSL termination
@@ -278,49 +216,33 @@ When implemented, Docker support will include:
 ```
 docker/
 ├── app.Dockerfile          # Next.js app container
-├── cms.Dockerfile          # Sanity Studio container
 ├── docker-compose.yml      # Development setup
 └── docker-compose.prod.yml # Production setup
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 gofamint-ui/
-├── packages/
-│   ├── gofamintui-app/
-│   │   ├── .next/                # Next.js build output
-│   │   ├── actions/              # Server Actions (modern API layer)
-│   │   ├── app/                  # Next.js App Router pages & layouts
-│   │   ├── components/           # Reusable React UI components
-│   │   ├── hooks/                # Custom React hooks
-│   │   ├── lib/                  # Utility functions & configurations
-│   │   ├── prisma/               # Database schema & migrations
-│   │   ├── public/               # Static assets (images, icons, etc.)
-│   │   ├── sanity/               # Sanity client configuration & schemas
-│   │   │   ├── .env              # Sanity environment variables
-│   │   │   ├── .env.local        # Local Sanity overrides
-│   │   │   └── .env.prod         # Production Sanity config
-│   │   ├── auth.config.ts        # NextAuth configuration
-│   │   ├── auth.ts               # Authentication setup
-│   │   ├── middleware.ts         # Next.js middleware for auth/routing
-│   │   ├── next.config.ts        # Next.js configuration
-│   │   ├── postcss.config.mjs    # PostCSS configuration
-│   │   ├── tailwind.config.ts    # Tailwind CSS configuration
-│   │   └── tsconfig.json         # TypeScript configuration
-│   └── gofamintui-cms/
-│       ├── .sanity/              # Sanity build artifacts
-│       ├── schemaTypes/          # Sanity content type definitions
-│       ├── static/               # Static CMS assets
-│       ├── sanity.cli.ts         # Sanity CLI configuration
-│       ├── sanity.config.ts      # Sanity Studio configuration
-│       └── tsconfig.json         # TypeScript configuration
-├── package.json                  # Root package configuration
-├── turbo.json                    # Turborepo configuration
-└── README.md                     # This file
+├── .next/                    # Next.js build output
+├── actions/                  # Server Actions (modern API layer)
+├── app/                      # Next.js App Router pages & layouts
+├── components/               # Reusable React UI components
+├── hooks/                    # Custom React hooks
+├── lib/                      # Utility functions & configurations
+├── prisma/                   # Database schema & migrations
+├── public/                   # Static assets (images, icons, etc.)
+├── sanity/                   # Sanity client configuration & schemas
+├── auth.config.ts            # NextAuth configuration
+├── auth.ts                   # Authentication setup
+├── middleware.ts             # Next.js middleware for auth/routing
+├── next.config.js            # Next.js configuration
+├── postcss.config.mjs        # PostCSS configuration
+├── tailwind.config.ts        # Tailwind CSS configuration
+└── tsconfig.json             # TypeScript configuration
 ```
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions to GoFamint UI! Here's how to get started:
 
@@ -334,7 +256,6 @@ We welcome contributions to GoFamint UI! Here's how to get started:
 3. **Make Your Changes**
 4. **Run Tests**
    ```bash
-   npm run test
    npm run lint
    npm run type-check
    ```
@@ -356,20 +277,17 @@ We welcome contributions to GoFamint UI! Here's how to get started:
 - Maintain consistent code formatting (Prettier)
 - Follow ESLint rules and configurations
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-
-## 📞 Support
+## Support
 
 For support, questions, or feature requests:
 
-- 🐛 **Issues**: [GitHub Issues](https://github.com/TLTechbender/gofamint-ui-app/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/TLTechbender/gofamint-ui-app/discussions)
+- Issues: [GitHub Issues](https://github.com/TLTechbender/gofamint-ui-app/issues)
+- Discussions: [GitHub Discussions](https://github.com/TLTechbender/gofamint-ui-app/discussions)
 
 ---
 
-<div align="center">
-  <strong>Built with ❤️ by Bolarinwa</strong>
-</div>
+Built with care by Bolarinwa and DevQing
