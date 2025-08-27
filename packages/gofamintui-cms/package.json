@@ -18,7 +18,6 @@
     "@sanity/vision": "^4.4.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-dropzone": "^14.3.8",
     "sanity": "^4.4.1",
     "sanity-plugin-mux-input": "^2.9.0",
     "styled-components": "^6.1.15"
