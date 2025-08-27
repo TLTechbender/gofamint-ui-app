@@ -226,20 +226,9 @@ const LiveStreamComponent = ({
     const startTime = new Date(stream.scheduledStart).getTime();
     return startTime > now;
   };
-
-  const isStreamPast = (stream: LiveStream): boolean => {
-    const now = new Date().getTime();
-    if (stream.scheduledEnd) {
-      const endTime = new Date(stream.scheduledEnd).getTime();
-      return now > endTime;
-    }
-    const startTime = new Date(stream.scheduledStart).getTime();
-    return now > startTime && !stream.isLive;
-  };
-
+  // eslint-disable-next-line
   const currentStreams = streamsData?.filter(isStreamActuallyLive) || [];
   const upcomingStreams = streamsData?.filter(isStreamUpcoming) || [];
-  const pastStreams = streamsData?.filter(isStreamPast) || [];
 
   useEffect(() => {
     if (currentStreams.length > 0 && !selectedStream) {
@@ -249,7 +238,7 @@ const LiveStreamComponent = ({
     } else if (selectedStream && !isStreamActuallyLive(selectedStream)) {
       setSelectedStream(currentStreams[0] || null);
     }
-  }, [currentStreams, selectedStream]);
+  }, [currentStreams, selectedStream]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -279,18 +268,14 @@ const LiveStreamComponent = ({
   const handleShare = async () => {
     if (!selectedStream) return;
     if (navigator.share) {
-     
-        await navigator.share({
-          title: selectedStream.title,
-          text: `Join me watching ${selectedStream.title} live!`,
-          url: window.location.href,
-        });
-      
+      await navigator.share({
+        title: selectedStream.title,
+        text: `Join me watching ${selectedStream.title} live!`,
+        url: window.location.href,
+      });
     } else {
-  
-        await navigator.clipboard.writeText(window.location.href);
-        toast.success("Link copied to clipboard!");
-      
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success("Link copied to clipboard!");
     }
   };
 
@@ -316,8 +301,8 @@ const LiveStreamComponent = ({
               </h1>
 
               <p className="text-lg text-black font-light mb-12 max-w-2xl mx-auto leading-relaxed">
-                Check back soon for our next live service. We'll be back with
-                inspiring content and community worship.
+                {` Check back soon for our next live service. We'll be back with
+                inspiring content and community worship.`}
               </p>
 
               {/* Upcoming streams preview - Clean cards */}

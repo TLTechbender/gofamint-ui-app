@@ -47,6 +47,7 @@ import { AuthorAnalytics } from "@/actions/author/authorAnalytics";
 import { useGetAuthorRecentPosts } from "@/hooks/useGetAuthorRecentPosts";
 import InfiniteScrollContainer from "@/components/infiniteScrollContainer";
 import { FaHeart } from "react-icons/fa6";
+import Image from "next/image";
 
 // Type definitions
 export interface ProfileData {
@@ -387,8 +388,8 @@ const AuthorDashboardClient = ({
         End of Your Published Works
       </h3>
       <p className="text-sm md:text-base text-gray-600 font-light">
-        You've reached the end of your published articles. Keep writing to see
-        more content here!
+        {`You've reached the end of your published articles. Keep writing to see
+        more content here!`}
       </p>
     </div>
   );
@@ -431,7 +432,8 @@ const AuthorDashboardClient = ({
                 <div className="md:col-span-4 text-center md:text-left">
                   <div className="relative inline-block mb-4 sm:mb-6">
                     <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 relative overflow-hidden mx-auto md:mx-0 rounded-sm">
-                      <img
+                      <Image
+                        sizes="96px"
                         src={currentImageUrl}
                         alt={`${optimisticProfile.firstName}'s profile picture`}
                         className="w-full h-full object-cover"

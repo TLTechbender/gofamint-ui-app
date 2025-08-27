@@ -222,8 +222,8 @@ function UserNotFound() {
             User Not Found
           </h1>
           <p className="text-black font-light leading-relaxed mb-8">
-            The user profile you're looking for doesn't exist or has been
-            removed.
+            {`The user profile you're looking for doesn't exist or has been
+            removed.`}
           </p>
           <Link
             href="/"

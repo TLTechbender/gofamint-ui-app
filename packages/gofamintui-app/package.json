@@ -3,11 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev ",
+    "dev": "next dev -p 3000",
     "build": "prisma generate && next build",
-    "start": "next start",
+    "start": "next start -p 3000",
     "postinstall": "prisma generate",
-    "lint": "next lint"
+    "lint": "next lint",
+    "clean": "rm -rf .next && rm -rf dist",
+    "type-check": "tsc --noEmit",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "test": "echo \"No tests specified\" && exit 0"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
@@ -28,7 +34,6 @@
     "lucide-react": "^0.511.0",
     "masonry-layout": "^4.2.2",
     "motion": "^12.18.1",
-    "react-dropzone": "^14.3.8",
     "next": "15.3.3",
     "next-auth": "^5.0.0-beta.28",
     "nodemailer": "^6.10.1",
@@ -36,6 +41,7 @@
     "react": "^19.0.0",
     "react-big-calendar": "^1.19.2",
     "react-dom": "^19.0.0",
+    "react-dropzone": "^14.3.8",
     "react-hook-form": "^7.62.0",
     "react-icons": "^5.5.0",
     "react-image-gallery": "^1.4.0",
@@ -45,8 +51,7 @@
     "zod": "^3.25.46"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
+     "@tailwindcss/postcss": "^4",
     "@types/bcrypt": "^5.0.2",
     "@types/better-sqlite3": "^7.6.13",
     "@types/masonry-layout": "^4.2.8",

@@ -26,7 +26,7 @@ const NotFoundPage = () => {
     {
       text: "Blog",
       href: "/blog",
-      description: "Read our spirit filled blogs and be blessed"
+      description: "Read our spirit filled blogs and be blessed",
     },
     {
       text: "Events",
@@ -42,11 +42,12 @@ const NotFoundPage = () => {
       text: "Contact",
       href: "/contact",
       description: "Get in touch with us",
-    }, {
+    },
+    {
       text: "Publishing",
       href: "/publishing",
       description: "Become a labouer in the literrary vineyard of the Lord",
-    }
+    },
   ];
 
   return (
@@ -72,15 +73,15 @@ const NotFoundPage = () => {
 
           {/* Main Heading */}
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-light text-black mb-8 leading-tight tracking-tight">
-            Looks like you've wandered off the path
+            {` Looks like you've wandered off the path`}
           </h1>
 
           {/* Bible Reference */}
           <div className="mb-12 space-y-6">
             <blockquote className="text-lg md:text-xl text-black font-light italic leading-relaxed max-w-3xl mx-auto">
-              "What do you think? If a man owns a hundred sheep, and one of them
+              {`"What do you think? If a man owns a hundred sheep, and one of them
               wanders away, will he not leave the ninety-nine on the hills and
-              go to look for the one that wandered off?"
+              go to look for the one that wandered off?"`}
             </blockquote>
             <cite className="text-sm md:text-base text-gray-600 font-medium tracking-wide">
               — Matthew 18:12 (NIV)
@@ -89,9 +90,9 @@ const NotFoundPage = () => {
 
           {/* Encouraging Message */}
           <p className="text-lg text-black font-light leading-relaxed mb-16 max-w-2xl mx-auto">
-            Just like the shepherd searches for his lost sheep, we're here to
+            {`   Just like the shepherd searches for his lost sheep, we're here to
             help you find your way. The page you're looking for might have
-            moved, but you're always welcome in our fellowship.
+            moved, but you're always welcome in our fellowship.`}
           </p>
 
           {/* Primary Action - Go Home */}
@@ -166,14 +167,14 @@ const NotFoundPage = () => {
           {/* Footer Message */}
           <div className="mt-20 pt-12 border-t border-gray-200">
             <p className="text-sm text-gray-500 font-light">
-              Still can't find what you're looking for?
+              {` Still can't find what you're looking for?`}
               <Link
                 href="/contact"
                 className="text-blue-500 hover:text-blue-600 font-medium ml-1 hover:underline transition-colors duration-200"
               >
                 Contact us
               </Link>{" "}
-              and we'll help you find your way.
+              {` and we'll help you find your way.`}
             </p>
           </div>
         </div>

@@ -4,7 +4,8 @@ import type { DefaultSession } from "next-auth";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { prisma } from "./lib/prisma/prisma";
-import authConfig from "@/auth.config";
+import authConfig from "./auth.config";
+
 
 // Your helper functions stay the same
 interface DatabaseUser {

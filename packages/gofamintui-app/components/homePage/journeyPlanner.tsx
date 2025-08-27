@@ -205,8 +205,8 @@ const JourneyPlanner: React.FC = () => {
                 Where are you coming from?
               </h2>
               <p className="text-lg text-black font-light">
-                We'll use this to give you the best route to Gofamint Student
-                Fellowship, UI
+                {`We'll use this to give you the best route to Gofamint Student
+                Fellowship, UI`}
               </p>
             </div>
           </div>
