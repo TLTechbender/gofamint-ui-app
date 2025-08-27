@@ -40,7 +40,7 @@ import {
   FaYoutube,
 } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
-import GoogleMap from "./googleMap";
+import GoogleMap from "../googleMap";
 
 type TabType = "contact" | "location" | "services";
 
@@ -50,7 +50,6 @@ const ContactInformationComponent = ({
   contactInfo: ContactInfo;
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>("contact");
-
 
   const handleWhatsAppContact = (): void => {
     if (contactInfo?.socialMedia?.whatsapp) {
@@ -137,7 +136,7 @@ const ContactInformationComponent = ({
         </div>
 
         {/* Navigation spacer */}
-        <div className="absolute top-0 left-0 right-0 h-16 bg-black/30 backdrop-blur-sm z-10"/>
+        <div className="absolute top-0 left-0 right-0 h-16 bg-black/30 backdrop-blur-sm z-10" />
 
         <div className="container mx-auto px-6 md:px-8 max-w-6xl relative z-20">
           <div className="text-center">
@@ -204,7 +203,7 @@ const ContactInformationComponent = ({
                 <div className="w-6 h-px bg-blue-400"></div>
               </div>
               <h2 className="text-3xl md:text-4xl font-light text-black mb-6">
-                We'd Love to Hear From You
+                {`We'd Love to Hear From You`}
               </h2>
               <p className="text-black font-light max-w-2xl mx-auto">
                 Connect with our fellowship community and discover how you can
@@ -286,7 +285,7 @@ const ContactInformationComponent = ({
                         string,
                       ][]
                     )
-                      .filter(([ url]) => url)
+                      .filter(([url]) => url)
                       .map(([platform, url]) => (
                         <a
                           key={platform}
@@ -333,8 +332,6 @@ const ContactInformationComponent = ({
                   address={fullAddress}
                   className="w-full h-full"
                   mapId={process.env.NEXT_PUBLIC_MAP_ID}
-                 
-                
                 />
               </div>
               <div className="p-6">
@@ -478,9 +475,7 @@ const ContactInformationComponent = ({
                                 <div className="md:w-1/3 mb-6 md:mb-0">
                                   <div className="relative aspect-video rounded-lg overflow-hidden shadow-sm">
                                     <Image
-                                      src={urlFor(
-                                        service.posterImage as any
-                                      ).url()}
+                                      src={urlFor(service.posterImage).url()}
                                       alt={
                                         service.posterImage.alt ||
                                         service.serviceType ||

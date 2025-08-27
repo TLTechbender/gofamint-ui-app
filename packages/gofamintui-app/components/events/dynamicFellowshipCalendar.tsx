@@ -59,7 +59,7 @@ const DynamicFellowshpCalendar = () => {
     isFetching,
     refetch,
   } = useCalendar(activeYear, activeMonth);
-  console.log(eventsResponse);
+
   // Transform events for React Big Calendar
   const calendarEvents: CalendarEvent[] = useMemo(() => {
     if (!eventsResponse?.events) return [];

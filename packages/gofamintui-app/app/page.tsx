@@ -11,7 +11,7 @@ import { Sermon } from "@/sanity/interfaces/sermonsPage";
 import { recentSermonsQuery } from "@/sanity/queries/sermonsPage";
 import VideoBackground from "@/components/homePage/videoBackground";
 import ImagesScrollingContainer from "@/components/homePage/imagesScollingContainer";
-import SermonCard from "@/components/sermonCard";
+import SermonCard from "@/components/sermons/sermonCard";
 import { Homepage } from "@/sanity/interfaces/homePage";
 import UnderConstructionPage from "@/components/underConstructionPage";
 
@@ -227,61 +227,63 @@ export default async function Home() {
               </div>
 
               {/* Last sermon section - YouTube embed size on mobile (inspiraton from the austin stone church) */}
-              {mostRecentSermons && (
-                <div className="flex flex-col gap-2 justify-center items-center mt-12 lg:mt-0 ">
-                  <p className="text-white leading-relaxed tracking-wider text-sm md:text-xs">
-                    Listen to our most recent sermon
-                  </p>
-                  <a
-                    href={`${mostRecentSermons[0].googleDriveLink}`}
-                    target="_blank"
-                    className="w-full max-w-md mx-auto lg:max-w-none lg:w-96 flex items-center justify-center"
-                  >
-                    <div className="relative w-full aspect-video lg:w-80 lg:h-64 bg-black/30 backdrop-blur-sm rounded-2xl border border-white/20 overflow-hidden shadow-2xl">
-                      <div className="absolute inset-0">
-                        <Image
-                          src={urlFor(mostRecentSermons[0].posterImage)
-                            .width(400)
-                            .height(400)
-                            .format("webp")
-                            .quality(95)
-                            .url()}
-                          className="w-full h-full object-contain opacity-20"
-                          width={1920}
-                          height={1080}
-                          alt={`${mostRecentSermons[0].posterImage.alt || "most recent sermon poster"}`}
-                        />
-                      </div>
+              {mostRecentSermons &&
+                mostRecentSermons.length > 0 &&
+                mostRecentSermons[0]?.posterImage && (
+                  <div className="flex flex-col gap-2 justify-center items-center mt-12 lg:mt-0 ">
+                    <p className="text-white leading-relaxed tracking-wider text-sm md:text-xs">
+                      Listen to our most recent sermon
+                    </p>
+                    <a
+                      href={`${mostRecentSermons[0]?.googleDriveLink}`}
+                      target="_blank"
+                      className="w-full max-w-md mx-auto lg:max-w-none lg:w-96 flex items-center justify-center"
+                    >
+                      <div className="relative w-full aspect-video lg:w-80 lg:h-64 bg-black/30 backdrop-blur-sm rounded-2xl border border-white/20 overflow-hidden shadow-2xl">
+                        <div className="absolute inset-0">
+                          <Image
+                            src={urlFor(mostRecentSermons[0].posterImage)
+                              .width(400)
+                              .height(400)
+                              .format("webp")
+                              .quality(95)
+                              .url()}
+                            className="w-full h-full object-contain opacity-20"
+                            width={1920}
+                            height={1080}
+                            alt={`${mostRecentSermons[0].posterImage?.alt || "most recent sermon poster"}`}
+                          />
+                        </div>
 
-                      {/* Video thumbnail/poster gradient overlay */}
-                      <div className="absolute inset-0 bg-black opacity-30" />
+                        {/* Video thumbnail/poster gradient overlay */}
+                        <div className="absolute inset-0 bg-black opacity-30" />
 
-                      {/* Play button */}
-                      <div className="absolute inset-0 flex items-center justify-center z-20">
-                        <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white hover:scale-110 transition-all duration-300 cursor-pointer group">
-                          <svg
-                            className="w-8 h-8 text-gray-800 ml-1 group-hover:text-black"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path d="M8 5v14l11-7z" />
-                          </svg>
+                        {/* Play button */}
+                        <div className="absolute inset-0 flex items-center justify-center z-20">
+                          <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white hover:scale-110 transition-all duration-300 cursor-pointer group">
+                            <svg
+                              className="w-8 h-8 text-gray-800 ml-1 group-hover:text-black"
+                              fill="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
+                          </div>
+                        </div>
+
+                        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
+                          <h3 className="text-white text-sm font-medium">
+                            {mostRecentSermons[0].title || "Latest Sermon"}
+                          </h3>
+                        </div>
+
+                        <div className="absolute top-3 right-3 px-2 py-1 bg-black/70 text-white text-xs rounded-md">
+                          {formatDuration(mostRecentSermons[0].duration)}
                         </div>
                       </div>
-
-                      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
-                        <h3 className="text-white text-sm font-medium">
-                          {mostRecentSermons[0].title || "Latest Sermon"}
-                        </h3>
-                      </div>
-
-                      <div className="absolute top-3 right-3 px-2 py-1 bg-black/70 text-white text-xs rounded-md">
-                        {formatDuration(mostRecentSermons[0].duration)}
-                      </div>
-                    </div>
-                  </a>
-                </div>
-              )}
+                    </a>
+                  </div>
+                )}
             </div>
           </div>
         </div>

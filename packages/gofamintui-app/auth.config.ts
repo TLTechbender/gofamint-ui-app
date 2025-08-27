@@ -11,9 +11,9 @@ export const authConfig = {
       const isOnProfile = nextUrl.pathname.startsWith("/profile");
       const isOnAuth = nextUrl.pathname.startsWith("/auth");
       // Add more protected routes here as needed
-      const isOnAuthor = nextUrl.pathname.startsWith("/author"); // Your todo item
+      const isOnAuthor = nextUrl.pathname.startsWith("/publishing/author"); 
 
-      // Check if user is trying to access protected routes
+     
       const isOnProtectedRoute = isOnProfile || isOnAuthor;
 
       if (isOnProtectedRoute) {

@@ -4,39 +4,112 @@ import { excecutivesPageQuery } from "@/sanity/queries/excecutivesPage";
 import { urlFor } from "@/sanity/sanityClient";
 import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
 import Image from "next/image";
+import UnderConstructionPage from "@/components/underConstructionPage";
 
-// Keep your existing generateMetadata function as is...
 export async function generateMetadata(): Promise<Metadata> {
-  // Your existing metadata logic here - it's perfect
+  const dynamicMetaData = await sanityFetchWrapper<ExcecutivesPageData>(
+    excecutivesPageQuery,
+    {},
+    ["executives"]
+  );
+
+  const optimizedImageUrl = dynamicMetaData?.seo?.ogImage?.asset?.url
+    ? `${dynamicMetaData.seo.ogImage.asset.url}?w=1200&h=630&fit=crop&auto=format`
+    : null;
+
+  // Fallback values
+  const title =
+    dynamicMetaData?.seo?.title ||
+    "GSF UI – Gofamint Students' Fellowship, University of Ibadan";
+  const description =
+    dynamicMetaData?.seo?.description ||
+    "Join us at Gofamint Students' Fellowship, University of Ibadan for spiritual growth, fellowship, and community service.";
+  const keywords =
+    dynamicMetaData?.seo?.keywords ||
+    "GSF UI, Gofamint Students Fellowship, University of Ibadan, Christian Fellowship, Students Ministry, Nigeria";
+
+  return {
+    title,
+    description,
+    keywords,
+    authors: [
+      {
+        name: "Gofamint Students' Fellowship UI Chapter",
+        url: `${process.env.NEXT_PUBLIC_SITE_URL}`,
+      },
+    ],
+    creator: "Bolarinwa Paul Ayomide (https://github.com/TLTechbender)",
+    publisher: "Gofamint Students' Fellowship UI",
+    category: "Church",
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
+    },
+    verification: {
+      google: `${process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION_CODE}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${process.env.NEXT_PUBLIC_SITE_URL}/excecutives`,
+      siteName: "GSF UI",
+      images: optimizedImageUrl
+        ? [
+            {
+              url: optimizedImageUrl,
+              width: 1200,
+              height: 630,
+              alt: dynamicMetaData?.seo?.ogImage?.alt || title,
+              type: "image/jpeg",
+            },
+          ]
+        : [],
+      locale: "en_NG",
+      type: "website",
+      countryName: "Nigeria",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      site: "@gofamintui",
+      creator: "@gofamintui",
+      images: optimizedImageUrl
+        ? [
+            {
+              url: optimizedImageUrl,
+              alt: dynamicMetaData?.seo?.ogImage?.alt || title,
+            },
+          ]
+        : [],
+    },
+    alternates: {
+      canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/excecutives`,
+    },
+    other: {
+      "theme-color": "#ffffff",
+      "color-scheme": "light",
+    },
+    metadataBase: new URL(`${process.env.NEXT_PUBLIC_SITE_URL}/excecutives`),
+  };
 }
 
-export const dynamic = "force-dynamic";
-
 export default async function Executives() {
-  const excosPageData =
-    await sanityFetchWrapper<ExcecutivesPageData>(excecutivesPageQuery);
+  const excosPageData = await sanityFetchWrapper<ExcecutivesPageData>(
+    excecutivesPageQuery,
+    {},
+    ["executives"]
+  );
 
-  // Handle empty or null data with minimalist design
   if (!excosPageData || Object.keys(excosPageData).length === 0) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-center px-4 max-w-md">
-          <div className="flex items-center justify-center space-x-3 mb-8">
-            <div className="w-12 h-px bg-blue-400"></div>
-            <span className="text-sm font-medium text-blue-400 tracking-widest uppercase">
-              Coming Soon
-            </span>
-          </div>
-          <h2 className="text-3xl md:text-4xl font-light text-black mb-6 leading-tight">
-            Executive Team
-          </h2>
-          <p className="text-black font-light leading-relaxed">
-            We're currently finalizing our executive team information. Please
-            check back soon or contact us for details.
-          </p>
-        </div>
-      </div>
-    );
+    return <UnderConstructionPage />;
   }
 
   return (
@@ -44,11 +117,11 @@ export default async function Executives() {
       {/* Professional Split Hero Section */}
       <section className="relative min-h-[90vh] overflow-hidden">
         {/* Mobile: Full overlay design */}
-        <div className="pt-20 mb-2 bg-black h-16 w-full"/>
+        <div className="pt-20 mb-2 bg-black h-16 w-full" />
         <div className="md:hidden">
           <div className="absolute inset-0 z-0">
             <Image
-              src={urlFor(excosPageData.heroSection?.image as any)
+              src={urlFor(excosPageData.heroSection?.image)
                 ?.width(1080)
                 .height(1920)
                 .format("webp")
@@ -93,8 +166,6 @@ export default async function Executives() {
               <p className="text-lg lg:text-xl text-black font-light leading-relaxed mb-10">
                 {excosPageData.heroSection?.subtitle}
               </p>
-
-            
             </div>
           </div>
 
@@ -108,7 +179,7 @@ export default async function Executives() {
               }}
             >
               <Image
-                src={urlFor(excosPageData.heroSection?.image as any)
+                src={urlFor(excosPageData.heroSection?.image)
                   ?.width(1200)
                   .height(1080)
                   .format("webp")
@@ -173,7 +244,7 @@ export default async function Executives() {
             <div className="md:col-span-5 group">
               <div className="relative aspect-[4/5] overflow-hidden">
                 <Image
-                  src={urlFor(excosPageData.overallHead.posterImage as any)
+                  src={urlFor(excosPageData.overallHead.posterImage)
                     ?.width(600)
                     .height(750)
                     .format("webp")
@@ -244,7 +315,7 @@ export default async function Executives() {
                   {/* Sharp Image Container */}
                   <div className="relative aspect-[3/4] overflow-hidden mb-6">
                     <Image
-                      src={urlFor(exco.picture as any)
+                      src={urlFor(exco.picture)
                         ?.width(400)
                         .height(500)
                         .format("webp")

@@ -7,7 +7,7 @@ import {
   toggleCommentLike,
   addComment,
   deleteComment,
-} from "../actions/blog/likesAndCommentsInteractions";
+} from "../../actions/blog/likesAndCommentsInteractions";
 
 // Types
 interface User {
@@ -290,7 +290,7 @@ export type { Comment, CommentReply, BlogStats };
 // Add this to your existing hooks file or replace the useBlogComments hook
 
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { getBlogCommentsPaginated } from "../actions/blog/likesAndCommentsInteractions";
+import { getBlogCommentsPaginated } from "../../actions/blog/likesAndCommentsInteractions";
 
 const COMMENTS_PER_PAGE = 2;
 
@@ -315,14 +315,15 @@ const fetchComments = async ({
 }) => {
   try {
     const result = await getBlogCommentsPaginated(blogId, page, limit);
-
+   
     if (!result.success || !result.data) {
+      
       throw new Error(result.error || "Failed to fetch comments");
     }
 
     return result.data;
   } catch (error) {
-    console.error("Error fetching comments:", error);
+
     throw error;
   }
 };
@@ -354,6 +355,7 @@ export const useBlogCommentsInfinite = (blogId: string) => {
     gcTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
     retry: 3,
+    enabled: Boolean(blogId),
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 

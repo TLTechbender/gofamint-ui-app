@@ -16,7 +16,7 @@ export default async function resetPassword(
     };
 
     const result = resetPasswordSchemaServer.safeParse(rawData);
-    console.log(result.error)
+ 
     if (!result.success) {
       return {
         success: false,

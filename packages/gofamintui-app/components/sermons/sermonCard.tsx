@@ -62,10 +62,7 @@ const formatMinutesAndSeconds = (
   return `${minutes}m ${seconds}s`;
 };
 
-const SermonCard =({ sermon }: { sermon: Sermon }) => {
-
-
-
+const SermonCard = ({ sermon }: { sermon: Sermon }) => {
   return (
     <motion.div
       className="group cursor-pointer"
@@ -74,7 +71,7 @@ const SermonCard =({ sermon }: { sermon: Sermon }) => {
     >
       <div className="relative w-full aspect-[4/5] overflow-hidden shadow-lg transition-all duration-300 group-hover:shadow-xl">
         <Image
-          src={urlFor(sermon.posterImage )
+          src={urlFor(sermon.posterImage)
             .width(400)
             .height(500)
             .format("webp")

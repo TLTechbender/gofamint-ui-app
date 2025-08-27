@@ -1,48 +1,47 @@
 "use client";
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { urlFor } from "@/sanity/sanityClient";
 import useInfiniteGalleryList from "@/hooks/useGalleryList";
-import InfiniteScrollContainer from "./infiniteScrollContainer";
+import InfiniteScrollContainer from "../infiniteScrollContainer";
 import { GalleryListPageData } from "@/sanity/interfaces/galleryListPage";
 
 const GalleryListClient = () => {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const [searchTerm, setSearchTerm] = useState(
+
+  /**
+   * Nah this one of my problems with next, react router gives me something to get the search params and to set,
+   * next only gives me ability to get, so when I first implemented this I was using use router to set it that was not working well
+   * till claude helped me out
+   */
+
+  // Single source of truth for search input
+  const [searchInput, setSearchInput] = useState(
     searchParams.get("search") || ""
   );
-  const [searchInput, setSearchInput] = useState(
+
+  // Separate state for the actual search term used for API calls
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(
     searchParams.get("search") || ""
   );
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
-    data,
+    galleries,
+
     hasNextPage,
     isError,
     isLoading,
     isFetchingNextPage,
     fetchNextPage,
   } = useInfiniteGalleryList({
-    searchTerm: searchInput,
+    searchTerm: debouncedSearchTerm,
   });
 
-  const allGalleryListItems = useMemo(() => {
-    if (!data?.pages) return [];
-    return data.pages.flatMap((page: any) => page.galleryListResponse || []);
-  }, [data?.pages]);
-
-  // Focus the input on mount and after search
-  useEffect(() => {
-    if (searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
-  }, [searchTerm]);
-
+  // Debounced search function - only updates search term, URL update is separate
   const debouncedSearch = useCallback(
     (searchValue: string) => {
       if (debounceRef.current) {
@@ -51,58 +50,56 @@ const GalleryListClient = () => {
 
       debounceRef.current = setTimeout(() => {
         const trimmedSearch = searchValue.trim();
-        if (trimmedSearch === searchTerm) return;
+        setDebouncedSearchTerm(trimmedSearch);
 
-        setSearchTerm(trimmedSearch);
+        // Update URL without causing component re-render
         const params = new URLSearchParams();
         if (trimmedSearch) {
           params.set("search", trimmedSearch);
         }
-        router.replace(
-          `/gallery${params.toString() ? `?${params.toString()}` : ""}`
-        );
-      }, 300);
+        const newURL = `/gallery${params.toString() ? `?${params.toString()}` : ""}`;
+        window.history.replaceState(null, "", newURL);
+      }, 500);
     },
-    [searchTerm, router]
+    [] // Empty deps to prevent re-creation
   );
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-    const trimmedSearch = searchInput.trim();
-    setSearchTerm(trimmedSearch);
-
-    const params = new URLSearchParams();
-    if (trimmedSearch) {
-      params.set("search", trimmedSearch);
-    }
-    router.replace(
-      `/gallery${params.toString() ? `?${params.toString()}` : ""}`
-    );
-  };
-
+  // Handle input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setSearchInput(newValue);
     debouncedSearch(newValue);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      handleSearchSubmit(e as any);
-    }
-  };
-
+  // Clear search function
   const clearSearch = () => {
     setSearchInput("");
-    setSearchTerm("");
-    router.replace("/gallery");
-    if (searchInputRef.current) {
+    setDebouncedSearchTerm("");
+
+    // Update URL directly
+    window.history.replaceState(null, "", "/gallery");
+
+    // Focus the input after clearing
+    setTimeout(() => {
+      searchInputRef.current?.focus();
+    }, 0);
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
+
+  // Focus input on initial mount only
+  useEffect(() => {
+    if (searchInputRef.current && !searchParams.get("search")) {
       searchInputRef.current.focus();
     }
-  };
+  }, []); // Empty dependency array - only run on mount
 
   return (
     <div className="min-h-screen">
@@ -126,7 +123,8 @@ const GalleryListClient = () => {
             </p>
           </div>
 
-          <form onSubmit={handleSearchSubmit} className="max-w-2xl mx-auto">
+          {/* Removed form wrapper - just use div */}
+          <div className="max-w-2xl mx-auto">
             <div className="relative border border-gray-200 transition-all duration-200 hover:border-blue-400 focus-within:border-blue-400">
               <input
                 ref={searchInputRef}
@@ -134,9 +132,8 @@ const GalleryListClient = () => {
                 placeholder="Search galleries by title, date, or description..."
                 value={searchInput}
                 onChange={handleInputChange}
-                onKeyPress={handleKeyPress}
                 className="w-full px-6 py-4 pr-16 border-0 focus:ring-0 focus:outline-none text-black placeholder-gray-500 font-light"
-                disabled={isLoading && allGalleryListItems.length === 0}
+                disabled={isLoading && galleries.length === 0}
               />
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
                 {searchInput && (
@@ -161,12 +158,7 @@ const GalleryListClient = () => {
                     </svg>
                   </button>
                 )}
-                <button
-                  type="submit"
-                  className="p-2 text-blue-400 hover:text-blue-600 transition-colors"
-                  disabled={isLoading && allGalleryListItems.length === 0}
-                  aria-label="Search"
-                >
+                <div className="p-2 text-blue-400">
                   <svg
                     className="w-4 h-4"
                     fill="none"
@@ -180,10 +172,10 @@ const GalleryListClient = () => {
                       d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                     />
                   </svg>
-                </button>
+                </div>
               </div>
             </div>
-          </form>
+          </div>
         </div>
 
         {/* Error State */}
@@ -213,7 +205,7 @@ const GalleryListClient = () => {
         )}
 
         {/* Loading State */}
-        {isLoading && allGalleryListItems.length === 0 && !isError && (
+        {isLoading && galleries.length === 0 && !isError && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
             {[...Array(6)].map((_, index) => (
               <GallerySkeleton key={index} />
@@ -222,10 +214,10 @@ const GalleryListClient = () => {
         )}
 
         {/* Content Section */}
-        {!isLoading || allGalleryListItems.length > 0 ? (
+        {!isLoading || galleries.length > 0 ? (
           <>
             {/* Search Results Header */}
-            {searchTerm && !isError && (
+            {debouncedSearchTerm && !isError && (
               <div className="mb-12 text-center">
                 <div className="flex items-center justify-center space-x-3 mb-4">
                   <div className="w-6 h-px bg-blue-400"></div>
@@ -235,16 +227,16 @@ const GalleryListClient = () => {
                   <div className="w-6 h-px bg-blue-400"></div>
                 </div>
                 <h2 className="text-2xl md:text-3xl font-light text-black mb-4">
-                  {allGalleryListItems.length > 0
-                    ? `Found ${allGalleryListItems.length} ${allGalleryListItems.length === 1 ? "gallery" : "galleries"}`
+                  {galleries.length > 0
+                    ? `Found ${galleries.length} ${galleries.length === 1 ? "gallery" : "galleries"}`
                     : "No Results Found"}
                 </h2>
                 <p className="text-black font-light mb-6">
-                  {allGalleryListItems.length > 0
-                    ? `Galleries matching "${searchTerm}"`
-                    : `No galleries found for "${searchTerm}"`}
+                  {galleries.length > 0
+                    ? `Galleries matching "${debouncedSearchTerm}"`
+                    : `No galleries found for "${debouncedSearchTerm}"`}
                 </p>
-                {searchTerm && (
+                {debouncedSearchTerm && (
                   <button
                     onClick={clearSearch}
                     className="text-blue-400 hover:text-blue-600 font-light flex items-center justify-center mx-auto transition-colors"
@@ -264,7 +256,7 @@ const GalleryListClient = () => {
               }}
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-                {allGalleryListItems.map(
+                {galleries.map(
                   (listItem: GalleryListPageData, index: number) => (
                     <GalleryCard
                       key={`${listItem._id || index}`}
@@ -286,26 +278,26 @@ const GalleryListClient = () => {
             )}
 
             {/* Empty States */}
-            {!isLoading && allGalleryListItems.length === 0 && (
+            {!isLoading && galleries.length === 0 && (
               <div className="text-center py-20">
                 <div className="flex items-center justify-center space-x-3 mb-8">
                   <div className="w-8 h-px bg-blue-400"></div>
                   <span className="text-sm font-medium text-blue-400 tracking-widest uppercase">
-                    {searchTerm ? "No Results" : "Coming Soon"}
+                    {debouncedSearchTerm ? "No Results" : "Coming Soon"}
                   </span>
                   <div className="w-8 h-px bg-blue-400"></div>
                 </div>
                 <h3 className="text-3xl md:text-4xl font-light text-black mb-6">
-                  {searchTerm
+                  {debouncedSearchTerm
                     ? "No matching galleries"
                     : "No galleries available"}
                 </h3>
                 <p className="text-lg text-black font-light mb-8 max-w-lg mx-auto leading-relaxed">
-                  {searchTerm
+                  {debouncedSearchTerm
                     ? "Try different search terms or browse all galleries."
                     : "Check back later for new gallery additions."}
                 </p>
-                {searchTerm ? (
+                {debouncedSearchTerm ? (
                   <button
                     onClick={clearSearch}
                     className="px-8 py-3 bg-blue-400 text-white font-medium hover:bg-blue-500 transition-colors"
@@ -317,20 +309,18 @@ const GalleryListClient = () => {
             )}
 
             {/* End of Results */}
-            {!hasNextPage &&
-              allGalleryListItems.length > 0 &&
-              !isFetchingNextPage && (
-                <div className="text-center py-16">
-                  <div className="w-full h-px bg-gradient-to-r from-transparent via-blue-200 to-transparent"></div>
-                  <div className="flex items-center justify-center mt-8 space-x-3">
-                    <div className="w-6 h-px bg-blue-400"></div>
-                    <span className="text-sm font-light text-black tracking-wide">
-                      End of results
-                    </span>
-                    <div className="w-6 h-px bg-blue-400"></div>
-                  </div>
+            {!hasNextPage && galleries.length > 0 && !isFetchingNextPage && (
+              <div className="text-center py-16">
+                <div className="w-full h-px bg-gradient-to-r from-transparent via-blue-200 to-transparent"></div>
+                <div className="flex items-center justify-center mt-8 space-x-3">
+                  <div className="w-6 h-px bg-blue-400"></div>
+                  <span className="text-sm font-light text-black tracking-wide">
+                    End of results
+                  </span>
+                  <div className="w-6 h-px bg-blue-400"></div>
                 </div>
-              )}
+              </div>
+            )}
           </>
         ) : null}
       </div>
@@ -377,7 +367,7 @@ const GalleryCard: React.FC<{ gallery: GalleryListPageData }> = ({
         {/* Sharp Image */}
         <div className="relative aspect-[4/3] overflow-hidden">
           <Image
-            src={urlFor(gallery.featuredImage as any)
+            src={urlFor(gallery.featuredImage)
               .width(800)
               .height(600)
               .quality(85)

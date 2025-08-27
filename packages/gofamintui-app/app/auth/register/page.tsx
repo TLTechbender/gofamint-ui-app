@@ -284,17 +284,16 @@ export default function Register() {
         formData.append("phoneNumber", data.phoneNumber);
         formData.append("password", data.password);
 
-        console.log("FormData being sent to server action:", formData);
-
+      
         // Call server action for user registration
         const result = await registerNewUser(formData);
-        console.log("Registration result from server:", result);
+       
 
         // Update component state with server response
         setRegistrationState(result);
       } catch (error) {
         // Handle unexpected client-side errors
-        console.error("Registration error:", error);
+      
         setRegistrationState({
           success: false,
           message: "An unexpected error occurred. Please try again.",
@@ -332,10 +331,7 @@ export default function Register() {
         const formData = new FormData();
         formData.append("email", registrationState.email!);
 
-        console.log(
-          "Resending verification email for:",
-          registrationState.email
-        );
+      
 
         // Call server action to resend verification
         const result = await resendVerificationEmail(formData);
@@ -348,7 +344,7 @@ export default function Register() {
           setIsTimerActive(true);
         }
       } catch (error) {
-        console.error("Could not resend verification email:", error);
+       
         toast.error("Failed to resend email. Please try again.");
       }
     });

@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Clock, ArrowRight, BookOpen } from "lucide-react";
 import InfiniteScrollContainer from "@/components/infiniteScrollContainer";
-import useBlogPosts from "@/hooks/useBlogs";
+import useBlogPosts from "@/hooks/blogs/useBlogs";
 import { urlFor } from "@/sanity/sanityClient";
 
 const BlogsPageClient = () => {
@@ -81,8 +81,8 @@ const BlogsPageClient = () => {
             Something went wrong
           </h2>
           <p className="text-gray-600 leading-relaxed">
-            We couldn't load the articles right now. Please try again in a
-            moment.
+            {` We couldn't load the articles right now. Please try again in a
+            moment.`}
           </p>
         </div>
       </div>
@@ -98,11 +98,11 @@ const BlogsPageClient = () => {
             <BookOpen className="w-6 h-6 text-gray-400" />
           </div>
           <h2 className="text-2xl font-medium text-gray-900 mb-3">
-            No stories yet
+            No Blogs yet
           </h2>
           <p className="text-gray-600 leading-relaxed">
-            We're working on some great content. Check back soon for our latest
-            articles.
+            {` We're working on some great content. Check back soon for our latest
+            articles.`}
           </p>
         </div>
       </div>
@@ -350,9 +350,9 @@ const BlogsPageClient = () => {
             <div className="flex flex-col items-center justify-center py-16 space-y-6">
               <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
               <div className="text-center space-y-2">
-                <p className="text-gray-900 font-medium">That's all for now</p>
+                <p className="text-gray-900 font-medium">{`That's all for now`}</p>
                 <p className="text-gray-600 text-sm">
-                  You've read all our latest stories. Check back soon for more.
+                  {`You've read all our latest stories. Check back soon for more.`}
                 </p>
               </div>
             </div>

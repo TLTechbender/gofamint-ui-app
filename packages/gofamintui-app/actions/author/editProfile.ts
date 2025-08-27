@@ -90,7 +90,7 @@ export async function editAuthorProfilePicture(
           filename: profilePicture.name,
         });
       } catch (uploadError) {
-        console.error("Error uploading image:", uploadError);
+     
         return {
           status: 500,
           success: false,
@@ -137,7 +137,7 @@ export async function editAuthorProfilePicture(
       },
     };
   } catch (error) {
-    console.error("Error in editAuthorProfilePicture:", error);
+  
     return {
       status: 500,
       success: false,
@@ -168,8 +168,7 @@ export async function editAuthorDetailsBarProfilePicture(
     const bio = formData.get("bio") as string;
     const socialMediaJson = formData.get("socialMedia") as string;
 
-    console.log("Social Media JSON:", socialMediaJson);
-    console.log("Bio:", bio);
+
 
     // Parse social media data if it exists
     let socialMedia;
@@ -177,7 +176,7 @@ export async function editAuthorDetailsBarProfilePicture(
       try {
         socialMedia = JSON.parse(socialMediaJson);
       } catch (error) {
-        console.error("Error parsing social media JSON:", error);
+      
         return {
           status: 400,
           success: false,
@@ -241,7 +240,7 @@ export async function editAuthorDetailsBarProfilePicture(
       _updatedAt: new Date().toISOString(),
     };
 
-    console.log("Updates to be applied:", updates);
+   
 
     // Update the user document
     const authorDocumentId = isUserExisting._id;
@@ -267,7 +266,7 @@ export async function editAuthorDetailsBarProfilePicture(
       data: result,
     };
   } catch (error) {
-    console.error("Error in editAuthorDetailsBarProfilePicture:", error);
+  
     return {
       status: 500,
       success: false,

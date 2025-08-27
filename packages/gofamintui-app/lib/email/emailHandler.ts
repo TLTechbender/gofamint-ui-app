@@ -31,9 +31,9 @@ export async function sendVerifiyUserEmail(
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log("Verification email sent successfully");
+  
   } catch (error) {
-    console.error("Error sending verification email:", error);
+  
     throw new Error("Failed to send verification email");
   }
 }
@@ -55,9 +55,9 @@ export async function sendResetPasswordEmail(
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log("Reset email sent successfully");
+  
   } catch (error) {
-    console.error("Error sending reset email:", error);
+   
     throw new Error("Failed to send reset email");
   }
 }
@@ -76,9 +76,9 @@ export async function sendAuthorApprovedEmail(
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log("Author approved email sent successfully");
+ 
   } catch (error) {
-    console.error("Error sending author approved email:", error);
+   
     throw new Error("Failed to send author approved email");
   }
 }
@@ -94,9 +94,9 @@ export async function sendAuthorRevokedEmail(email: string) {
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log("Author revoked email sent successfully");
+    
   } catch (error) {
-    console.error("Error sending author approved email:", error);
+   
     throw new Error("Failed to send author approved email");
   }
 }

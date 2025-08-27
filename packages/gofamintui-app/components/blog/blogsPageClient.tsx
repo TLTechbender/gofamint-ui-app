@@ -1,13 +1,12 @@
 "use client";
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { urlFor } from "@/sanity/sanityClient";
-import useBlogPosts from "@/hooks/useBlogs";
-import InfiniteScrollContainer from "./infiniteScrollContainer";
+import useBlogPosts from "@/hooks/blogs/useBlogs";
+import InfiniteScrollContainer from "../infiniteScrollContainer";
 import { BlogPost } from "@/sanity/interfaces/blog";
-
 
 const BlogsPageClient = () => {
   const router = useRouter();
@@ -21,7 +20,7 @@ const BlogsPageClient = () => {
   const loadingRef = useRef(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  const {  hasNextPage, isError, isLoading, fetchNextPage, blogPosts } =
+  const { hasNextPage, isError, isLoading, fetchNextPage, blogPosts } =
     useBlogPosts();
 
   const debouncedSearch = useCallback(
@@ -89,8 +88,6 @@ const BlogsPageClient = () => {
     }
   };
 
-  console.log(blogPosts);
-
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Search */}
@@ -131,9 +128,7 @@ const BlogsPageClient = () => {
       {/* Content */}
       <InfiniteScrollContainer
         onBottomReached={() => {
-          console.log(hasNextPage);
           if (hasNextPage) {
-            console.log("i don reach");
             return fetchNextPage();
           }
           return;
@@ -181,25 +176,6 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({ blogPost }) => {
   // Get author full name
   const authorName = `${blogPost.author.firstName} ${blogPost.author.lastName}`;
 
-  // Handle likes count - it can be null, number, or array of references
-  const getLikesCount = () => {
-    if (blogPost.likes === null || blogPost.likes === undefined) {
-      return 0;
-    }
-    if (typeof blogPost.likes === "number") {
-      return blogPost.likes;
-    }
-    if (Array.isArray(blogPost.likes)) {
-      return blogPost.likes.length;
-    }
-    return 0;
-  };
-
-  // Handle views count - can be null
-  const getViewsCount = () => {
-    return blogPost.viewsCount || 0;
-  };
-
   return (
     <Link href={`/blog/${blogPost.slug.current}`} className="block group">
       <article className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all duration-300 group-hover:shadow-lg group-hover:-translate-y-1 h-full flex flex-col">
@@ -207,26 +183,17 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({ blogPost }) => {
         <div className="relative aspect-[16/9] overflow-hidden bg-gray-100">
           <Image
             src={
-              urlFor(blogPost.featuredImage as any)
+              urlFor(blogPost.featuredImage!)
                 .width(800)
                 .height(450)
                 .format("jpg")
                 .quality(85)
                 .url() || ""
             }
-            alt={blogPost.featuredImage.alt || blogPost.title}
+            alt={blogPost.featuredImage!.alt || blogPost.title}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
-            placeholder="blur"
-            blurDataURL={blogPost.featuredImage.asset.metadata.lqip}
           />
-
-          {/* Featured Badge */}
-          {blogPost.featured && (
-            <div className="absolute top-4 left-4 bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-              Featured
-            </div>
-          )}
         </div>
 
         {/* Content Section - This takes up more space */}
@@ -237,48 +204,6 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({ blogPost }) => {
               <span>{formatDate(blogPost.publishedAt)}</span>
               <span>•</span>
               <span>{blogPost.readingTime} min read</span>
-            </div>
-
-            {/* Stats */}
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-1">
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                  />
-                </svg>
-                <span>{getViewsCount()}</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                  />
-                </svg>
-                <span>{getLikesCount()}</span>
-              </div>
             </div>
           </div>
 

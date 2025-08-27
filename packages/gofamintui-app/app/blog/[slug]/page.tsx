@@ -1,27 +1,28 @@
 import { notFound } from "next/navigation";
-
-// import { LikePostButton } from "@/components/blogLikeButtons";
-
 import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
 import { BlogPost } from "@/sanity/interfaces/blog";
 import { buildSingleBlogPostQuery } from "@/sanity/queries/blog";
 import SlugClient from "./slugClient";
-import { PageProps } from "@/.next/types/app/page";
-import { BlogMetadata } from "@/sanity/interfaces/blogMetaData";
-import { blogsPageMetadataQuery } from "@/sanity/queries/blogsPageMetaData";
-import { urlFor } from "@/sanity/sanityClient";
 
+import { BlogMetadata } from "@/sanity/interfaces/blogMetaData";
+
+import { urlFor } from "@/sanity/sanityClient";
+import { buildBlogPostSeoQuery } from "@/sanity/queries/blogMetaData";
 
 export function generateStaticParams() {
   return [];
 }
 
-export async function generateMetadata({ params }: PageProps) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
 
   try {
     const dynamicMetaData = await sanityFetchWrapper<BlogMetadata>(
-      blogsPageMetadataQuery,
+      buildBlogPostSeoQuery,
       {
         slug: slug,
       }
@@ -31,7 +32,7 @@ export async function generateMetadata({ params }: PageProps) {
       return { title: "Post Not Found" };
     }
     const optimizedImageUrl = dynamicMetaData?.seo?.ogImage?.asset?.url
-      ? `${urlFor(dynamicMetaData.seo.ogImage.asset).width(400).height(400).format('webp')}?`
+      ? `${urlFor(dynamicMetaData.seo.ogImage.asset).width(400).height(400).format("webp")}?`
       : null;
     const title =
       dynamicMetaData?.seo?.title ||
@@ -41,7 +42,7 @@ export async function generateMetadata({ params }: PageProps) {
       "Join us at Gofamint Students' Fellowship, University of Ibadan for spiritual growth, fellowship, and community service.";
     const keywords =
       "GSF UI Blog, Gofamint Students Fellowship, University of Ibadan, Christian Fellowship, Students Ministry, Nigeria";
- console.log(dynamicMetaData)
+
     return {
       title,
       description,
@@ -129,14 +130,18 @@ export default async function BlogPage({
   if (!slug || typeof slug !== "string") {
     notFound();
   }
-//I could promise.all but sinice I dey await each nothing spoil
-  const post = await sanityFetchWrapper<BlogPost>(buildSingleBlogPostQuery(), {
-    slug,
-  });
+  //I could promise.all but sinice I dey await each nothing spoil
+  const post = await sanityFetchWrapper<BlogPost>(
+    buildSingleBlogPostQuery(),
+    {
+      slug,
+    },
+    ["blogPost"]
+  );
 
   if (!post) {
     notFound();
   }
 
-  return <SlugClient   blogPost={post} />;
+  return <SlugClient blogPost={post} />;
 }

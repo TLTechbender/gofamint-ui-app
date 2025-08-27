@@ -25,21 +25,21 @@ export const blogPost = defineType({
       name: 'authorDatabaseReferenceId',
       title: 'Author',
       type: 'text',
-      // readOnly: true,
+      readOnly: true,
       rows: 1,
       description: 'A reference to keep track of the author in the database',
       validation: (Rule) => Rule.required(),
     }),
 
-    //Refereence the one in sanity
+    
     defineField({
       name: 'author',
       title: 'Author',
       type: 'reference',
-      to: [{type: 'author'}],
+      to: [{ type: 'author' }],
+      readOnly: true,
       validation: (Rule) => Rule.required(),
       options: {
-        // This helps with performance when you have many authors
         filter: 'application.status == "approved" && application.isApproved == true',
         // Show only approved authors in the reference picker
       },
@@ -66,7 +66,7 @@ export const blogPost = defineType({
       type: 'text',
       description: 'Brief description of the post (for previews) and seo',
       rows: 3,
-      validation: (Rule) => Rule.max(1000),
+      validation: (Rule) => Rule.required().min(10).max(1000),
     }),
     defineField({
       name: 'content',
@@ -186,7 +186,6 @@ export const blogPost = defineType({
       title: 'Created At',
       type: 'datetime',
       initialValue: () => new Date().toISOString(),
-    
     }),
     defineField({
       name: 'updatedAt',

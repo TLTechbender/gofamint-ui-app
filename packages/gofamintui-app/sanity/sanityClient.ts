@@ -15,9 +15,6 @@ export const sanityClient = createClient({
 
   // I don't want either prisma or sanity caching for me, imagine next.js caching is enough problems, switching between too many caching contexts becomes problematic walahi
 
-  fetch: {
-    cache: "no-store",
-  },
 });
 const builder = imageUrlBuilder(sanityClient);
 export const urlFor = (source: SanityAsset) => builder.image(source);

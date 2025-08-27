@@ -1,4 +1,4 @@
-export const blogsPageMetadataQuery = `
+export const blogsPageMetadataAndHeroQuery = `
   *[_type == "blogsPage"][0] {
     _id,
     _type,
@@ -22,6 +22,26 @@ export const blogsPageMetadataQuery = `
         crop,
         alt
       }
+    },
+    heroSection {
+      backgroundImage {
+        asset->{
+          _id,
+          url,
+          metadata {
+            lqip,
+            dimensions {
+              width,
+              height
+            }
+          }
+        },
+        hotspot,
+        crop,
+        alt
+      },
+      title,
+      subtitle
     }
   }
 `;

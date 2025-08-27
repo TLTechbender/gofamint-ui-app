@@ -198,11 +198,6 @@ export async function getBlogStats(
       ]
     );
 
-    console.log("Likes count:", likesCount);
-    console.log("Views count:", viewsCount);
-    console.log("Comments count:", commentsCount);
-    console.log("User like:", userLike);
-
     return {
       success: true,
       data: {
@@ -213,7 +208,6 @@ export async function getBlogStats(
       },
     };
   } catch (error) {
-    console.error("Error fetching blog stats:", error);
     return {
       success: false,
       error: "Failed to fetch blog statistics",
@@ -310,7 +304,6 @@ export async function toggleBlogLike(
       },
     };
   } catch (error) {
-    console.error("Error toggling blog like:", error);
     return {
       success: false,
       error: "Failed to update like status",
@@ -446,7 +439,6 @@ export async function getBlogComments(
       data: transformedComments,
     };
   } catch (error) {
-    console.error("Error fetching comments:", error);
     return {
       success: false,
       error: "Failed to fetch comments",
@@ -520,9 +512,6 @@ export async function addComment(
 
       // If the parent has a parent (it's a reply), use the grandparent instead
       if (parentComment.parentId) {
-        console.log(
-          `Flattening: Reply ${parentId} has parent ${parentComment.parentId}, using grandparent instead`
-        );
         finalParentId = parentComment.parentId;
       }
 
@@ -597,16 +586,11 @@ export async function addComment(
       replies: [],
     };
 
-    console.log(
-      `Created comment with parentId: ${finalParentId} (original: ${parentId})`
-    );
-
     return {
       success: true,
       data: transformedComment,
     };
   } catch (error) {
-    console.error("Error adding comment:", error);
     return {
       success: false,
       error: "Failed to add comment",
@@ -639,8 +623,6 @@ export async function toggleCommentLike(
       };
     }
 
-    console.log("rawData", rawData);
-
     const { commentId } = validatedData.data;
     const userId = session.user.id;
 
@@ -649,8 +631,6 @@ export async function toggleCommentLike(
       where: { id: commentId },
       include: { blog: true },
     });
-
-    console.log("comment", comment);
 
     if (!comment) {
       return {
@@ -670,11 +650,10 @@ export async function toggleCommentLike(
     });
 
     let isLiked: boolean;
-    console.log("existing like", existingLike);
 
     if (existingLike) {
       // Unlike
-      const response = await prisma.commentLike.delete({
+      await prisma.commentLike.delete({
         where: {
           userId_commentId: {
             userId,
@@ -682,18 +661,18 @@ export async function toggleCommentLike(
           },
         },
       });
-      console.log("like response", response);
+
       isLiked = false;
     } else {
       // Like
-      const likedResponse = await prisma.commentLike.create({
+   await prisma.commentLike.create({
         data: {
           userId,
           commentId,
         },
       });
       isLiked = true;
-      console.log("liked response", likedResponse);
+     
     }
 
     // Get updated likes count
@@ -701,7 +680,7 @@ export async function toggleCommentLike(
       where: { commentId },
     });
 
-    console.log(comment.blog.sanitySlug);
+
 
     revalidatePath(`/blog/${comment.blog.sanitySlug}`);
 
@@ -713,7 +692,7 @@ export async function toggleCommentLike(
       },
     };
   } catch (error) {
-    console.error("Error toggling comment like:", error);
+
     return {
       success: false,
       error: "Failed to update like status",
@@ -928,7 +907,7 @@ export async function getBlogCommentsPaginated(
       },
     };
   } catch (error) {
-    console.error("Error fetching paginated comments:", error);
+   
     return {
       success: false,
       error: "Failed to fetch comments",
@@ -943,11 +922,9 @@ export async function getBlogCommentsPaginated(
 
 //Edit could have been implemented too but that is something for the future
 
-
 const DeleteCommentSchema = z.object({
   commentId: z.string().uuid("Invalid comment ID"),
 });
-
 
 //By the grace of God we give second chances
 
@@ -1042,7 +1019,7 @@ export async function deleteComment(
       },
     };
   } catch (error) {
-    console.error("Error deleting comment:", error);
+
     return {
       success: false,
       error: "Failed to delete comment",

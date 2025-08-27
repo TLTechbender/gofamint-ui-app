@@ -230,7 +230,7 @@ export async function applyToBecomeAuthor(
       }),
     };
 
-    console.log("omo")
+  
 
     await sanityCreateWrapper(authorDoc);
     revalidatePath("/publishing/author/apply");

@@ -10,10 +10,9 @@ export default async function forgotPassword(
   formData: FormData
 ): Promise<ForgotPasswordActionState> {
   const email = formData.get("email");
-  console.log(email);
+
   const result = forgotPasswordSchemaServer.safeParse({ email });
-  console.log(result);
- 
+
   if (!result.success) {
     return {
       success: false,

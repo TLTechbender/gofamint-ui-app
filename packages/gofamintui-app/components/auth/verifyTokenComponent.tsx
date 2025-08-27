@@ -12,7 +12,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition, Suspense } from "react";
 
 const initialState: VerifyEmailActionState = {
   success: false,
@@ -20,7 +20,8 @@ const initialState: VerifyEmailActionState = {
   message: "",
 };
 
-const VerifyTokenComponent = ({ token }: { token: string }) => {
+// Separate the component that uses useSearchParams
+const VerifyTokenContent = ({ token }: { token: string }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -38,7 +39,6 @@ const VerifyTokenComponent = ({ token }: { token: string }) => {
   const [verificationAttempted, setVerificationAttempted] = useState(false);
 
   // Extract user ID from search params or other source
-
   const userEmail = searchParams.get("email");
 
   /*
@@ -48,22 +48,16 @@ const VerifyTokenComponent = ({ token }: { token: string }) => {
    */
   const performVerification = async (formData: FormData) => {
     try {
-      console.log("Starting email verification with:", {
-        token: formData.get("token"),
-        userId: formData.get("id"),
-      });
-
+  
       // Call the server action
       const result = await verifyEmail(formData);
 
-      console.log("Verification result:", result);
-
-      // Update state with the result
+   
       setState(result);
 
       return result;
     } catch (error) {
-      console.error("Verification error:", error);
+    
 
       // Handle unexpected errors
       const errorState: VerifyEmailActionState = {
@@ -84,7 +78,7 @@ const VerifyTokenComponent = ({ token }: { token: string }) => {
    */
   useEffect(() => {
     if (token && userEmail && !verificationAttempted) {
-      console.log("Triggering initial verification attempt");
+   
 
       setVerificationAttempted(true);
 
@@ -98,11 +92,7 @@ const VerifyTokenComponent = ({ token }: { token: string }) => {
         performVerification(formData);
       });
     } else if (!token || !userEmail) {
-      console.log("Missing required parameters:", {
-        token: !!token,
-        userEmail: !!userEmail,
-      });
-
+     
       // Handle missing token or userId
       setVerificationAttempted(true);
       setState({
@@ -119,16 +109,15 @@ const VerifyTokenComponent = ({ token }: { token: string }) => {
    */
   useEffect(() => {
     if (state.success) {
-      console.log("Verification successful, setting up redirect");
-
+    
       // Redirect to dashboard after 3 seconds
       const timer = setTimeout(() => {
-        console.log("Redirecting to profiel");
+      
         router.push("/profile");
       }, 3000);
 
       return () => {
-        console.log("Clearing redirect timer");
+     
         clearTimeout(timer);
       };
     }
@@ -152,8 +141,7 @@ const VerifyTokenComponent = ({ token }: { token: string }) => {
   // Retry verification with the same parameters
   const handleRetry = () => {
     if (token && userEmail) {
-      console.log("Retrying verification");
-
+    
       // Reset states for retry
       setVerificationAttempted(false);
       setState(initialState);
@@ -168,24 +156,20 @@ const VerifyTokenComponent = ({ token }: { token: string }) => {
           setVerificationAttempted(true);
         });
       });
-    } else {
-      console.error("Cannot retry: missing token or userId");
-    }
+    } 
   };
 
   // Navigate to home page
   const handleGoHome = () => {
-    console.log("Navigating to home");
+  
     router.push("/");
   };
 
-  
   const handleGoToDashboard = () => {
-    console.log("Navigating to dashboard");
-    router.push("/profile"); 
+    
+    router.push("/profile");
   };
 
-  
   /*
    * LOADING STATE RENDERING
    * Show loading spinner while verification is in progress
@@ -317,8 +301,6 @@ const VerifyTokenComponent = ({ token }: { token: string }) => {
                   <span>{isPending ? "Retrying..." : "Try Again"}</span>
                 </button>
               )}
-
-            
 
               {/* Go Home */}
               <button
@@ -461,13 +443,41 @@ const VerifyTokenComponent = ({ token }: { token: string }) => {
             </div>
 
             <p className="text-sm text-gray-600 font-light">
-              If you have any questions, feel free to{" "} reach out
-           
+              If you have any questions, feel free to reach out
             </p>
           </div>
         </div>
       </main>
     </div>
+  );
+};
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <div>
+    <div className="pt-20 mb-2 bg-black h-16 w-full" />
+    <main className="bg-white flex items-center justify-center px-6 py-12 min-h-screen">
+      <div className="w-full max-w-md">
+        <div className="text-center space-y-8">
+          <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-8">
+            <RefreshCw
+              className="w-12 h-12 text-gray-400 animate-spin"
+              strokeWidth={1.5}
+            />
+          </div>
+          <h1 className="text-2xl font-light text-black">Loading...</h1>
+        </div>
+      </div>
+    </main>
+  </div>
+);
+
+// Main component with Suspense wrapper
+const VerifyTokenComponent = ({ token }: { token: string }) => {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <VerifyTokenContent token={token} />
+    </Suspense>
   );
 };
 

@@ -259,8 +259,6 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-
-
 export default async function About() {
   const aboutPage = await sanityFetchWrapper<AboutPage>(aboutPageQuery, {}, [
     "aboutPage",

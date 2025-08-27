@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Share2,
 } from "lucide-react";
+import { toast } from "react-toastify";
 
 interface LiveStream {
   _id: string;
@@ -270,11 +271,7 @@ const LiveStreamComponent = ({
   const toggleFullscreen = () => {
     const playerElement = document.getElementById("main-stream-player");
     if (!playerElement) return;
-    if (!document.fullscreenElement) {
-      playerElement.requestFullscreen().catch((err) => {
-        console.error(`Error attempting to enable fullscreen: ${err.message}`);
-      });
-    } else {
+    else {
       document.exitFullscreen();
     }
   };
@@ -282,22 +279,18 @@ const LiveStreamComponent = ({
   const handleShare = async () => {
     if (!selectedStream) return;
     if (navigator.share) {
-      try {
+     
         await navigator.share({
           title: selectedStream.title,
           text: `Join me watching ${selectedStream.title} live!`,
           url: window.location.href,
         });
-      } catch (error) {
-        console.log("Error sharing:", error);
-      }
+      
     } else {
-      try {
+  
         await navigator.clipboard.writeText(window.location.href);
-        alert("Link copied to clipboard!");
-      } catch (error) {
-        console.error("Error copying to clipboard:", error);
-      }
+        toast.success("Link copied to clipboard!");
+      
     }
   };
 

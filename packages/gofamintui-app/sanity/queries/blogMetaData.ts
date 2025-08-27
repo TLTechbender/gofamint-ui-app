@@ -1,5 +1,5 @@
-// GROQ Query for SEO data only
-export const buildBlogPostSeoQuery = () => `
+
+export const buildBlogPostSeoQuery =  `
   *[_type == "blogPost" && slug.current == $slug && isApprovedToBePublished == true][0] {
     seo {
       title,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -78,7 +78,17 @@ const usePasswordStrength = (password: string) => {
   return { criteria, strength, score, strengthLabel, strengthColor };
 };
 
-export default function ResetPasswordComponent({ token }: { token: string }) {
+// Loading component for Suspense fallback
+function LoadingSpinner() {
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-white">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+    </div>
+  );
+}
+
+// Separate component that uses useSearchParams
+function ResetPasswordForm({ token }: { token: string }) {
   const [showPasswords, setShowPasswords] = useState({
     password: false,
     confirmPassword: false,
@@ -154,7 +164,6 @@ export default function ResetPasswordComponent({ token }: { token: string }) {
     });
   };
 
-  //AI suggestion sha, wetin concern me
   const togglePasswordVisibility = (field: keyof typeof showPasswords) => {
     setShowPasswords((prev) => ({
       ...prev,
@@ -532,5 +541,14 @@ export default function ResetPasswordComponent({ token }: { token: string }) {
         </div>
       </div>
     </main>
+  );
+}
+
+// Main component with Suspense boundary
+export default function ResetPasswordComponent({ token }: { token: string }) {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <ResetPasswordForm token={token} />
+    </Suspense>
   );
 }

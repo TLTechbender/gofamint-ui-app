@@ -33,7 +33,7 @@ const ViewTracker = ({
         const key = getLocalStorageKey(slug);
         return localStorage.getItem(key) === "true";
       } catch (error) {
-        console.warn("Failed to access localStorage:", error);
+       
         return false;
       }
     },
@@ -43,12 +43,10 @@ const ViewTracker = ({
   // Set generic view in local storage
   const setGenericViewInStorage = useCallback(
     (slug: string) => {
-      try {
+    
         const key = getLocalStorageKey(slug);
         localStorage.setItem(key, "true");
-      } catch (error) {
-        console.warn("Failed to set localStorage:", error);
-      }
+       
     },
     [getLocalStorageKey]
   );
@@ -72,12 +70,12 @@ const ViewTracker = ({
       if (result.success) {
         setGenericViewInStorage(sanitySlug);
         hasTrackedGeneric.current = true;
-        console.log("Generic view tracked successfully:", result.message);
+      
       } else {
-        console.warn("Failed to track generic view:", result.error);
+     
       }
     } catch (error) {
-      console.error("Error tracking generic view:", error);
+    
     }
   }, [sanitySlug, hasGenericViewInStorage, setGenericViewInStorage]);
 
@@ -85,7 +83,7 @@ const ViewTracker = ({
   const handleVerifiedViewUpdate = useCallback(async () => {
     if (hasTrackedVerified.current) return;
 
-    try {
+  
       const formData = new FormData();
       formData.append("sanitySlug", sanitySlug);
 
@@ -94,19 +92,12 @@ const ViewTracker = ({
       if (result.success) {
         hasTrackedVerified.current = true;
         if ((result.data as unknown as any).alreadyRead) {
-          console.log("User has already read this blog:", result.message);
+   
         } else {
-          console.log("Verified view tracked successfully:", result.message);
+          
         }
-      } else {
-        // Only log errors that aren't authentication related
-        if (result.status !== 401) {
-          console.warn("Failed to track verified view:", result.error);
-        }
-      }
-    } catch (error) {
-      console.error("Error tracking verified view:", error);
-    }
+      } 
+     
   }, [sanitySlug]);
 
   // Handle intersection observer callback

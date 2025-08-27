@@ -1,5 +1,4 @@
 "use client";
-
 import { GalleryListPageData } from "@/sanity/interfaces/galleryListPage";
 import {
   buildGalleryListCountQuery,
@@ -9,7 +8,40 @@ import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useMemo, useCallback } from "react";
 
-const ITEMS_PER_PAGE = 2;
+const ITEMS_PER_PAGE = 5;
+
+interface GalleryQueryResponse {
+  galleryListResponse: GalleryListPageData[];
+  hasMore: boolean;
+  totalCount: number;
+  totalPages: number;
+}
+
+interface GalleryQueryParams {
+  start: number;
+  end: number;
+  searchTerm?: string;
+}
+
+interface UseInfiniteGalleryListParams {
+  searchTerm?: string;
+}
+
+interface UseInfiniteGalleryListReturn {
+  data: any; // Raw React Query data
+  galleries: GalleryListPageData[];
+  metadata: {
+    totalCount: number;
+    totalPages: number;
+  } | null;
+  isLoading: boolean;
+  isError: boolean;
+  isFetchingNextPage: boolean;
+  fetchNextPage: () => void;
+  hasNextPage: boolean;
+  isEmpty: boolean;
+  totalGalleries: number;
+}
 
 // Memoize the query function to prevent recreation on every render
 const createGalleryListQueryFunction =
@@ -18,17 +50,13 @@ const createGalleryListQueryFunction =
     start,
     end,
     searchTerm,
-  }: {
-    start: number;
-    end: number;
-    searchTerm?: string;
-  }) => {
+  }: GalleryQueryParams): Promise<GalleryQueryResponse> => {
     const hasSearch = searchTerm ? searchTerm.trim().length > 0 : false;
 
     const params = {
       start,
       end,
-      ...(hasSearch && { search: searchTerm }),
+      ...(hasSearch && { search: searchTerm?.trim() }),
     };
 
     const [galleryListResponse, totalCount] = await Promise.all([
@@ -38,13 +66,11 @@ const createGalleryListQueryFunction =
       ),
       sanityFetchWrapper<number>(
         buildGalleryListCountQuery(hasSearch),
-        hasSearch ? { search: searchTerm } : {}
+        hasSearch ? { search: searchTerm?.trim() } : {}
       ),
     ]);
 
     const hasMore = end < totalCount;
-
-   
 
     return {
       galleryListResponse,
@@ -59,12 +85,10 @@ const infiniteGalleryQueryFunction = createGalleryListQueryFunction();
 
 export default function useInfiniteGalleryList({
   searchTerm,
-}: {
-  searchTerm?: string;
-}) {
+}: UseInfiniteGalleryListParams): UseInfiniteGalleryListReturn {
   // Memoize the query function to prevent unnecessary re-creations
   const queryFn = useCallback(
-    ({ pageParam = 1 }) => {
+    ({ pageParam = 1 }: { pageParam?: number }) => {
       const start = (pageParam - 1) * ITEMS_PER_PAGE;
       const end = start + ITEMS_PER_PAGE;
       return infiniteGalleryQueryFunction({ searchTerm, start, end });
@@ -72,10 +96,15 @@ export default function useInfiniteGalleryList({
     [searchTerm] // Only recreate when searchTerm changes
   );
 
-  // Memoize getNextPageParam to prevent unnecessary re-creations
-  const getNextPageParam = useCallback((lastPage: any, allPages: any[]) => {
-    return lastPage.hasMore ? allPages.length + 1 : undefined;
-  }, []);
+  const getNextPageParam = useCallback(
+    (
+      lastPage: GalleryQueryResponse,
+      allPages: GalleryQueryResponse[]
+    ): number | undefined => {
+      return lastPage.hasMore ? allPages.length + 1 : undefined;
+    },
+    []
+  );
 
   const {
     data,
@@ -84,8 +113,17 @@ export default function useInfiniteGalleryList({
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useInfiniteQuery({
-    queryKey: ["infinite", "galleries", searchTerm?.trim() || ""], // Changed from "sermons" to "galleries"
+  } = useInfiniteQuery<
+    GalleryQueryResponse,
+    Error,
+    {
+      pages: GalleryQueryResponse[];
+      pageParams: number[];
+    },
+    string[],
+    number
+  >({
+    queryKey: ["infinite", "galleries", searchTerm?.trim() || ""],
     queryFn,
     getNextPageParam,
     initialPageParam: 1,
@@ -95,7 +133,6 @@ export default function useInfiniteGalleryList({
     refetchOnMount: false, // Prevent refetch on component mount if data exists
   });
 
-  // Memoize flattened galleries to prevent unnecessary recalculations
   const allGalleries = useMemo(() => {
     if (!data?.pages) return [];
     return data.pages.flatMap((page) => page.galleryListResponse || []);
@@ -120,19 +157,18 @@ export default function useInfiniteGalleryList({
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   return {
-    // Raw data (if needed for debugging)
     data,
-    // Processed data
+
     galleries: allGalleries,
     metadata,
-    // Loading states
+
     isLoading,
     isError,
     isFetchingNextPage,
-    // Actions
+
     fetchNextPage: memoizedFetchNextPage,
-    hasNextPage,
-    // Utility
+    hasNextPage: hasNextPage ?? false,
+
     isEmpty: allGalleries.length === 0 && !isLoading,
     totalGalleries: allGalleries.length,
   };

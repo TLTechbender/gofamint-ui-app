@@ -24,20 +24,13 @@ export const uploadImageToSanity = async (file: File): Promise<any> => {
     });
     return imageAsset;
   } catch (error) {
-    console.error("Error uploading image to Sanity:", error);
     throw error;
   }
 };
 
 // Helper function to delete uploaded assets (for rollback)
 const deleteAssetFromSanity = async (assetId: string): Promise<void> => {
-  try {
-    await sanityClient.delete(assetId);
-    console.log(`Rolled back asset: ${assetId}`);
-  } catch (error) {
-    console.error(`Failed to rollback asset ${assetId}:`, error);
-    // Don't throw here as we're already in an error state
-  }
+  await sanityClient.delete(assetId);
 };
 
 // Generate guaranteed unique slug
@@ -206,25 +199,18 @@ export const processArticleImagesTransaction = async (
     const response = await sanityCreateWrapper(rawData);
 
     // If we reach here, everything succeeded
-    console.log(
-      `Transaction completed successfully. Uploaded ${uploadedAssets.length} assets.`
-    );
-    console.log(`Generated unique slug: ${uniqueSlug}`);
+
     return response;
   } catch (error) {
     // ROLLBACK: If anything fails, delete all uploaded assets
-    console.error("Transaction failed, rolling back uploaded assets:", error);
 
     if (uploadedAssets.length > 0) {
-      console.log(`Rolling back ${uploadedAssets.length} uploaded assets...`);
-
       // Delete all uploaded assets in parallel
       const rollbackPromises = uploadedAssets.map((assetId) =>
         deleteAssetFromSanity(assetId)
       );
 
       await Promise.allSettled(rollbackPromises);
-      console.log("Rollback completed");
     }
 
     // Re-throw the original error
@@ -274,7 +260,6 @@ interface SubmitArticleParams {
 }
 
 export default function useSubmitNewArticle() {
-  console.log(process.env.NEXT_PUBLIC_SANITY_TOKEN, "NEXT_SANITY_TOKEN");
   const submitNewArticleMutation = useMutation({
     mutationKey: ["submitNewArticle"],
     mutationFn: async ({
@@ -292,44 +277,9 @@ export default function useSubmitNewArticle() {
       );
     },
     onSuccess: (data) => {
-      console.log("Article submitted successfully with all images:", data);
       toast.success("Article submitted successfully!");
-      //Create the db reference to the article like that
-      console.log("data from the article submission");
-
-      {
-        /**
-        What I am about to do here
-
-        update: ist's not smart to do it here, a webhook should handle that
-        */
-      }
-
-      // await prisma.blog.create({
-      //   data: {
-      //     sanityId: blogData.sanityId, // From Sanity's _id
-      //     sanitySlug: blogData.sanitySlug, // From Sanity's slug
-      //     authorId: blogData.authorId, // Your local author ID
-      //     isPublishedInSanity: blogData.isPublishedInSanity || false,
-      //     publishedAt: blogData.publishedAt || null,
-      //     sanityUpdatedAt: blogData.sanityUpdatedAt || new Date(),
-      //   },
-      //   include: {
-      //     author: {
-      //       include: {
-      //         user: true, // Include user details if needed
-      //       },
-      //     },
-      //   },
-      // });
-
-      //todo: come write am
     },
     onError: (error) => {
-      console.error(
-        "Article submission failed (all images rolled back):",
-        error
-      );
       toast.error(`Article submission failed, hold on and try again later:=`);
     },
   });

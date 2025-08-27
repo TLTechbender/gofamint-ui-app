@@ -17,8 +17,6 @@ const VideoBackground: React.FC<VideoBackgroundProps> = ({
   const [isVideoError, setIsVideoError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  console.log(videoSrc);
-
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;

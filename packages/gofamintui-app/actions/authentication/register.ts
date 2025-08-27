@@ -56,7 +56,7 @@ export default async function registerNewUser(
       userName: userData.userName,
     });
 
-    console.log("omo, deep in the server action");
+  
     if (createNewUserResponse.success) {
       //Patterns here is key dawg
       const verificationToken = generateToken(
@@ -121,7 +121,7 @@ export default async function registerNewUser(
       }
     }
   } catch (error) {
-    console.error("Registration error:", error);
+   
     return {
       success: false,
       message: "An unexpected error occurred. Please try again.",

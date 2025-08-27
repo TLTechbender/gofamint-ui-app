@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import AuthorDashboardClient from "./authorDashboardClient";
 import Link from "next/link";
 import { getAuthorAnalytics } from "@/actions/author/authorAnalytics";
+import { getAuthorId } from "@/actions/author/authorId";
 
 export interface ProfileData {
   firstName: string;
@@ -71,7 +72,7 @@ export async function generateMetadata(): Promise<Metadata> {
     : null;
 
   // Fallback values
-  const title = `${fullName}'s Dashboard | GSF UI Blog - Author Portal`;
+  const title = `${fullName}'s Author Dashboard | GSF UI Blog - Author Portal`;
   const description = authorProfileData.authorBio
     ? `${fullName}'s author dashboard on GSF UI Blog. ${authorProfileData.authorBio.slice(0, 100)}${authorProfileData.authorBio.length > 100 ? "..." : ""}`
     : `${fullName}'s author dashboard on GSF UI Blog. Manage faith-inspired content and connect with readers.`;
@@ -168,7 +169,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-// Error component for missing author data
+
 function AuthorNotFoundError() {
   return (
     <>
@@ -294,6 +295,8 @@ export default async function AuthorDashboard() {
   const authorAnalyticsData = await getAuthorAnalytics();
   let analyticsData;
 
+  const authorId = await getAuthorId();
+
   if (authorAnalyticsData.success) {
     analyticsData = authorAnalyticsData.data;
   }
@@ -302,7 +305,8 @@ export default async function AuthorDashboard() {
   if (
     !authorProfileData ||
     Object.keys(authorProfileData).length === 0 ||
-    !authorAnalyticsData.success
+    !authorAnalyticsData.success ||
+    !authorId.success
   ) {
     return <AuthorNotFoundError />;
   }
@@ -310,11 +314,11 @@ export default async function AuthorDashboard() {
   const transformedProfileData =
     transformApiResponseToProfileData(authorProfileData);
 
-
   return (
     <AuthorDashboardClient
       analyticsData={analyticsData!}
       profileData={transformedProfileData}
+      authorId={authorId.data!.authorId}
     />
   );
 }

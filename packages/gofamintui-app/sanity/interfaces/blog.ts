@@ -1,4 +1,4 @@
-import { PortableTextBlock } from "@portabletext/react";
+import type { PortableTextBlock } from "@portabletext/types";
 import { Author } from "./author";
 import { SanityImage } from "./sanityImage";
 

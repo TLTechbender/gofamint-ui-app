@@ -1,4 +1,3 @@
-// app/api/sanity-webhook/route.ts - COMPLETE FILE
 import { NextRequest, NextResponse } from "next/server";
 import { isValidSignature, SIGNATURE_HEADER_NAME } from "@sanity/webhook";
 import { Author } from "@/sanity/interfaces/author";
@@ -11,7 +10,7 @@ import {
   sendAuthorApprovedEmail,
   sendAuthorRevokedEmail,
 } from "@/lib/email/emailHandler";
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 // Use a single webhook secret for both document types
 const secret = process.env.SANITY_WEBHOOK_SECRET!;
@@ -132,16 +131,10 @@ async function readBody(
 
 // UPDATED: Author handling logic with orphaned blogs approach
 async function handleAuthorWebhook(authorData: Author) {
-  console.log(
-    `📝 Processing author: ${authorData.firstName} ${authorData.lastName} (${authorData._id})`
-  );
-
   const isDocumentStillExistingInSanity = await sanityFetchWrapper<Author>(
     authorQuery,
     { userId: authorData.userId }
   );
-
-  console.log(isDocumentStillExistingInSanity, "logged this out");
 
   if (isDocumentStillExistingInSanity) {
     // Check if author exists in local DB
@@ -150,10 +143,6 @@ async function handleAuthorWebhook(authorData: Author) {
     });
 
     if (isDocumentStillExistingInSanity.application.isApproved) {
-      console.log(
-        `Author approved: ${authorData.firstName} ${authorData.lastName} (${authorData._id})`
-      );
-
       // Only create if doesn't exist in DB (prevent duplicates)
       if (!existingAuthorInDb) {
         try {
@@ -184,9 +173,6 @@ async function handleAuthorWebhook(authorData: Author) {
                 },
                 data: { authorId: newAuthor.id },
               });
-              console.log(
-                `🔗 Re-linked ${orphanedBlogs.length} orphaned blogs to restored author`
-              );
             }
 
             const updatedUser = await tx.user.update({
@@ -198,14 +184,13 @@ async function handleAuthorWebhook(authorData: Author) {
           });
 
           if (result) {
-            console.log("✅ Author approved and blogs restored");
             await sendAuthorApprovedEmail(
               isDocumentStillExistingInSanity.email,
               isDocumentStillExistingInSanity.firstName
             );
 
             // Revalidate author-related pages
-            revalidateTag("authors");
+            revalidateTag("author");
             revalidateTag("blogs");
 
             return {
@@ -219,7 +204,6 @@ async function handleAuthorWebhook(authorData: Author) {
           throw new Error("Failed to process author in local DB");
         }
       } else {
-        console.log("✅ Author already approved and exists in DB");
         return {
           success: true,
           message: "Author already approved and in database",
@@ -230,9 +214,6 @@ async function handleAuthorWebhook(authorData: Author) {
       //todo: implement for blogs  revalidatePath(`/${issueNumber}`);
     } else {
       // Author exists in Sanity but is NOT approved (SUSPENDED)
-      console.log(
-        `Author suspended: ${authorData.firstName} ${authorData.lastName} - orphaning their blogs`
-      );
 
       // If author exists in DB but is no longer approved, SUSPEND them
       if (existingAuthorInDb) {
@@ -252,10 +233,6 @@ async function handleAuthorWebhook(authorData: Author) {
               },
             });
 
-            console.log(
-              `📚 Orphaned ${blogCount} blogs - they remain readable but show no author`
-            );
-
             // Remove the author from local DB (blogs remain due to SetNull)
             await tx.author.delete({
               where: { userId: authorData.userId },
@@ -268,14 +245,12 @@ async function handleAuthorWebhook(authorData: Author) {
             });
           });
 
-          console.log(
-            "⚠️ Author suspended - their blogs remain readable as orphaned content"
-          );
           await sendAuthorRevokedEmail(authorData.email);
 
           // Revalidate author-related pages
           revalidateTag("authors");
-          revalidateTag("blogs");
+          revalidateTag("blog");
+          revalidateTag("blogPost");
 
           return {
             success: true,
@@ -287,9 +262,6 @@ async function handleAuthorWebhook(authorData: Author) {
           throw new Error("Failed to suspend author");
         }
       } else {
-        console.log(
-          "ℹ️ Author not approved and not in database - no action needed"
-        );
         return {
           success: true,
           message: "Author not approved, no action needed",
@@ -307,10 +279,6 @@ async function handleAuthorWebhook(authorData: Author) {
 
     if (isAuthorInDb) {
       try {
-        console.log(
-          "🗑️ Author permanently deleted from Sanity - orphaning content"
-        );
-
         await prisma.$transaction(async (tx) => {
           // Get count of blogs before orphaning
           const blogCount = await tx.blog.count({
@@ -326,10 +294,6 @@ async function handleAuthorWebhook(authorData: Author) {
             },
           });
 
-          console.log(
-            `📚 Orphaned ${blogCount} blogs due to author deletion - content preserved`
-          );
-
           // Delete the author record (blogs remain due to SetNull)
           await tx.author.delete({
             where: { userId: authorData.userId },
@@ -342,12 +306,12 @@ async function handleAuthorWebhook(authorData: Author) {
           });
         });
 
-        console.log("Author deleted - content preserved as orphaned");
         await sendAuthorRevokedEmail(authorData.email);
 
         // Revalidate author-related pages
-        revalidateTag("authors");
-        revalidateTag("blogs");
+        revalidateTag("author");
+        revalidateTag("blog");
+        revalidateTag("blogPost");
 
         return {
           success: true,
@@ -370,10 +334,8 @@ async function handleAuthorWebhook(authorData: Author) {
 
 // Blog handling logic (unchanged from your original)
 async function handleBlogWebhook(blogData: BlogWebHookPayload) {
-  console.log(`📝 Processing blog: ${blogData.title} (${blogData._id})`);
-
   // Query Sanity for current status
-  console.log("🔍 Checking blog status in Sanity...");
+  //Keeping the query here cos it wasn't worth making this another files
   const blogWebhookQuery = `*[_type == "blogPost" && _id == $id][0]{
     _id, title, slug, authorDatabaseReferenceId, author->{_id, firstName, lastName, application},
     featuredImage{asset->{_id, url}, alt}, excerpt, content, publishedAt, isApprovedToBePublished,
@@ -387,16 +349,16 @@ async function handleBlogWebhook(blogData: BlogWebHookPayload) {
 
   // Handle blog deletion
   if (!checkBlogStatus) {
-    console.log("🗑️ Blog deleted from Sanity, removing from DB...");
     try {
       await prisma.blog.delete({
         where: { sanityId: blogData._id, sanitySlug: blogData.slug.current },
       });
-      console.log("✅ Blog removed from database");
 
       // Revalidate blog-related pages
-      revalidateTag("blogs");
-      revalidateTag(`blog-${blogData.slug.current}`);
+      revalidateTag("blogPost");
+      revalidateTag(`blog/${blogData.slug.current}`);
+      revalidatePath(`/blog`);
+      revalidatePath(`blog/${blogData.slug.current}`);
 
       return {
         success: true,
@@ -405,9 +367,6 @@ async function handleBlogWebhook(blogData: BlogWebHookPayload) {
       };
     } catch (error) {
       if (error instanceof Error) {
-        console.log(
-          "ℹ️ Blog wasn't in database before walahi, no stress me jhoor"
-        );
         return {
           success: true,
           message: "Blog was already deleted",
@@ -418,7 +377,6 @@ async function handleBlogWebhook(blogData: BlogWebHookPayload) {
     }
   }
 
-  // Handle blog approval/unapproval
   const existingBlog = await prisma.blog.findUnique({
     where: {
       sanityId: checkBlogStatus._id,
@@ -426,10 +384,8 @@ async function handleBlogWebhook(blogData: BlogWebHookPayload) {
     },
   });
 
-  // Blog is approved - add/update in database
   if (checkBlogStatus.isApprovedToBePublished) {
     if (existingBlog) {
-      console.log("🔄 Updating existing approved blog...");
       await prisma.blog.update({
         where: {
           sanityId: checkBlogStatus._id,
@@ -441,11 +397,12 @@ async function handleBlogWebhook(blogData: BlogWebHookPayload) {
           sanityUpdatedAt: checkBlogStatus.updatedAt,
         },
       });
-      console.log("✅ Blog updated in database");
 
       // Revalidate blog-related pages
       revalidateTag("blogs");
+      revalidatePath(`/blog`);
       revalidateTag(`blog-${checkBlogStatus.slug.current}`);
+      revalidatePath(`/blog/${blogData.slug.current}`);
 
       return {
         success: true,
@@ -453,7 +410,6 @@ async function handleBlogWebhook(blogData: BlogWebHookPayload) {
         operation: "BLOG_UPDATED",
       };
     } else {
-      console.log("➕ Creating new approved blog...");
       await prisma.blog.create({
         data: {
           sanityId: checkBlogStatus._id,
@@ -464,11 +420,12 @@ async function handleBlogWebhook(blogData: BlogWebHookPayload) {
           sanityUpdatedAt: checkBlogStatus.updatedAt,
         },
       });
-      console.log("✅ Blog created in database");
 
       // Revalidate blog-related pages
       revalidateTag("blogs");
       revalidateTag(`blog-${checkBlogStatus.slug.current}`);
+      revalidatePath(`/blog`);
+      revalidatePath(`/blog/${blogData.slug.current}`);
 
       return {
         success: true,
@@ -480,18 +437,17 @@ async function handleBlogWebhook(blogData: BlogWebHookPayload) {
 
   // Blog is not approved - remove from database if exists
   if (existingBlog) {
-    console.log("🚫 Removing unapproved blog from database...");
     await prisma.blog.delete({
       where: {
         sanityId: checkBlogStatus._id,
         sanitySlug: checkBlogStatus.slug.current,
       },
     });
-    console.log("✅ Unapproved blog removed");
 
     // Revalidate blog-related pages
     revalidateTag("blogs");
     revalidateTag(`blog-${checkBlogStatus.slug.current}`);
+    revalidatePath(`/blog/${blogData.slug.current}`);
 
     return {
       success: true,
@@ -499,7 +455,6 @@ async function handleBlogWebhook(blogData: BlogWebHookPayload) {
       operation: "BLOG_UNAPPROVED_REMOVED",
     };
   } else {
-    console.log("ℹ️ Blog not approved and not in database");
     return {
       success: true,
       message: "Blog not approved, no action needed",
@@ -509,13 +464,10 @@ async function handleBlogWebhook(blogData: BlogWebHookPayload) {
 }
 
 export async function POST(request: NextRequest) {
-  console.log("🚀 Combined webhook received");
-
   try {
     // Check signature
     const signature = request.headers.get(SIGNATURE_HEADER_NAME);
     if (!signature) {
-      console.log("❌ No signature found");
       return NextResponse.json(
         { success: false, message: "Missing signature" },
         { status: 400 }
@@ -525,7 +477,6 @@ export async function POST(request: NextRequest) {
     // Read body
     const body = await readBody(request.body);
     if (!body) {
-      console.log("❌ Empty body");
       return NextResponse.json(
         { success: false, message: "Empty body" },
         { status: 400 }
@@ -534,7 +485,6 @@ export async function POST(request: NextRequest) {
 
     // Validate signature
     if (!secret) {
-      console.log("❌ No webhook secret");
       return NextResponse.json(
         { success: false, message: "Server config error" },
         { status: 500 }
@@ -543,7 +493,6 @@ export async function POST(request: NextRequest) {
 
     const isValid = await isValidSignature(body, signature, secret);
     if (!isValid) {
-      console.log("❌ Invalid signature");
       return NextResponse.json(
         { success: false, message: "Invalid signature" },
         { status: 401 }
@@ -554,11 +503,9 @@ export async function POST(request: NextRequest) {
     let parsedBody: WebhookPayload;
     try {
       parsedBody = JSON.parse(body);
-      console.log(
-        `📄 Processing document type: ${parsedBody._type} (${parsedBody._id})`
-      );
+     
     } catch (e) {
-      console.log("❌ Invalid JSON");
+    
       return NextResponse.json(
         { success: false, message: "Invalid JSON" },
         { status: 400 }
@@ -573,7 +520,7 @@ export async function POST(request: NextRequest) {
     } else if (parsedBody._type === "blogPost") {
       result = await handleBlogWebhook(parsedBody as BlogWebHookPayload);
     } else {
-      console.log(`⚠️ Unsupported document type`);
+     
       return NextResponse.json(
         {
           success: true,
@@ -617,5 +564,3 @@ export async function GET() {
   return new NextResponse("Method Not Allowed", { status: 405 });
 }
 
-
-//Todo we go stll come test this thing hard later sha

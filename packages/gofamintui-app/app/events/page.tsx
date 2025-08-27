@@ -1,10 +1,10 @@
 import { Metadata } from "next";
 import React, { Suspense } from "react";
-import dynamic from "next/dynamic";
 import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
 import { FellowshipEventsSeo } from "@/sanity/interfaces/fellowshipEvent";
 import { fellowshipEventPageMetadataQuery } from "@/sanity/queries/fellowshipEventMetadata";
-
+import DynamicFellowshpCalendar from "@/components/events/dynamicFellowshipCalendar";
+export const dynamic = "force-dynamic";
 //Deciding to hardcode the meta data this cos why not, To me it would feel too extra to put this
 export async function generateMetadata(): Promise<Metadata> {
   const dynamicMetaData = await sanityFetchWrapper<FellowshipEventsSeo>(
@@ -121,21 +121,7 @@ export async function generateMetadata(): Promise<Metadata> {
  *
  * -<OluwaBrimz/>
  */
-const DynamicFellowshipCalendar = dynamic(
-  () => import("@/components/events/dynamicFellowshipCalendar"),
-  {
-    loading: () => (
-      <div className="min-h-screen flex items-center justify-center bg-white p-8">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
-          <p className="text-lg text-black font-light">
-            Loading Events Calendar...
-          </p>
-        </div>
-      </div>
-    ),
-  }
-);
+
 
 export default async function Events() {
  
@@ -234,7 +220,7 @@ export default async function Events() {
              * Not gonna lie, I'm proud of how I was able to implement this fellowship calendar bro
              */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              <DynamicFellowshipCalendar />
+              <DynamicFellowshpCalendar />
             </div>
           </Suspense>
         </div>

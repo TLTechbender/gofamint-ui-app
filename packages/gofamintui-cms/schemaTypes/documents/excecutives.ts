@@ -5,6 +5,46 @@ export default defineType({
   title: 'Meet Them Excos',
   type: 'document',
   fields: [
+    defineField({
+      name: 'seo',
+      title: 'SEO Settings',
+      type: 'object',
+      validation: (Rule) => Rule.required(),
+      fields: [
+        defineField({
+          name: 'title',
+          title: 'Page Title',
+          type: 'string',
+          initialValue: "GSF UI – Gofamint Students' Fellowship, University of Ibadan",
+          validation: (Rule) => Rule.required(),
+        }),
+        defineField({
+          name: 'description',
+          title: 'Meta Description',
+          type: 'text',
+          rows: 3,
+          validation: (Rule) => Rule.required().min(15).max(160),
+        }),
+        defineField({
+          name: 'keywords',
+          title: 'Keywords',
+          type: 'array',
+          description: 'Helps search engines index the page',
+          of: [{type: 'string'}],
+          validation: (Rule) => Rule.required().min(5),
+        }),
+        defineField({
+          name: 'ogImage',
+          title: 'Social Media Image',
+          type: 'image',
+          options: {
+            hotspot: true,
+          },
+          validation: (Rule) => Rule.required(),
+        }),
+      ],
+    }),
+
     // Hero Section
     defineField({
       name: 'heroSection',

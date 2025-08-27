@@ -1,5 +1,5 @@
 "use client";
-import { Sermons, SermonsCountResponse } from "@/sanity/interfaces/sermonsPage";
+import { Sermon } from "@/sanity/interfaces/sermonsPage";
 import {
   buildSermonsCountQuery,
   buildSermonsQuery,
@@ -8,20 +8,28 @@ import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useMemo, useCallback } from "react";
 
-const ITEMS_PER_PAGE = 2;
+const ITEMS_PER_PAGE = 5;
 
-// Memoize the query function to prevent recreation on every render
+interface SermonQueryParams {
+  start: number;
+  end: number;
+  searchTerm?: string;
+}
+
+interface SermonQueryResponse {
+  sermonsResponse: Sermon[];
+  hasMore: boolean;
+  totalCount: number;
+  totalPages: number;
+}
+
 const createInfiniteSermonQueryFunction =
   () =>
   async ({
     start,
     end,
     searchTerm,
-  }: {
-    start: number;
-    end: number;
-    searchTerm?: string;
-  }) => {
+  }: SermonQueryParams): Promise<SermonQueryResponse> => {
     const hasSearch = searchTerm ? searchTerm.trim().length > 0 : false;
 
     const params = {
@@ -31,7 +39,7 @@ const createInfiniteSermonQueryFunction =
     };
 
     const [sermonsResponse, totalCount] = await Promise.all([
-      sanityFetchWrapper<Sermons>(buildSermonsQuery(hasSearch), params),
+      sanityFetchWrapper<Sermon[]>(buildSermonsQuery(hasSearch), params),
       sanityFetchWrapper<number>(
         buildSermonsCountQuery(hasSearch),
         hasSearch ? { search: searchTerm } : {}
@@ -48,28 +56,46 @@ const createInfiniteSermonQueryFunction =
     };
   };
 
-// Create the query function once
 const infiniteSermonQueryFunction = createInfiniteSermonQueryFunction();
+
+interface UseInfiniteSermonsParams {
+  searchTerm?: string;
+}
+
+interface UseInfiniteSermonsReturn {
+  data: any;
+  sermons: Sermon[];
+  metadata: {
+    totalCount: number;
+    totalPages: number;
+  } | null;
+  isLoading: boolean;
+  isError: boolean;
+  isFetchingNextPage: boolean;
+  fetchNextPage: () => void;
+  hasNextPage: boolean | undefined;
+  isEmpty: boolean;
+  totalSermons: number;
+}
 
 export default function useInfiniteSermons({
   searchTerm,
-}: {
-  searchTerm?: string;
-}) {
-  // Memoize the query function to prevent unnecessary re-creations
+}: UseInfiniteSermonsParams): UseInfiniteSermonsReturn {
   const queryFn = useCallback(
-    ({ pageParam = 1 }) => {
+    ({ pageParam = 1 }: { pageParam?: number }) => {
       const start = (pageParam - 1) * ITEMS_PER_PAGE;
       const end = start + ITEMS_PER_PAGE;
       return infiniteSermonQueryFunction({ searchTerm, start, end });
     },
-    [searchTerm] // Only recreate when searchTerm changes
+    [searchTerm]
   );
 
-  // Memoize getNextPageParam to prevent unnecessary re-creations
-  const getNextPageParam = useCallback((lastPage: any, allPages: any[]) => {
-    return lastPage.hasMore ? allPages.length + 1 : undefined;
-  }, []);
+  const getNextPageParam = useCallback(
+    (lastPage: SermonQueryResponse, allPages: SermonQueryResponse[]) => {
+      return lastPage.hasMore ? allPages.length + 1 : undefined;
+    },
+    []
+  );
 
   const {
     data,
@@ -79,23 +105,21 @@ export default function useInfiniteSermons({
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ["infinite", "sermons", searchTerm?.trim() || ""], // Normalize searchTerm
+    queryKey: ["infinite", "sermons", searchTerm?.trim() || ""],
     queryFn,
     getNextPageParam,
     initialPageParam: 1,
-    staleTime: 5 * 60 * 1000, // 5 minutes - prevents unnecessary refetches
-    gcTime: 10 * 60 * 1000, // 10 minutes - keeps data in cache longer
-    refetchOnWindowFocus: false, // Prevent refetch on window focus
-    refetchOnMount: false, // Prevent refetch on component mount if data exists
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
-  // Memoize flattened sermons to prevent unnecessary recalculations
   const allSermons = useMemo(() => {
     if (!data?.pages) return [];
     return data.pages.flatMap((page) => page.sermonsResponse || []);
   }, [data?.pages]);
 
-  // Memoize metadata to prevent unnecessary recalculations
   const metadata = useMemo(() => {
     if (!data?.pages?.[0]) return null;
 
@@ -106,7 +130,6 @@ export default function useInfiniteSermons({
     };
   }, [data?.pages]);
 
-  // Memoize the fetchNextPage function to prevent unnecessary recreations
   const memoizedFetchNextPage = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
@@ -114,19 +137,14 @@ export default function useInfiniteSermons({
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   return {
-    // Raw data (if needed for debugging)
     data,
-    // Processed data
     sermons: allSermons,
     metadata,
-    // Loading states
     isLoading,
     isError,
     isFetchingNextPage,
-    // Actions
     fetchNextPage: memoizedFetchNextPage,
     hasNextPage,
-    // Utility
     isEmpty: allSermons.length === 0 && !isLoading,
     totalSermons: allSermons.length,
   };

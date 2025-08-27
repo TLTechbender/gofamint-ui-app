@@ -79,20 +79,7 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
     }
   }, [session]);
 
-  // Handle clicking outside user dropdown
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        userDropdownRef.current &&
-        !userDropdownRef.current.contains(event.target as Node)
-      ) {
-        setUserDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+ 
 
   // Handle mobile menu effects
   useEffect(() => {
@@ -229,7 +216,10 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
   );
 
   const UserAvatarContent = () => (
-    <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-transparent hover:border-blue-400 transition-colors duration-200">
+    <div
+      ref={userDropdownRef}
+      className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-transparent hover:border-blue-400 transition-colors duration-200"
+    >
       {session &&
       session.user &&
       session.user.isAuthor &&
@@ -251,7 +241,7 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
   );
 
   const UserAvatar = () => (
-    <div className="relative" ref={userDropdownRef}>
+    <div className="relative">
       {session && session.user ? (
         <>
           {/* Desktop: Button with dropdown */}
@@ -284,9 +274,11 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
         </button>
       )}
 
+      
+
       {/* User Dropdown Menu - Desktop Only */}
       {session && session.user && userDropdownOpen && (
-        <div className="hidden lg:block absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-100 z-50 overflow-hidden">
+        <div className="hidden lg:block absolute z-20 right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-100 z-50 overflow-hidden">
           {/* User Info Header */}
           <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
             <div className="flex items-center space-x-3">
@@ -323,7 +315,8 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
           <div className="py-2">
             <Link
               href="/profile"
-              onClick={() => setUserDropdownOpen(false)}
+              //Trying to hack this cos the click is firing before the navigate
+              onClick={() => setTimeout(() => setUserDropdownOpen(false), 200)}
               className="flex items-center space-x-3 px-4 py-3 text-sm text-black hover:bg-gray-50 transition-colors duration-200"
             >
               <User className="w-4 h-4 text-blue-400" />
@@ -349,6 +342,12 @@ const Navbar: React.FC<NavbarProps> = ({ logo, siteName = "Fellowship" }) => {
   return (
     <div className="bg-transparent">
       {/* Desktop Navigation */}
+      {session && session.user && userDropdownOpen && (
+        <div
+          onClick={() => setUserDropdownOpen(false)}
+          className="bg-black/20 w-screen h-screen test-0  absolute inset-0 z-0"
+        />
+      )}
       <nav
         className={`hidden lg:block shadow-sm transition-all duration-300 ${
           isScrolled

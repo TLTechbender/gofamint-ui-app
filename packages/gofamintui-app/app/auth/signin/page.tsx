@@ -4,14 +4,16 @@ import {
   LoginSchemaClientData,
 } from "@/lib/formSchemas/loginSchemaClient";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 
-export default function Signin() {
+// Create a separate component that uses useSearchParams
+function SigninForm() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -25,12 +27,11 @@ export default function Signin() {
       redirect: true,
     });
   };
+
   const {
     register,
-
     reset,
     handleSubmit,
-
     formState: { errors },
   } = useForm<LoginSchemaClientData>({
     resolver: zodResolver(loginSchemaClient),
@@ -53,18 +54,13 @@ export default function Signin() {
         return;
       }
 
-      //Todo: bro fix them callback urls too
-
       setIsLoading(true);
-      console.log("Submitting credentials:", result.data);
 
       const res = await signIn("credentials", {
         redirect: false,
         emailOrUsername: result.data.emailOrUserName,
         password: result.data.password,
       });
-
-      console.log("SignIn response:", res);
 
       if (res?.error) {
         switch (res.error) {
@@ -83,7 +79,6 @@ export default function Signin() {
             break;
           default:
             toast.error("Login failed: " + res.error);
-            console.error("Unexpected error:", res.error);
         }
         return;
       }
@@ -99,10 +94,8 @@ export default function Signin() {
         }
       } else {
         toast.error("Login failed. Please try again.");
-        console.error("Sign-in failed without specific error:", res);
       }
     } catch (err) {
-      console.error("Login error:", err);
       toast.error("Something went wrong. Please try again later.");
     } finally {
       setIsLoading(false);
@@ -308,13 +301,13 @@ export default function Signin() {
             {/* Sign Up Link */}
             <div className="mt-8 text-center">
               <p className="text-black font-light">
-                {`  Don't have an account?{" "}`}
-                <a
-                  href="/register"
+                {` Don't have an account?{" "}`}
+                <Link
+                  href="/auth/register"
                   className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-200"
                 >
                   Sign up
-                </a>
+                </Link>
               </p>
             </div>
           </div>
@@ -358,5 +351,24 @@ export default function Signin() {
         </div>
       </div>
     </div>
+  );
+}
+
+function SigninLoading() {
+  return (
+    <div className="bg-white flex flex-col min-h-screen">
+      <div className="bg-black h-16 mb-2 w-full flex-shrink-0" />
+      <div className="flex flex-1 items-center justify-center">
+        <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    </div>
+  );
+}
+
+export default function Signin() {
+  return (
+    <Suspense fallback={<SigninLoading />}>
+      <SigninForm />
+    </Suspense>
   );
 }

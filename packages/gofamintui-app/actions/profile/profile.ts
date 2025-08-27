@@ -15,7 +15,7 @@ export async function updateProfile(
   // Get the current session
   const session = await auth();
 
-  console.log(session);
+  
 
   if (!session || !session.user) {
     return {
@@ -111,7 +111,7 @@ export async function updateProfile(
       },
     };
   } catch (error) {
-    console.error("Profile update error:", error);
+   
     return {
       status: 500,
       success: false,
@@ -124,7 +124,7 @@ export async function updateProfile(
 export async function fetchProfile() {
   const session = await auth();
 
-  console.log(session);
+
 
   if (!session || !session.user) {
     return {

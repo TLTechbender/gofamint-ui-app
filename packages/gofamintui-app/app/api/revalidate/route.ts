@@ -20,28 +20,24 @@ export async function GET() {
 
 // Revalidation functions using single tag approach
 async function revalidateHomepage() {
-  console.log("🔄 Revalidating homepage");
   revalidateTag("homepage");
   revalidatePath("/");
   return { tags: ["homepage"] };
 }
 
 async function revalidateBlogsPage() {
-  console.log("🔄 Revalidating blogs page");
   revalidateTag("blogsPage");
   revalidatePath("/blog");
   return { tags: ["blogsPage"] };
 }
 
 async function revalidateAboutPage() {
-  console.log("🔄 Revalidating about page");
   revalidateTag("aboutPage");
   revalidatePath("/about");
   return { tags: ["aboutPage"] };
 }
 
 async function revalidateContactInfo() {
-  console.log("🔄 Revalidating contact info");
   revalidateTag("contactInfo");
   revalidatePath("/contact");
   return { tags: ["contactInfo"] };
@@ -50,7 +46,6 @@ async function revalidateContactInfo() {
 //Don't thking I need this, but since next.js can be unpredicatable atimes I would be leaving this revalidate here now until I fee
 //we may need the performance imporvement in future
 async function revalidateFellowshipEvent() {
-  console.log("🔄 Revalidating fellowship events");
   revalidateTag("fellowshipEvent");
   revalidateTag("fellowshipEventMetadata");
   revalidatePath("/events");
@@ -58,28 +53,24 @@ async function revalidateFellowshipEvent() {
 }
 
 async function revalidateExecutives() {
-  console.log("🔄 Revalidating executives");
   revalidateTag("executives");
   revalidatePath("/executives");
   return { tags: ["executives"] };
 }
 
 async function revalidateGallery() {
-  console.log("🔄 Revalidating gallery");
   revalidateTag("gallery");
   revalidatePath("/gallery");
   return { tags: ["gallery"] };
 }
 
 async function revalidateOnlineGiving() {
-  console.log("🔄 Revalidating online giving");
   revalidateTag("onlineGiving");
   revalidatePath("/giving");
   return { tags: ["onlineGiving"] };
 }
 
 async function revalidateSermons() {
-  console.log("🔄 Revalidating sermons");
   revalidateTag("sermons");
   revalidateTag("sermon");
   revalidateTag("sermonsPageMetadataAndHero");
@@ -88,20 +79,17 @@ async function revalidateSermons() {
 }
 
 async function revalidateLiveStream() {
-  console.log("🔄 Revalidating live stream");
   revalidateTag("liveStream");
   revalidatePath("/live");
   return { tags: ["liveStream"] };
 }
 
 async function revalidateFooter() {
-  console.log("🔄 Revalidating footer");
   revalidateTag("footer");
   return { tags: ["footer"] };
 }
 
 async function revalidateWhatsappContactWidget() {
-  console.log("🔄 Revalidating WhatsApp widget");
   revalidateTag("whatsappContactWidget");
   return { tags: ["whatsappContactWidget"] };
 }
@@ -136,13 +124,10 @@ interface WebhookPayload {
 }
 
 export async function POST(request: NextRequest) {
-  console.log("🚀 Combined webhook for all content types received");
-
   try {
     // Check signature
     const signature = request.headers.get(SIGNATURE_HEADER_NAME);
     if (!signature) {
-      console.log("❌ No signature found");
       return NextResponse.json(
         { success: false, message: "Missing signature" },
         { status: 400 }
@@ -152,7 +137,6 @@ export async function POST(request: NextRequest) {
     // Read body
     const body = await readBody(request.body);
     if (!body) {
-      console.log("❌ Empty body");
       return NextResponse.json(
         { success: false, message: "Empty body" },
         { status: 400 }
@@ -161,7 +145,6 @@ export async function POST(request: NextRequest) {
 
     // Validate signature
     if (!secret) {
-      console.log("❌ No webhook secret");
       return NextResponse.json(
         { success: false, message: "Server config error" },
         { status: 500 }
@@ -170,7 +153,6 @@ export async function POST(request: NextRequest) {
 
     const isValid = await isValidSignature(body, signature, secret);
     if (!isValid) {
-      console.log("❌ Invalid signature");
       return NextResponse.json(
         { success: false, message: "Invalid signature" },
         { status: 401 }
@@ -180,9 +162,7 @@ export async function POST(request: NextRequest) {
     let parsedBody: WebhookPayload;
     try {
       parsedBody = JSON.parse(body);
-      console.log("📄 Parsed webhook payload:", parsedBody);
     } catch (e) {
-      console.log("❌ Invalid JSON");
       return NextResponse.json(
         { success: false, message: "Invalid JSON" },
         { status: 400 }
@@ -194,7 +174,6 @@ export async function POST(request: NextRequest) {
       parsedBody.tags || (parsedBody._type ? [parsedBody._type] : []);
 
     if (tagsToProcess.length === 0) {
-      console.log("⚠️ No tags or document type found in payload");
       return NextResponse.json(
         {
           success: true,
@@ -204,8 +183,6 @@ export async function POST(request: NextRequest) {
         { status: 200 }
       );
     }
-
-    console.log(`📄 Processing tags: ${tagsToProcess.join(", ")}`);
 
     // Process each tag and collect results
     const revalidationResults = [];
@@ -265,7 +242,6 @@ export async function POST(request: NextRequest) {
           break;
 
         default:
-          console.log(`⚠️ Unsupported tag: ${tag}`);
           continue;
       }
 
@@ -287,9 +263,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Return success response
-    console.log(
-      `✅ Successfully processed ${revalidationResults.length} tag(s)`
-    );
+
     return NextResponse.json(
       {
         success: true,
@@ -302,7 +276,6 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("💥 Webhook error:", error);
     return NextResponse.json(
       {
         success: false,

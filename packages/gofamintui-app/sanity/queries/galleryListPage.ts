@@ -1,8 +1,12 @@
-// Fixed GROQ queries with search functionality
-
-// Base query for galleries with search support
 export const buildGalleryListQuery = (hasSearch = false) => {
-  const baseQuery = `*[_type == "gallery"${hasSearch ? " && (title match $search || description match $search)" : ""}]`;
+  const baseQuery = hasSearch
+    ? `*[_type == "gallery" && (
+        title match $search + "*" || 
+        description match $search + "*" ||
+        lower(title) match lower($search) + "*" ||
+        lower(description) match lower($search) + "*"
+      )]`
+    : `*[_type == "gallery"]`;
 
   return `${baseQuery} | order(_createdAt desc) [$start...$end] {
     _id,
@@ -30,9 +34,16 @@ export const buildGalleryListQuery = (hasSearch = false) => {
   }`;
 };
 
-// Count query with search support
+// Count query with enhanced search support
 export const buildGalleryListCountQuery = (hasSearch = false) => {
-  const baseQuery = `*[_type == "gallery"${hasSearch ? " && (title match $search || description match $search)" : ""}]`;
+  const baseQuery = hasSearch
+    ? `*[_type == "gallery" && (
+        title match $search + "*" || 
+        description match $search + "*" ||
+        lower(title) match lower($search) + "*" ||
+        lower(description) match lower($search) + "*"
+      )]`
+    : `*[_type == "gallery"]`;
 
   return `count(${baseQuery})`;
 };

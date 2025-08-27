@@ -25,6 +25,7 @@ import {
   useEditorSelector,
   keyGenerator,
 } from "@portabletext/editor";
+import { z } from "zod";
 import type {
   PortableTextBlock,
   RenderDecoratorFunction,
@@ -35,13 +36,13 @@ import type {
 import { EventListenerPlugin } from "@portabletext/editor/plugins";
 import * as selectors from "@portabletext/editor/selectors";
 import { toast } from "react-toastify";
-import useSubmitNewArticle from "@/hooks/useSubmitNewArticle";
+import useSubmitNewArticle from "@/hooks/blogs/useSubmitNewArticle";
 import { useSession } from "next-auth/react";
 import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
 import { authorQuery } from "@/sanity/queries/author";
 import { Author } from "@/sanity/interfaces/author";
 import { FaSpinner } from "react-icons/fa6";
-import { prisma } from "@/lib/prisma/prisma";
+import { PortableText } from "@portabletext/react";
 // Define the schema
 const schemaDefinition = defineSchema({
   decorators: [
@@ -91,10 +92,7 @@ const schemaDefinition = defineSchema({
 interface Article {
   _id?: string;
   title: string;
-  slug?: {
-    _type: "slug";
-    current: string;
-  };
+
   excerpt: string;
   posterImage?: {
     src: string;
@@ -139,15 +137,15 @@ const calculateReadingTime = (
 };
 
 // Storage utilities
-const DRAFT_KEY = "blog-editor-draft";
+const DRAFT_KEY = "blog-create-draft";
 
 const saveDraftToStorage = (article: Article): boolean => {
   try {
     localStorage.setItem(DRAFT_KEY, JSON.stringify(article));
-    console.log("Draft saved:", article.title || "Untitled");
+  
     return true;
   } catch (error) {
-    console.error("Failed to save draft:", error);
+   
     return false;
   }
 };
@@ -158,7 +156,7 @@ const loadDraftFromStorage = (): Article | null => {
     if (savedDraft) return JSON.parse(savedDraft);
     return null;
   } catch (error) {
-    console.error("Failed to load draft:", error);
+
     return null;
   }
 };
@@ -438,11 +436,7 @@ const AnnotationButton = ({ annotationName }: { annotationName: string }) => {
 };
 
 // Image upload functionality
-const ImageUploadButton = ({
-  onImageInsert,
-}: {
-  onImageInsert: (imageData: any) => void;
-}) => {
+const ImageUploadButton = () => {
   const editor = useEditor();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -481,7 +475,7 @@ const ImageUploadButton = ({
         placement: "auto",
       });
 
-      onImageInsert(imageData);
+    
       editor.send({ type: "focus" });
     };
 
@@ -619,11 +613,7 @@ const PosterImageUpload = ({
 };
 
 // Clean toolbar
-const CustomToolbar = ({
-  onImageInsert,
-}: {
-  onImageInsert: (imageData: any) => void;
-}) => {
+const CustomToolbar = () => {
   return (
     <div className="flex gap-1 p-2 border-b bg-gray-50">
       {schemaDefinition.styles.map((style) => (
@@ -653,7 +643,7 @@ const CustomToolbar = ({
 
       <div className="w-px bg-gray-300 mx-2" />
 
-      <ImageUploadButton onImageInsert={onImageInsert} />
+      <ImageUploadButton  />
     </div>
   );
 };
@@ -763,62 +753,13 @@ const PreviewComponents = {
   },
 };
 
-// Simple PortableText renderer for preview
-const PortableTextRenderer = ({ value }: { value: PortableTextBlock[] }) => {
-  const renderPortableTextBlock = (block: PortableTextBlock, index: number) => {
-    if (block._type === "block") {
-      const style = block.style || "normal";
-      const Component =
-        PreviewComponents.block[
-          style as keyof typeof PreviewComponents.block
-        ] || PreviewComponents.block.normal;
-      //Walahi, if esLink see the any ignore, mo ma fo fun ayo
-      const children = (block.children as unknown as any)?.map(
-        (child: any, childIndex: number) => {
-          let content = child.text || "";
-
-          if (child.marks && Array.isArray(child.marks)) {
-            child.marks.forEach((mark: string) => {
-              const MarkComponent =
-                PreviewComponents.marks[
-                  mark as keyof typeof PreviewComponents.marks
-                ];
-              if (MarkComponent) {
-                content = (
-                  <MarkComponent key={`${index}-${childIndex}-${mark}`}>
-                    {content}
-                  </MarkComponent>
-                );
-              }
-            });
-          }
-
-          return <span key={`${index}-${childIndex}`}>{content}</span>;
-        }
-      );
-
-      return <Component key={index}>{children}</Component>;
-    }
-
-    if (block._type === "image") {
-      const ImageComponent = PreviewComponents.types.image;
-      return <ImageComponent key={index} value={block} />;
-    }
-
-    return null;
-  };
-
-  return <div>{value.map(renderPortableTextBlock)}</div>;
-};
-
 const AUTOSAVE_INTERVAL = 5 * 60 * 1000; // 5 minutes
-
 
 //Doing this I can't call prisma client side
 const CreateNewBlog = ({
   databaseAuthorReferenceId,
 }: {
-  databaseAuthorReferenceId:string
+  databaseAuthorReferenceId: string;
 }) => {
   const [article, setArticle] = useState<Article>({
     title: "",
@@ -872,7 +813,6 @@ const CreateNewBlog = ({
 
       //SHould I do this or a promise.all  🤔   🤔   🤔 ?
 
-    
       const sanityAuthorReferenceId = getSanityAuthorReferenceId._id;
       const authorDatabaseReferenceId = databaseAuthorReferenceId;
 
@@ -907,7 +847,7 @@ const CreateNewBlog = ({
   // Load draft on mount
   useEffect(() => {
     const savedDraft = loadDraftFromStorage();
-    console.log(savedDraft, "omo the thing wey I load from storage");
+  
     if (savedDraft) {
       setArticle(savedDraft);
       setLastSaved(
@@ -968,7 +908,7 @@ const CreateNewBlog = ({
     };
 
     saveDraftToStorage(updatedArticle);
-    console.log(updatedArticle, "omo the thing going to sanity");
+  
     setArticle(updatedArticle);
     setLastSaved(new Date());
     setHasUnsavedChanges(false);
@@ -982,10 +922,7 @@ const CreateNewBlog = ({
     }));
   };
 
-  const handleImageInsert = (imageData: any) => {
-    // This is called when an image is inserted, we can use it for additional logic if needed
-    console.log("Image inserted:", imageData);
-  };
+ 
 
   const handleInputChange =
     (field: keyof Article) =>
@@ -1089,8 +1026,166 @@ const CreateNewBlog = ({
     }
   }, [error]);
 
+  const VALIDATION_RULES = {
+    title: {
+      minLength: 12,
+      maxLength: 120,
+    },
+    excerpt: {
+      minLength: 20,
+      maxLength: 300,
+    },
+    content: {
+      minWords: 50,
+    },
+  } as const;
+
+  const validateArticle = (article: Article) => {
+    const errors: {
+      title?: string;
+      excerpt?: string;
+      posterImage?: string;
+      content?: string;
+    } = {};
+
+    // Title validation
+    if (!article.title?.trim()) {
+      errors.title = "Title is required";
+    } else if (article.title.trim().length < VALIDATION_RULES.title.minLength) {
+      errors.title = `Title must be at least ${VALIDATION_RULES.title.minLength} characters long`;
+    } else if (article.title.trim().length > VALIDATION_RULES.title.maxLength) {
+      errors.title = `Title must be no more than ${VALIDATION_RULES.title.maxLength} characters long`;
+    }
+
+    // Excerpt validation
+    if (!article.excerpt?.trim()) {
+      errors.excerpt = "Excerpt is required";
+    } else if (
+      article.excerpt.trim().length < VALIDATION_RULES.excerpt.minLength
+    ) {
+      errors.excerpt = `Excerpt must be at least ${VALIDATION_RULES.excerpt.minLength} characters long`;
+    } else if (
+      article.excerpt.trim().length > VALIDATION_RULES.excerpt.maxLength
+    ) {
+      errors.excerpt = `Excerpt must be no more than ${VALIDATION_RULES.excerpt.maxLength} characters long`;
+    }
+
+    if (!article.posterImage?.src) {
+      errors.posterImage = "Poster image is required";
+    }
+
+    // Content validation
+    const contentWordCount = countWordsInContent(article.content);
+    const hasOnlyPlaceholder = isOnlyPlaceholderContent(article.content);
+
+    if (!article.content?.length || hasOnlyPlaceholder) {
+      errors.content = "Article content is required";
+    } else if (contentWordCount < VALIDATION_RULES.content.minWords) {
+      errors.content = `Article needs at least ${VALIDATION_RULES.content.minWords} words (currently ${contentWordCount})`;
+    }
+
+    return {
+      isValid: Object.keys(errors).length === 0,
+      errors,
+    };
+  };
+
+  const countWordsInContent = (content: PortableTextBlock[]): number => {
+    if (!content || !Array.isArray(content)) return 0;
+
+    let wordCount = 0;
+
+    content.forEach((block) => {
+      if (
+        block._type === "block" &&
+        block.children &&
+        Array.isArray(block.children)
+      ) {
+        const text = block.children
+          .filter((child: any) => child._type === "span" && child.text)
+          .map((child: any) => child.text)
+          .join(" ");
+
+        if (text.trim()) {
+          wordCount += text.trim().split(/\s+/).length;
+        }
+      }
+    });
+
+    return wordCount;
+  };
+
+  const isOnlyPlaceholderContent = (content: PortableTextBlock[]): boolean => {
+    if (!content || content.length === 0) return true;
+
+    const contentText = content
+      .filter((block) => block._type === "block" && block.children)
+      .flatMap((block) =>
+        (block.children as any[])
+          .filter((child) => child._type === "span")
+          .map((child) => child.text)
+      )
+      .join("")
+      .trim();
+
+    return (
+      contentText === "Start writing your article here..." || contentText === ""
+    );
+  };
+
+  const [validationErrors, setValidationErrors] = useState<{
+    title?: string;
+    excerpt?: string;
+    posterImage?: string;
+    content?: string;
+  }>({});
+
+  // 5. Real-time validation (add these useEffects)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      const { errors } = validateArticle(article);
+      setValidationErrors((prev) => ({
+        ...prev,
+        title: errors.title,
+      }));
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [article.title]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      const { errors } = validateArticle(article);
+      setValidationErrors((prev) => ({
+        ...prev,
+        excerpt: errors.excerpt,
+      }));
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [article.excerpt]);
+
+  useEffect(() => {
+    const { errors } = validateArticle(article);
+    setValidationErrors((prev) => ({
+      ...prev,
+      posterImage: errors.posterImage,
+    }));
+  }, [article.posterImage]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      const { errors } = validateArticle(article);
+      setValidationErrors((prev) => ({
+        ...prev,
+        content: errors.content,
+      }));
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  }, [article.content]);
+
   const handlePublish = () => {
-    // Check if required data is available
     if (
       !authorExtraNeedsforPublishing.authorSanityReferenceId ||
       !authorExtraNeedsforPublishing.authorUsername ||
@@ -1102,6 +1197,30 @@ const CreateNewBlog = ({
       );
       return;
     }
+    //Wish I could trigger validation some other way but this publishing part is already very complicated, me sef can't explain most of how I peiced it together ooo
+    //Chai, I don die, I just want to build, but sometimes I don't know shit and I can't
+    //trigger validation here
+
+    const validation = validateArticle(article);
+
+    if (!validation.isValid) {
+      // Update all validation errors at once
+      setValidationErrors(validation.errors);
+
+      // Show a single, clear error message
+      const errorCount = Object.keys(validation.errors).length;
+      toast.error(
+        `Please fix the ${errorCount} error${errorCount > 1 ? "s" : ""} before publishing`,
+        {
+          position: "top-center",
+          autoClose: 4000,
+        }
+      );
+      return;
+    }
+
+    // Clear any existing errors
+    setValidationErrors({});
 
     toast(
       ({ closeToast }) => (
@@ -1217,39 +1336,55 @@ const CreateNewBlog = ({
               {/* Article Meta */}
               <div className="space-y-6 sm:space-y-8">
                 {/* Title */}
-                <div className="space-y-2">
-                  <label className="text-xs sm:text-sm font-medium text-gray-600 tracking-wide uppercase">
-                    Article Title
-                  </label>
+                <div className="flex flex-col gap-1.5">
                   <input
                     type="text"
                     value={article.title}
                     onChange={handleInputChange("title")}
                     placeholder="Enter your article title..."
-                    className="w-full text-2xl sm:text-3xl md:text-4xl font-light text-black placeholder-gray-400 border-none outline-none bg-transparent leading-tight tracking-tight"
+                    className={`w-full text-2xl sm:text-3xl md:text-4xl font-light text-black placeholder-gray-400 border-none outline-none bg-transparent leading-tight tracking-tight ${
+                      validationErrors.title ? "border-b-2 border-red-300" : ""
+                    }`}
                   />
-                  <div className="h-px bg-gradient-to-r from-blue-400 via-blue-200 to-transparent"></div>
+                  {validationErrors.title && (
+                    <p className="text-red-500 text-sm font-medium">
+                      {validationErrors.title}
+                    </p>
+                  )}
                 </div>
 
                 {/* Excerpt */}
-                <div className="space-y-2">
-                  <label className="text-xs sm:text-sm font-medium text-gray-600 tracking-wide uppercase">
-                    Excerpt
-                  </label>
+                <div className="flex flex-col gap-1">
                   <textarea
                     value={article.excerpt}
                     onChange={handleInputChange("excerpt")}
                     placeholder="Brief description of the post (for previews and SEO)..."
                     rows={3}
-                    className="w-full text-base font-light text-black placeholder-gray-400 border border-gray-200 focus:border-blue-400 outline-none p-3 rounded-sm resize-none"
+                    className={`w-full text-base font-light text-black placeholder-gray-400 border  outline-none p-3 rounded-sm resize-none ${
+                      validationErrors.excerpt
+                        ? "border-red-300"
+                        : "border-gray-200"
+                    }`}
                   />
+                  {validationErrors.excerpt && (
+                    <p className="text-red-500 text-sm font-medium">
+                      {validationErrors.excerpt}
+                    </p>
+                  )}
                 </div>
 
                 {/* Poster Image */}
-                <PosterImageUpload
-                  posterImage={article.posterImage}
-                  onPosterImageChange={handlePosterImageChange}
-                />
+                <div className="flex flex-col gap-1">
+                  <PosterImageUpload
+                    posterImage={article.posterImage}
+                    onPosterImageChange={handlePosterImageChange}
+                  />
+                  {validationErrors.posterImage && (
+                    <p className="text-red-500 text-sm font-medium">
+                      {validationErrors.posterImage}
+                    </p>
+                  )}
+                </div>
 
                 {/* Reading Time Display */}
                 {article.readingTime && (
@@ -1271,9 +1406,20 @@ const CreateNewBlog = ({
                   <label className="text-xs sm:text-sm font-medium text-gray-600 tracking-wide uppercase">
                     Article Content
                   </label>
+                  {validationErrors.content && (
+                    <span className="text-red-500 text-xs font-medium">
+                      {validationErrors.content}
+                    </span>
+                  )}
                 </div>
 
-                <div className="border border-gray-200 focus-within:border-blue-400 transition-colors duration-200 rounded-sm overflow-hidden">
+                <div
+                  className={`border transition-colors duration-200 rounded-sm overflow-hidden ${
+                    validationErrors.content
+                      ? "border-red-300"
+                      : "border-gray-200"
+                  }`}
+                >
                   {isLoading ? (
                     <EditorSkeleton />
                   ) : (
@@ -1294,7 +1440,7 @@ const CreateNewBlog = ({
                         }}
                       />
 
-                      <CustomToolbar onImageInsert={handleImageInsert} />
+                      <CustomToolbar  />
 
                       <PortableTextEditable
                         style={{
@@ -1314,10 +1460,16 @@ const CreateNewBlog = ({
                   )}
                 </div>
 
+                {validationErrors.content && (
+                  <p className="text-red-500 text-sm font-medium">
+                    {validationErrors.content}
+                  </p>
+                )}
+
                 <div className="text-xs text-gray-500 font-light">
                   <p>
-                    💡 Content is automatically saved every 5 minutes. Click the
-                    camera icon to upload images.
+                    Ensure you always hit the save draft to save your work
+                    locally to your device so that you don't lose your work
                   </p>
                 </div>
               </div>
@@ -1340,7 +1492,6 @@ const CreateNewBlog = ({
                   )}
                 </div>
                 <div className="text-xs text-gray-500 font-light space-x-4">
-                  <span>Auto-save: Every 5 minutes</span>
                   <span>Last saved: {formatLastSaved(lastSaved)}</span>
                 </div>
               </div>
@@ -1392,17 +1543,14 @@ const CreateNewBlog = ({
                     {new Date(article.publishedAt).toLocaleDateString()}
                   </span>
                 )}
-                {article.slug && (
-                  <span className="hidden sm:inline">
-                    Slug:{" "}
-                    <code className="text-xs">{article.slug.current}</code>
-                  </span>
-                )}
               </div>
 
               {/* Content */}
               <div className="prose prose-lg max-w-none prose-headings:font-light prose-headings:text-black prose-p:text-black prose-p:font-light prose-p:leading-relaxed">
-                <PortableTextRenderer value={article.content} />
+                <PortableText
+                  components={PreviewComponents}
+                  value={article.content}
+                />
               </div>
             </article>
           )}

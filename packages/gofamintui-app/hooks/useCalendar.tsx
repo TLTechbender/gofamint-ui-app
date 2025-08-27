@@ -37,7 +37,7 @@ const fetchEventsForMonth = async ({
       getEventsForCalendarQuery,
       params
     );
-console.log('I fetched')
+
     return {
       events,
       totalCount: events.length,
@@ -45,7 +45,7 @@ console.log('I fetched')
       month,
     };
   } catch (error) {
-    console.error("Error fetching fellowship events:", error);
+   
     throw new Error(
       `Failed to fetch events for ${year}-${month}: ${error instanceof Error ? error.message : "Unknown error"}`
     );

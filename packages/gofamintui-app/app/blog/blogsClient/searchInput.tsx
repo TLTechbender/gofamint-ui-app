@@ -1,14 +1,15 @@
 "use client";
 
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { useTransition, useState, useEffect } from "react";
+import { useTransition, useState, useEffect, Suspense } from "react";
 
 interface SearchInputProps {
   placeholder?: string;
   className?: string;
 }
 
-export function SearchInput({
+
+function SearchInputCore({
   placeholder = "Search blog posts...",
   className = "",
 }: SearchInputProps) {
@@ -20,7 +21,7 @@ export function SearchInput({
   const urlSearchTerm = searchParams.get("search") || "";
   const [inputValue, setInputValue] = useState(urlSearchTerm);
 
-  // Sync input with URL when URL changes (e.g., back/forward navigation)
+  
   useEffect(() => {
     setInputValue(urlSearchTerm);
   }, [urlSearchTerm]);
@@ -71,5 +72,36 @@ export function SearchInput({
         </div>
       )}
     </div>
+  );
+}
+
+// Fallback component while loading
+function SearchInputFallback({
+  placeholder = "Search blog posts...",
+  className = "",
+}: SearchInputProps) {
+  return (
+    <div className="relative">
+      <input
+        type="text"
+        placeholder={placeholder}
+        disabled
+        className={`
+          w-full px-4 py-2 border border-gray-300 rounded-lg 
+          focus:ring-2 focus:ring-blue-500 focus:border-transparent 
+          outline-none transition-all duration-200 opacity-50
+          ${className}
+        `}
+      />
+    </div>
+  );
+}
+
+
+export function SearchInput(props: SearchInputProps) {
+  return (
+    <Suspense fallback={<SearchInputFallback {...props} />}>
+      <SearchInputCore {...props} />
+    </Suspense>
   );
 }

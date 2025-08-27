@@ -3,13 +3,20 @@ import { useState, useTransition, useOptimistic } from "react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
+/**
+ * THis started out as a simple static page component, after many iterations it has become long asf
+ *
+ * Basic ass stuff be taking lots of lines of code to implement mehn😢 😢 😢
+ *
+ * Might have split this into smaller components here and there but trust me I didn't wat that cos the files are getting many in the first place and it's just some basic stuff I wanted to do
+ */
+
 import {
   Edit,
   Eye,
   Heart,
   Users,
   BookOpen,
-
   Save,
   X,
   Camera,
@@ -21,6 +28,8 @@ import {
   Globe,
   Plus,
   Trash2,
+  Loader2,
+  CheckCircle,
 } from "lucide-react";
 import {
   AuthorDetailsBarImagesSchemaData,
@@ -35,6 +44,9 @@ import {
 import { toast } from "react-toastify";
 import Link from "next/link";
 import { AuthorAnalytics } from "@/actions/author/authorAnalytics";
+import { useGetAuthorRecentPosts } from "@/hooks/useGetAuthorRecentPosts";
+import InfiniteScrollContainer from "@/components/infiniteScrollContainer";
+import { FaHeart } from "react-icons/fa6";
 
 // Type definitions
 export interface ProfileData {
@@ -73,16 +85,31 @@ interface StatCardProps {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: number;
-
   isMain?: boolean;
+}
+
+function formatHumanDateTime(dateString: string | Date): string {
+  const date = new Date(dateString);
+
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  });
 }
 
 const AuthorDashboardClient = ({
   profileData,
   analyticsData,
+  authorId,
 }: {
   profileData: ProfileData;
   analyticsData: AuthorAnalytics;
+  authorId: string;
 }) => {
   const [isBioEditing, setIsBioEditing] = useState<boolean>(false);
   const [isImageEditing, setIsImageEditing] = useState<boolean>(false);
@@ -139,33 +166,6 @@ const AuthorDashboardClient = ({
     name: "socialMedia",
   });
 
-  const recentPosts: Post[] = [
-    {
-      title: "Finding Community in Faith",
-      views: 834,
-      likes: 67,
-      date: "2 days ago",
-    },
-    {
-      title: "Campus Life Reflections",
-      views: 1247,
-      likes: 89,
-      date: "1 week ago",
-    },
-    {
-      title: "Prayer and Study Balance",
-      views: 692,
-      likes: 45,
-      date: "2 weeks ago",
-    },
-    {
-      title: "GSF UI Conference Highlights",
-      views: 1856,
-      likes: 134,
-      date: "3 weeks ago",
-    },
-  ];
-
   // Handle file selection for image preview
   const handleImageFileChange = (file: File) => {
     if (file) {
@@ -189,7 +189,6 @@ const AuthorDashboardClient = ({
           socials: data.socialMedia || [],
         });
 
-        console.log("data for checking", data);
         // Create FormData for server action
         const formData = new FormData();
         formData.append("bio", data.bio);
@@ -215,7 +214,7 @@ const AuthorDashboardClient = ({
       } catch (error) {
         // Revert optimistic update on error
         updateOptimisticProfile(profileData);
-        console.error("Error updating profile:", error);
+
         toast.error("Failed to update profile. Please try again.");
       }
     });
@@ -259,7 +258,6 @@ const AuthorDashboardClient = ({
           );
         }
       } catch (error) {
-        console.error("Error updating profile picture:", error);
         toast.error("Failed to update profile picture. Please try again.");
       }
     });
@@ -312,7 +310,6 @@ const AuthorDashboardClient = ({
     icon: Icon,
     label,
     value,
-   
     isMain = false,
   }) => (
     <div
@@ -327,7 +324,6 @@ const AuthorDashboardClient = ({
             {label}
           </span>
         </div>
-        
       </div>
       <div className="space-y-1">
         <p
@@ -335,13 +331,79 @@ const AuthorDashboardClient = ({
         >
           {value.toLocaleString()}
         </p>
-      
       </div>
     </div>
   );
 
   // Determine which image to show: preview > optimistic > original
   const currentImageUrl = previewImageUrl || optimisticProfile.profileImage;
+  const {
+    posts,
+    metadata,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+  } = useGetAuthorRecentPosts(authorId);
+
+  // Loading state component
+  const LoadingPosts = () => (
+    <div className="space-y-4">
+      {[...Array(3)].map((_, index) => (
+        <div
+          key={index}
+          className="bg-white border border-gray-100 p-4 sm:p-6 rounded-sm animate-pulse"
+        >
+          <div className="flex flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex-1">
+              <div className="h-5 bg-gray-200 rounded-sm mb-2 w-3/4"></div>
+              <div className="h-4 bg-gray-100 rounded-sm w-1/2"></div>
+            </div>
+            <div className="flex items-center space-x-4 sm:space-x-8">
+              <div className="flex items-center space-x-2">
+                <Eye className="w-4 h-4 text-gray-200" />
+                <div className="h-4 bg-gray-100 rounded-sm w-8"></div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Heart className="w-4 h-4 text-gray-200" />
+                <div className="h-4 bg-gray-100 rounded-sm w-8"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  // End state component
+  const EndOfPosts = () => (
+    <div className="text-center py-12">
+      <div className="flex items-center justify-center space-x-3 mb-4">
+        <div className="w-8 h-px bg-blue-400"></div>
+        <CheckCircle className="w-6 h-6 text-blue-400" />
+        <div className="w-8 h-px bg-blue-400"></div>
+      </div>
+      <h3 className="text-lg md:text-xl font-light text-black mb-2">
+        End of Your Published Works
+      </h3>
+      <p className="text-sm md:text-base text-gray-600 font-light">
+        You've reached the end of your published articles. Keep writing to see
+        more content here!
+      </p>
+    </div>
+  );
+
+  // Loading more indicator
+  const LoadingMore = () => (
+    <div className="flex items-center justify-center py-8">
+      <div className="flex items-center space-x-3">
+        <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />
+        <span className="text-sm font-medium text-blue-400 tracking-wide uppercase">
+          Loading more posts...
+        </span>
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -705,20 +767,17 @@ const AuthorDashboardClient = ({
                 icon={Eye}
                 label="Total Views"
                 value={analyticsData.totalGenericViews}
-              
                 isMain={true}
               />
               <StatCard
                 icon={Users}
                 label="Verified Views"
                 value={analyticsData.totalVerifiedViews}
-               
               />
               <StatCard
                 icon={Heart}
                 label="Total Likes"
                 value={analyticsData.totalLikes}
-               
               />
               <StatCard
                 icon={BookOpen}
@@ -746,46 +805,113 @@ const AuthorDashboardClient = ({
               </Link>
             </div>
 
-            <div className="space-y-3 sm:space-y-4">
-              {recentPosts.map((post, index) => (
-                <div
-                  key={index}
-                  className="bg-white border border-gray-100 hover:border-gray-200 transition-all duration-300 hover:shadow-lg p-4 sm:p-6 rounded-sm"
+            {/* Loading state */}
+            {isLoading ? (
+              <LoadingPosts />
+            ) : (
+              <div className="space-y-3 sm:space-y-4">
+                <InfiniteScrollContainer
+                  onBottomReached={() => {
+                    if (hasNextPage && !isFetchingNextPage) {
+                      return fetchNextPage();
+                    }
+                    return;
+                  }}
                 >
-                  <div className="flex flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
-                    <div className="flex-1">
-                      <h3 className="text-base sm:text-lg font-medium text-black mb-1 sm:mb-2 hover:text-blue-500 transition-colors cursor-pointer leading-snug">
-                        {post.title}
-                      </h3>
-                      <p className="text-xs sm:text-sm text-gray-600 font-light">
-                        Published {post.date}
-                      </p>
-                    </div>
+                  {posts.map((post, index) => (
+                    <div
+                      key={index}
+                      className="group bg-white border border-gray-100 hover:border-gray-200 transition-all duration-300 hover:shadow-lg p-4 sm:p-6 rounded-sm"
+                    >
+                      <div className="flex flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between gap-3 mb-1 sm:mb-2">
+                            <Link
+                              href={`/blog/${post.sanitySlug}`}
+                              className="text-base sm:text-lg font-medium text-black hover:text-blue-500 transition-colors cursor-pointer leading-snug flex-1"
+                            >
+                              {post.title}
+                            </Link>
 
-                    <div className="flex items-center space-x-4 sm:space-x-8 text-sm">
-                      <div className="flex items-center space-x-2">
-                        <Eye className="w-4 h-4 text-gray-400" />
-                        <span className="text-black font-light">
-                          {post.views.toLocaleString()}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Heart className="w-4 h-4 text-gray-400" />
-                        <span className="text-black font-light">
-                          {post.likes}
-                        </span>
+                            <Link
+                              href={`/publishing/author/edit/${post.sanitySlug}`}
+                              className="md:hidden flex items-center justify-center w-8 h-8 text-blue-400 hover:text-blue-500 hover:bg-blue-50 transition-all duration-200 rounded-sm flex-shrink-0"
+                              title="Edit post"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Link>
+                          </div>
+
+                          <p className="text-xs sm:text-sm text-gray-600 font-light">
+                            {post.publishedAt
+                              ? `Published at ${formatHumanDateTime(new Date(post.publishedAt))}`
+                              : ""}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center justify-between md:justify-end">
+                          <div className="flex items-center space-x-4 sm:space-x-8 text-sm">
+                            <div className="flex items-center space-x-2">
+                              <Eye className="w-4 h-4 text-gray-400" />
+                              <span className="text-black font-light">
+                                {post.genericViewCount}
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <FaHeart className="w-4 h-4 text-red-400" />
+                              <span className="text-black font-light">
+                                {post.likesCount}
+                              </span>
+                            </div>
+                          </div>
+
+                          <Link
+                            href={`/publishing/author/edit/${post.sanitySlug}`}
+                            className="hidden md:flex items-center space-x-2 ml-6 px-3 py-2 text-blue-400 hover:text-blue-500 hover:bg-blue-50 transition-all duration-200 rounded-sm opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0"
+                            title="Edit post"
+                          >
+                            <Edit className="w-4 h-4" />
+                            <span className="text-sm font-medium">Edit</span>
+                          </Link>
+                        </div>
                       </div>
                     </div>
+                  ))}
+                </InfiniteScrollContainer>
+
+                {/* Loading more indicator */}
+                {isFetchingNextPage && <LoadingMore />}
+
+                {/* End state */}
+                {!hasNextPage && posts.length > 0 && <EndOfPosts />}
+
+                {/* No posts state */}
+                {!isLoading && posts.length === 0 && (
+                  <div className="text-center py-20">
+                    <div className="flex items-center justify-center space-x-3 mb-6">
+                      <div className="w-8 h-px bg-blue-400"></div>
+                      <BookOpen className="w-8 h-8 text-blue-400" />
+                      <div className="w-8 h-px bg-blue-400"></div>
+                    </div>
+                    <h3 className="text-2xl md:text-3xl font-light text-black mb-4 leading-tight">
+                      No Published Posts Yet
+                    </h3>
+                    <p className="text-lg text-black font-light mb-8 max-w-md mx-auto">
+                      Start your writing journey by creating your first post.
+                      Share your thoughts, experiences, and insights with the
+                      community.
+                    </p>
+                    <Link
+                      href={`/publishing/author/new`}
+                      className="inline-flex items-center space-x-2 bg-blue-400 text-white px-6 py-3 hover:bg-blue-500 transition-colors font-medium tracking-wide uppercase rounded-sm"
+                    >
+                      <Plus className="w-5 h-5" />
+                      <span>Write Your First Post</span>
+                    </Link>
                   </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-6 sm:mt-8 text-center">
-              <button className="text-blue-400 hover:text-blue-500 transition-colors font-medium text-sm tracking-wide uppercase">
-                View All Posts →
-              </button>
-            </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
