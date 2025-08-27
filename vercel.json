@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "packages/gofamintui-app/package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "packages/gofamintui-app/$1"
+    }
+  ],
+  "installCommand": "npm install",
+  "buildCommand": "turbo run build --filter=gofamintui-app",
+  "outputDirectory": "packages/gofamintui-app/.next"
+}
