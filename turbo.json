@@ -3,7 +3,16 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": [
+        "NEXTAUTH_URL",
+        "NEXTAUTH_SECRET",
+        "AUTH_GOOGLE_CLIENT_SECRET",
+        "AUTH_GOOGLE_CLIENT_ID",
+        "SANITY_WEBHOOK_SECRET",
+        "DATABASE_URL",
+        "DIRECT_URL"
+      ]
     },
     "dev": {
       "cache": false,

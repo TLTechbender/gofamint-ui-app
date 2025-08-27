@@ -1,12 +1,12 @@
 import NextAuth from "next-auth";
-import Credentials from "next-auth/providers/credentials";
-import Google from "next-auth/providers/google";
-import bcrypt from "bcrypt";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import type { DefaultSession } from "next-auth";
-import { prisma } from "./lib/prisma/prisma";
+import bcrypt from "bcrypt";
 import crypto from "crypto";
+import { prisma } from "./lib/prisma/prisma";
+import authConfig from "@/auth.config";
 
+// Your helper functions stay the same
 interface DatabaseUser {
   id: string;
   email: string;
@@ -22,91 +22,15 @@ interface DatabaseUser {
   updatedAt: Date;
 }
 
-// Helper function to create a new user
-async function createNewUser(userData: {
-  email: string;
-  userName: string;
-  firstName: string;
-  lastName: string;
-  password: string;
-  phoneNumber: string;
-}) {
+async function getUserByEmail(email: string): Promise<DatabaseUser | null> {
   try {
-    const [existingUserByEmail, existingUserByUsername, existingUserByPhone] =
-      await Promise.all([
-        getUserByEmail(userData.email),
-        getUserByUsername(userData.userName),
-        getUserByPhoneNumber(userData.phoneNumber),
-      ]);
-
-    if (existingUserByEmail) {
-      if (!existingUserByEmail.isVerified) {
-        return {
-          success: false,
-          user: existingUserByEmail,
-          message: "Email already exists but requires verification",
-          field: "emailVerification",
-        };
-      }
-      return {
-        success: false,
-        user: null,
-        message: "User with this email already exists",
-        field: "email",
-      };
-    }
-
-    if (existingUserByUsername) {
-      if (!existingUserByUsername.isVerified) {
-        return {
-          success: false,
-          user: existingUserByUsername,
-          message: "Username already exists but requires verification",
-          field: "userNameVerification",
-        };
-      }
-      return {
-        success: false,
-        user: null,
-        message: "Username is already taken",
-        field: "userName",
-      };
-    }
-
-    if (existingUserByPhone) {
-      return {
-        success: false,
-        user: null,
-        message: "Phone number is already registered",
-        field: "phoneNumber",
-      };
-    }
-
-    const hashedPassword = await bcrypt.hash(userData.password, 12);
-
-    const newUser = await prisma.user.create({
-      data: {
-        ...userData,
-        password: hashedPassword,
-        bio: null,
-        isAuthor: false,
-      },
+    const user = await prisma.user.findUnique({
+      where: { email },
     });
-
-    return {
-      success: true,
-      user: newUser,
-      message: "User created successfully",
-      field: null,
-    };
+    return user;
   } catch (error) {
-    console.error("Failed to create new user:", error);
-    return {
-      success: false,
-      user: null,
-      message: "User creation failed due to server error",
-      field: null,
-    };
+    console.error("Failed to fetch user by email:", error);
+    throw new Error("User lookup failed");
   }
 }
 
@@ -118,18 +42,6 @@ export async function getUserByPhoneNumber(
       phoneNumber: phoneNumber,
     },
   });
-}
-
-async function getUserByEmail(email: string): Promise<DatabaseUser | null> {
-  try {
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
-    return user;
-  } catch (error) {
-    console.error("Failed to fetch user by email:", error);
-    throw new Error("User lookup failed");
-  }
 }
 
 async function getUserByUsername(
@@ -151,12 +63,6 @@ function generateRandomString(length: number = 4): string {
   const array = new Uint8Array(length);
   crypto.getRandomValues(array);
   return Array.from(array, (byte) => chars[byte % chars.length]).join("");
-}
-
-function generateUsernameFromEmail(email: string): string {
-  const baseUsername = email.split("@")[0].toLowerCase();
-  const randomSuffix = generateRandomString(4);
-  return `${baseUsername}_${randomSuffix}`;
 }
 
 function generateUniqueUsernameOptions(
@@ -212,7 +118,6 @@ async function findAvailableUsername(email: string): Promise<string> {
     }));
 
     const results = await Promise.all(availabilityChecks);
-
     const available = results.find((result) => result.isAvailable);
 
     if (available) {
@@ -229,7 +134,9 @@ async function findAvailableUsername(email: string): Promise<string> {
     return `${baseUsername}_${timestamp.slice(-8)}_${randomSuffix}`;
   } catch (error) {
     console.error("Error checking username availability:", error);
-    return generateUsernameFromEmail(email);
+    const baseUsername = email.split("@")[0].toLowerCase();
+    const randomSuffix = generateRandomString(4);
+    return `${baseUsername}_${randomSuffix}`;
   }
 }
 
@@ -250,86 +157,27 @@ function parseGoogleUserName(fullName: string | null | undefined): {
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
-  providers: [
-    Google({
-      clientId: process.env.AUTH_GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.AUTH_GOOGLE_CLIENT_SECRET!,
-    }),
-    Credentials({
-      name: "credentials",
-      credentials: {
-        emailOrUsername: {
-          label: "Email or Username",
-          type: "text",
-          placeholder: "Enter email or username",
-        },
-        password: { label: "Password", type: "password" },
-      },
-      authorize: async (credentials) => {
-        try {
-          if (!credentials?.emailOrUsername || !credentials?.password) {
-            return null;
-          }
-
-          const emailOrUsername = String(credentials.emailOrUsername);
-          const password = String(credentials.password);
-
-          const user =
-            (await getUserByEmail(emailOrUsername)) ||
-            (await getUserByUsername(emailOrUsername));
-
-          if (!user || !user.isVerified) {
-            return null;
-          }
-
-          // Block credentials if user has no password (Google user)
-          if (!user.password) {
-            return null;
-          }
-
-          const isValidPassword = await bcrypt.compare(password, user.password);
-          if (!isValidPassword) {
-            return null;
-          }
-
-          return {
-            id: user.id,
-            email: user.email,
-            name: `${user.firstName} ${user.lastName}`.trim(),
-            firstName: user.firstName,
-            lastName: user.lastName,
-            userName: user.userName,
-            phoneNumber: user.phoneNumber || "",
-            bio: user.bio || "",
-            isAuthor: user.isAuthor,
-            isVerified: user.isVerified,
-          };
-        } catch (error) {
-          console.error("Authentication error:", error);
-          return null;
-        }
-      },
-    }),
-  ],
   session: {
     strategy: "jwt",
-    maxAge: 5 * 24 * 60 * 60, // 5 days in seconds
+    maxAge: 5 * 24 * 60 * 60, // 5 days
+  },
+  pages: {
+    signIn: "/auth/signin",
+    error: "/auth/error",
   },
   callbacks: {
     async signIn({ user, account }) {
+      // Allow OAuth without email verification initially
       if (account?.provider === "google") {
         try {
           const existingUser = await getUserByEmail(user.email!);
 
           if (existingUser) {
-            if (!existingUser.isVerified) {
-              return false;
-            }
+            // Block unverified users
+            if (!existingUser.isVerified) return false;
 
-            // Block Google if user has password (normal auth user)
-            if (existingUser.password) {
-              return false;
-            }
+            // Block Google login if user has password (credentials user)
+            if (existingUser.password) return false;
 
             return true;
           }
@@ -358,10 +206,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return false;
         }
       }
+
+      // For credentials login - additional verification logic can go here
       return true;
     },
 
-    async jwt({ token, trigger, session, user }) {
+    async jwt({ token, user, trigger, session }) {
       // Handle session updates
       if (trigger === "update" && session?.user) {
         Object.assign(token, {
@@ -391,7 +241,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return token;
       }
 
-      // Fetch missing user data if needed
+      // Fetch user data if missing (shouldn't happen often)
       if (token.id && !token.userName) {
         try {
           const dbUser = await prisma.user.findUnique({
@@ -436,12 +286,55 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return session;
     },
   },
-  pages: {
-    signIn: "/signin",
-    error: "/signin",
-  },
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === "development",
+  // Spread the authConfig to inherit providers
+  ...authConfig,
+});
+
+// Override the credentials authorize function with your logic
+authConfig.providers?.forEach((provider) => {
+  if (provider.id === "credentials") {
+    (provider as any).authorize = async (credentials: any) => {
+      try {
+        if (!credentials?.emailOrUsername || !credentials?.password) {
+          return null;
+        }
+
+        const emailOrUsername = String(credentials.emailOrUsername);
+        const password = String(credentials.password);
+
+        const user =
+          (await getUserByEmail(emailOrUsername)) ||
+          (await getUserByUsername(emailOrUsername));
+
+        if (!user || !user.isVerified || !user.password) {
+          return null;
+        }
+
+        const isValidPassword = await bcrypt.compare(password, user.password);
+        if (!isValidPassword) {
+          return null;
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: `${user.firstName} ${user.lastName}`.trim(),
+          firstName: user.firstName,
+          lastName: user.lastName,
+          userName: user.userName,
+          phoneNumber: user.phoneNumber || "",
+          bio: user.bio || "",
+          isAuthor: user.isAuthor,
+          isVerified: user.isVerified,
+        };
+      } catch (error) {
+        console.error("Authentication error:", error);
+        return null;
+      }
+    };
+  }
 });
 
 // Type declarations
@@ -483,4 +376,4 @@ declare module "@auth/core/jwt" {
   }
 }
 
-export { createNewUser, getUserByEmail, getUserByUsername };
+export { getUserByEmail, getUserByUsername };
