@@ -3,7 +3,7 @@ import { ResetPasswordActionState } from "@/lib/formActionStates/resetPasswordAc
 import { prisma } from "@/lib/prisma/prisma";
 import { resetPasswordSchemaServer } from "@/lib/formSchemas/resetPasswordSchemaServer";
 import verifyToken from "@/lib/tokenHandler/verifyToken";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 export default async function resetPassword(
   formData: FormData
