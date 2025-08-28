@@ -1,131 +1,133 @@
 import { Metadata } from "next";
-import React, { Suspense } from "react";
+import React from "react";
 import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
 import { FellowshipEventsSeo } from "@/sanity/interfaces/fellowshipEvent";
 import { fellowshipEventPageMetadataQuery } from "@/sanity/queries/fellowshipEventMetadata";
-import DynamicFellowshpCalendar from "@/components/events/dynamicFellowshipCalendar";
+import CalendarWrapper from "@/components/events/calendarWrapper";
+
+//Don't ever server side this page
 export const dynamic = "force-dynamic";
-//Deciding to hardcode the meta data this cos why not, To me it would feel too extra to put this
+
 export async function generateMetadata(): Promise<Metadata> {
-  const dynamicMetaData = await sanityFetchWrapper<FellowshipEventsSeo>(
-    fellowshipEventPageMetadataQuery,
-    {},
-    [
-      "fellowshipEvent",
-      "whatsappContactWidget",
-      "footer",
-      "fellowshipEventMetadata",
-    ]
-  );
+  try {
+    const dynamicMetaData = await sanityFetchWrapper<FellowshipEventsSeo>(
+      fellowshipEventPageMetadataQuery,
+      {},
+      [
+        "fellowshipEvent",
+        "whatsappContactWidget",
+        "footer",
+        "fellowshipEventMetadata",
+      ]
+    );
 
-  const optimizedImageUrl = dynamicMetaData?.seo.ogImage?.asset?.url
-    ? `${dynamicMetaData.seo.ogImage.asset.url}?w=1200&h=630&fit=crop&auto=format`
-    : null;
-  const title = dynamicMetaData?.seo.title || "Events Calendar | GSF UI";
-  const description =
-    dynamicMetaData.seo.description ||
-    "Stay updated with upcoming, current, and past events at Gofamint Students' Fellowship, University of Ibadan. Join our vibrant community for spiritual growth, fellowship, and inspiring gatherings.";
-  const keywords = dynamicMetaData?.seo.keywords || [
-    "GSF UI events",
-    "Gofamint Students Fellowship events",
-    "University of Ibadan student events",
-    "student fellowship calendar",
-    "upcoming events",
-    "spiritual gatherings",
-    "student ministry",
-    "fellowship activities",
-    "Christian student events",
-    "campus ministry",
-    "student community",
-    "faith-based events",
-  ];
+    const optimizedImageUrl = dynamicMetaData?.seo.ogImage?.asset?.url
+      ? `${dynamicMetaData.seo.ogImage.asset.url}?w=1200&h=630&fit=crop&auto=format`
+      : null;
 
-  return {
-    title,
-    description,
-    keywords,
-    authors: [
-      {
-        name: "Gofamint Students' Fellowship UI Chapter",
-        url: `${process.env.NEXT_PUBLIC_SITE_URL}`,
-      },
-    ],
-    creator: "Bolarinwa Paul Ayomide (https://github.com/TLTechbender)",
-    publisher: "Gofamint Students' Fellowship UI",
-    category: "Church",
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: {
+    const title = dynamicMetaData?.seo.title || "Events Calendar | GSF UI";
+    const description =
+      dynamicMetaData?.seo.description ||
+      "Stay updated with upcoming, current, and past events at Gofamint Students' Fellowship, University of Ibadan. Join our vibrant community for spiritual growth, fellowship, and inspiring gatherings.";
+
+    const keywords = dynamicMetaData?.seo.keywords || [
+      "GSF UI events",
+      "Gofamint Students Fellowship events",
+      "University of Ibadan student events",
+      "student fellowship calendar",
+      "upcoming events",
+      "spiritual gatherings",
+      "student ministry",
+      "fellowship activities",
+      "Christian student events",
+      "campus ministry",
+      "student community",
+      "faith-based events",
+    ];
+
+    return {
+      title,
+      description,
+      keywords,
+      authors: [
+        {
+          name: "Gofamint Students' Fellowship UI Chapter",
+          url: `${process.env.NEXT_PUBLIC_SITE_URL}`,
+        },
+      ],
+      creator: "Bolarinwa Paul Ayomide (https://github.com/TLTechbender)",
+      publisher: "Gofamint Students' Fellowship UI",
+      category: "Church",
+      robots: {
         index: true,
         follow: true,
-        "max-video-preview": -1,
-        "max-image-preview": "large",
-        "max-snippet": -1,
+        googleBot: {
+          index: true,
+          follow: true,
+          "max-video-preview": -1,
+          "max-image-preview": "large",
+          "max-snippet": -1,
+        },
       },
-    },
-    verification: {
-      google: `${process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION_CODE}`,
-    },
-    openGraph: {
-      title,
-      description,
-      url: `${process.env.NEXT_PUBLIC_SITE_URL}/events`,
-      siteName: "GSF UI",
-      locale: "en_NG",
-      type: "website",
-      countryName: "Nigeria",
-
-      images: optimizedImageUrl
-        ? [
-            {
-              url: optimizedImageUrl,
-              width: 1200,
-              height: 630,
-              alt: dynamicMetaData?.seo.ogImage?.alt || title,
-              type: "image/jpeg",
-            },
-          ]
-        : [],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      site: "@gofamintui",
-      creator: "@gofamintui",
-      images: optimizedImageUrl
-        ? [
-            {
-              url: optimizedImageUrl,
-              alt: dynamicMetaData?.seo.ogImage?.alt || title,
-            },
-          ]
-        : [],
-    },
-    alternates: {
-      canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/events`,
-    },
-    other: {
-      "theme-color": "#4169E1",
-      "color-scheme": "light",
-    },
-    metadataBase: new URL(`${process.env.NEXT_PUBLIC_SITE_URL}/events`),
-  };
+      verification: {
+        google: `${process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION_CODE}`,
+      },
+      openGraph: {
+        title,
+        description,
+        url: `${process.env.NEXT_PUBLIC_SITE_URL}/events`,
+        siteName: "GSF UI",
+        locale: "en_NG",
+        type: "website",
+        countryName: "Nigeria",
+        images: optimizedImageUrl
+          ? [
+              {
+                url: optimizedImageUrl,
+                width: 1200,
+                height: 630,
+                alt: dynamicMetaData?.seo.ogImage?.alt || title,
+                type: "image/jpeg",
+              },
+            ]
+          : [],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        site: "@gofamintui",
+        creator: "@gofamintui",
+        images: optimizedImageUrl
+          ? [
+              {
+                url: optimizedImageUrl,
+                alt: dynamicMetaData?.seo.ogImage?.alt || title,
+              },
+            ]
+          : [],
+      },
+      alternates: {
+        canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/events`,
+      },
+      other: {
+        "theme-color": "#4169E1",
+        "color-scheme": "light",
+      },
+      metadataBase: new URL(`${process.env.NEXT_PUBLIC_SITE_URL}/events`),
+    };
+  } catch (error) {
+    console.error("Error generating metadata:", error);
+    // Return fallback metadata
+    return {
+      title: "Events Calendar | GSF UI",
+      description:
+        "Stay updated with upcoming, current, and past events at Gofamint Students' Fellowship, University of Ibadan.",
+    };
+  }
 }
 
-/**
- * Was this dynamic import necessary? No
- * Should I have done it? 50 | 50
- * Did I do it?  Yessssss
- *
- * -<OluwaBrimz/>
- */
-
-
 export default async function Events() {
- 
-
   return (
     <main className="overflow-hidden">
       <section className="relative bg-[#f4f4f4] ">
@@ -187,6 +189,7 @@ export default async function Events() {
           </div>
         </div>
       </section>
+
       <section className="bg-gray-50 py-16 md:py-20">
         <div className="container mx-auto px-6 md:px-8 max-w-7xl">
           <div className="text-center mb-12">
@@ -204,27 +207,12 @@ export default async function Events() {
             </p>
           </div>
 
-          <Suspense
-            fallback={
-              <div className="min-h-screen flex items-center justify-center bg-white rounded-xl shadow-sm p-8">
-                <div className="text-center">
-                  <div className="w-12 h-12 border-4 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
-                  <p className="text-lg text-black font-light">
-                    Preparing Events Calendar...
-                  </p>
-                </div>
-              </div>
-            }
-          >
-            {/**
-             * Not gonna lie, I'm proud of how I was able to implement this fellowship calendar bro
-             */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              <DynamicFellowshpCalendar />
-            </div>
-          </Suspense>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <CalendarWrapper/>
+          </div>
         </div>
       </section>
+
       <section className="bg-white py-16 md:py-20">
         <div className="container mx-auto px-6 md:px-8 max-w-6xl">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
