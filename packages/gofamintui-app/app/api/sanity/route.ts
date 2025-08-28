@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
 import { isValidSignature, SIGNATURE_HEADER_NAME } from "@sanity/webhook";
+import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { Author } from "@/sanity/interfaces/author";
 import { SanityImage } from "@/sanity/interfaces/sanityImage";
 import { PortableTextBlock } from "@portabletext/react";
@@ -10,14 +11,15 @@ import {
   sendAuthorApprovedEmail,
   sendAuthorRevokedEmail,
 } from "@/lib/email/emailHandler";
-import { revalidatePath, revalidateTag } from "next/cache";
 
-// Use a single webhook secret for both document types
+/**
+ * Combined both webhooks into one cos sanity seems to be having fun with me using only one webhook, feels like they spinnig one down
+ * in favour of the other
+ */
+
 const secret = process.env.SANITY_WEBHOOK_SECRET!;
 
-//todo: I need some more revalidating here man, come back later bro
-
-// Blog webhook payload interface
+// ========== INTERFACES ==========
 interface BlogWebHookPayload {
   excerpt: string;
   _id: string;
@@ -105,9 +107,90 @@ export interface CheckBlogStatusResponse {
   updatedAt?: string;
 }
 
-// Union type for webhook payload
-type WebhookPayload = Author | BlogWebHookPayload;
+// Base webhook payload interface
+interface BaseWebhookPayload {
+  _type: string;
+  _id: string;
+}
 
+// Union type for all possible webhook payloads
+type CombinedWebhookPayload = Author | BlogWebHookPayload | BaseWebhookPayload;
+
+// ========== REVALIDATION FUNCTIONS ==========
+async function revalidateHomepage() {
+  revalidateTag("homepage");
+  revalidatePath("/");
+  return { tags: ["homepage"] };
+}
+
+async function revalidateBlogsPage() {
+  revalidateTag("blogsPage");
+  revalidatePath("/blog");
+  return { tags: ["blogsPage"] };
+}
+
+async function revalidateAboutPage() {
+  revalidateTag("aboutPage");
+  revalidatePath("/about");
+  return { tags: ["aboutPage"] };
+}
+
+async function revalidateContactInfo() {
+  revalidateTag("contactInfo");
+  revalidatePath("/contact");
+  return { tags: ["contactInfo"] };
+}
+
+async function revalidateFellowshipEvent() {
+  revalidateTag("fellowshipEvent");
+  revalidateTag("fellowshipEventMetadata");
+  revalidatePath("/events");
+  return { tags: ["fellowshipEvent", "fellowshipEventMetadata"] };
+}
+
+async function revalidateExecutives() {
+  revalidateTag("executives");
+  revalidatePath("/executives");
+  return { tags: ["executives"] };
+}
+
+async function revalidateGallery() {
+  revalidateTag("gallery");
+  revalidatePath("/gallery");
+  return { tags: ["gallery"] };
+}
+
+async function revalidateOnlineGiving() {
+  revalidateTag("onlineGiving");
+  revalidatePath("/giving");
+  return { tags: ["onlineGiving"] };
+}
+
+async function revalidateSermons() {
+  revalidateTag("sermons");
+  revalidateTag("sermon");
+  revalidateTag("sermonsPageMetadataAndHero");
+  revalidatePath("/sermons");
+  return { tags: ["sermon"] };
+}
+
+async function revalidateLiveStream() {
+  revalidateTag("liveStream");
+  revalidatePath("/live");
+  return { tags: ["liveStream"] };
+}
+
+async function revalidateFooter() {
+  revalidateTag("footer");
+  return { tags: ["footer"] };
+}
+
+async function revalidateWhatsappContactWidget() {
+  revalidateTag("whatsappContactWidget");
+  return { tags: ["whatsappContactWidget"] };
+}
+
+// ========== UTILITY FUNCTIONS ==========
 async function readBody(
   readable: ReadableStream<Uint8Array> | null
 ): Promise<string> {
@@ -129,7 +212,7 @@ async function readBody(
   return Buffer.concat(chunks).toString("utf8");
 }
 
-// UPDATED: Author handling logic with orphaned blogs approach
+// ========== DATABASE HANDLERS ==========
 async function handleAuthorWebhook(authorData: Author) {
   const isDocumentStillExistingInSanity = await sanityFetchWrapper<Author>(
     authorQuery,
@@ -157,12 +240,9 @@ async function handleAuthorWebhook(authorData: Author) {
             });
 
             // RESTORE: Re-link any orphaned blogs back to this author
-            // Find blogs that match this author's userId but currently have no author
             const orphanedBlogs = await tx.blog.findMany({
               where: {
                 authorId: null,
-                // Add any additional conditions here to identify blogs originally by this author
-                // You might want to add a field like 'originalAuthorUserId' for this purpose
               },
             });
 
@@ -210,30 +290,21 @@ async function handleAuthorWebhook(authorData: Author) {
           operation: "AUTHOR_ALREADY_APPROVED",
         };
       }
-
-      //todo: implement for blogs  revalidatePath(`/${issueNumber}`);
     } else {
       // Author exists in Sanity but is NOT approved (SUSPENDED)
-
-      // If author exists in DB but is no longer approved, SUSPEND them
       if (existingAuthorInDb) {
         try {
           await prisma.$transaction(async (tx) => {
-            // Get count of blogs before orphaning
-            const blogCount = await tx.blog.count({
-              where: { authorId: authorData.userId },
-            });
-
             // ORPHAN their blogs (set authorId to null) - blogs remain readable
             await tx.blog.updateMany({
               where: { authorId: authorData.userId },
               data: {
-                authorId: null, // Orphan the blogs
+                authorId: null,
                 sanityUpdatedAt: new Date().toISOString(),
               },
             });
 
-            // Remove the author from local DB (blogs remain due to SetNull)
+            // Remove the author from local DB
             await tx.author.delete({
               where: { userId: authorData.userId },
             });
@@ -280,11 +351,6 @@ async function handleAuthorWebhook(authorData: Author) {
     if (isAuthorInDb) {
       try {
         await prisma.$transaction(async (tx) => {
-          // Get count of blogs before orphaning
-          const blogCount = await tx.blog.count({
-            where: { authorId: authorData.userId },
-          });
-
           // ORPHAN their blogs instead of deleting them
           await tx.blog.updateMany({
             where: { authorId: authorData.userId },
@@ -332,10 +398,7 @@ async function handleAuthorWebhook(authorData: Author) {
   };
 }
 
-// Blog handling logic (unchanged from your original)
 async function handleBlogWebhook(blogData: BlogWebHookPayload) {
-  // Query Sanity for current status
-  //Keeping the query here cos it wasn't worth making this another files
   const blogWebhookQuery = `*[_type == "blogPost" && _id == $id][0]{
     _id, title, slug, authorDatabaseReferenceId, author->{_id, firstName, lastName, application},
     featuredImage{asset->{_id, url}, alt}, excerpt, content, publishedAt, isApprovedToBePublished,
@@ -463,6 +526,77 @@ async function handleBlogWebhook(blogData: BlogWebHookPayload) {
   }
 }
 
+// ========== REVALIDATION HANDLER ==========
+async function handleRevalidationWebhook(docType: string) {
+  let revalidationResult;
+
+  switch (docType) {
+    case "homepage":
+      revalidationResult = await revalidateHomepage();
+      break;
+
+    case "aboutpage":
+      revalidationResult = await revalidateAboutPage();
+      break;
+
+    case "blogsPage":
+      revalidationResult = await revalidateBlogsPage();
+      break;
+
+    case "contactInfo":
+      revalidationResult = await revalidateContactInfo();
+      break;
+
+    case "fellowshipEvent":
+      revalidationResult = await revalidateFellowshipEvent();
+      break;
+
+    case "executives":
+      revalidationResult = await revalidateExecutives();
+      break;
+
+    case "gallery":
+      revalidationResult = await revalidateGallery();
+      break;
+
+    case "onlineGiving":
+      revalidationResult = await revalidateOnlineGiving();
+      break;
+
+    case "sermonsPageMetadataAndHero":
+    case "sermon":
+      revalidationResult = await revalidateSermons();
+      break;
+
+    case "liveStream":
+      revalidationResult = await revalidateLiveStream();
+      break;
+
+    case "footer":
+      revalidationResult = await revalidateFooter();
+      break;
+
+    case "whatsappContactWidget":
+      revalidationResult = await revalidateWhatsappContactWidget();
+      break;
+
+    default:
+      return {
+        success: true,
+        message: `Document type '${docType}' does not require revalidation`,
+        operation: "REVALIDATION_NOT_NEEDED",
+      };
+  }
+
+  return {
+    success: true,
+    message: `Successfully revalidated for document type: ${docType}`,
+    operation: "REVALIDATED",
+    revalidated: revalidationResult,
+  };
+}
+
+// ========== MAIN HANDLER ==========
 export async function POST(request: NextRequest) {
   try {
     // Check signature
@@ -500,38 +634,43 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse payload
-    let parsedBody: WebhookPayload;
+    let parsedBody: CombinedWebhookPayload;
     try {
       parsedBody = JSON.parse(body);
-     
     } catch (e) {
-    
       return NextResponse.json(
         { success: false, message: "Invalid JSON" },
         { status: 400 }
       );
     }
 
-    // Route to appropriate handler based on document type
-    let result;
-
-    if (parsedBody._type === "author") {
-      result = await handleAuthorWebhook(parsedBody as Author);
-    } else if (parsedBody._type === "blogPost") {
-      result = await handleBlogWebhook(parsedBody as BlogWebHookPayload);
-    } else {
-     
+    // Ensure we have a document type
+    if (!parsedBody._type) {
       return NextResponse.json(
-        {
-          success: true,
-          message: `Document type not handled by this webhook`,
-          operation: "IGNORED",
-        },
-        { status: 200 }
+        { success: false, message: "Missing document type" },
+        { status: 400 }
       );
     }
 
-    // Return the result from the specific handler
+    let result;
+
+    // Route based on document type
+    switch (parsedBody._type) {
+      case "author":
+        result = await handleAuthorWebhook(parsedBody as Author);
+        break;
+
+      case "blogPost":
+        result = await handleBlogWebhook(parsedBody as BlogWebHookPayload);
+        break;
+
+      // Handle all other document types for revalidation only
+      default:
+        result = await handleRevalidationWebhook(parsedBody._type);
+        break;
+    }
+
+    // Return the result
     return NextResponse.json(result, {
       status: result.operation.includes("CREATED") ? 201 : 200,
     });
@@ -548,6 +687,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// ========== HTTP METHOD RESTRICTIONS ==========
 export async function PUT() {
   return new NextResponse("Method Not Allowed", { status: 405 });
 }
@@ -563,4 +703,3 @@ export async function DELETE() {
 export async function GET() {
   return new NextResponse("Method Not Allowed", { status: 405 });
 }
-
