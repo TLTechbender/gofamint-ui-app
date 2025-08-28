@@ -401,6 +401,8 @@ const ApplyPageClient = () => {
                         <Image
                           src={imagePreview}
                           sizes="128px"
+                          height={128}
+                          width={128}
                           alt="Profile preview"
                           className="w-full h-full object-cover"
                         />

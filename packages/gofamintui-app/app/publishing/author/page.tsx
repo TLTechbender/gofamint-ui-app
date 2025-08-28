@@ -9,6 +9,7 @@ import AuthorDashboardClient from "./authorDashboardClient";
 import Link from "next/link";
 import { getAuthorAnalytics } from "@/actions/author/authorAnalytics";
 import { getAuthorId } from "@/actions/author/authorId";
+import { SanityImage } from "@/sanity/interfaces/sanityImage";
 
 export interface ProfileData {
   firstName: string;
@@ -32,6 +33,20 @@ export interface SocialMedia {
   handle?: string;
 }
 
+type ApplicationStatus = "pending" | "approved" | "rejected";
+
+interface AuthorApprovalQueryResult {
+  userId: string;
+  isApproved: boolean | null;
+  status: ApplicationStatus;
+  approvedAt: string | null;
+  rejectionReason: string | null;
+  firstName: string;
+  lastName: string;
+  authorBio: string;
+  profilePic: SanityImage;
+}
+
 // Dynamic metadata generation
 export async function generateMetadata(): Promise<Metadata> {
   const session = await auth();
@@ -48,13 +63,43 @@ export async function generateMetadata(): Promise<Metadata> {
       },
     };
   }
+  const authorApprovalQuery = `*[_type == "author" && userId == $userId][0]{
+    userId,
+     firstName,
+  lastName,
+  authorBio,
+    profilePic {
+    asset-> {
+      _id,
+      url,
+      metadata {
+        dimensions {
+          width,
+          height
+        },
+        lqip
+      }
+    },
+    hotspot,
+    crop
+  },
+    "isApproved": application.isApproved,
+    "status": application.status,
+    "approvedAt": application.approvedAt,
+    "rejectionReason": application.rejectionReason
+  }`;
 
-  const authorProfileData = await sanityFetchWrapper<Author>(authorQuery, {
-    userId: session.user.id,
-  });
+  const authorApprovalStats =
+    await sanityFetchWrapper<AuthorApprovalQueryResult>(authorApprovalQuery, {
+      userId: session.user.id,
+    });
 
   // Default metadata if no author data found
-  if (!authorProfileData || Object.keys(authorProfileData).length === 0) {
+  if (
+    !authorApprovalStats ||
+    Object.keys(authorApprovalQuery).length ||
+    !authorApprovalStats.isApproved
+  ) {
     return {
       title: "Author Dashboard | GSF UI Blog - Profile Not Found",
       description:
@@ -66,15 +111,15 @@ export async function generateMetadata(): Promise<Metadata> {
     };
   }
 
-  const fullName = `${authorProfileData.firstName} ${authorProfileData.lastName}`;
-  const optimizedImageUrl = authorProfileData.profilePic?.asset
-    ? `${urlFor(authorProfileData.profilePic.asset).width(1200).height(630).fit("crop").auto("format").url()}`
+  const fullName = `${authorApprovalStats.firstName} ${authorApprovalStats.lastName}`;
+  const optimizedImageUrl = authorApprovalStats.profilePic?.asset
+    ? `${urlFor(authorApprovalStats.profilePic.asset).width(1200).height(630).fit("crop").auto("format").url()}`
     : null;
 
   // Fallback values
   const title = `${fullName}'s Author Dashboard | GSF UI Blog - Author Portal`;
-  const description = authorProfileData.authorBio
-    ? `${fullName}'s author dashboard on GSF UI Blog. ${authorProfileData.authorBio.slice(0, 100)}${authorProfileData.authorBio.length > 100 ? "..." : ""}`
+  const description = authorApprovalStats.authorBio
+    ? `${fullName}'s author dashboard on GSF UI Blog. ${authorApprovalStats.authorBio.slice(0, 100)}${authorApprovalStats.authorBio.length > 100 ? "..." : ""}`
     : `${fullName}'s author dashboard on GSF UI Blog. Manage faith-inspired content and connect with readers.`;
 
   return {
@@ -168,7 +213,6 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(`${process.env.NEXT_PUBLIC_SITE_URL}`),
   };
 }
-
 
 function AuthorNotFoundError() {
   return (

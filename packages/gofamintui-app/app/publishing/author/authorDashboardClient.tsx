@@ -433,6 +433,8 @@ const AuthorDashboardClient = ({
                   <div className="relative inline-block mb-4 sm:mb-6">
                     <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 relative overflow-hidden mx-auto md:mx-0 rounded-sm">
                       <Image
+                        width={96}
+                        height={96}
                         sizes="96px"
                         src={currentImageUrl}
                         alt={`${optimisticProfile.firstName}'s profile picture`}
