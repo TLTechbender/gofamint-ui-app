@@ -5,7 +5,7 @@ import { sendVerifiyUserEmail } from "@/lib/email/emailHandler";
 import { RegisterActionState } from "@/lib/formActionStates/registerActionState";
 import { registerSchemaServer } from "@/lib/formSchemas/registerSchemaServer";
 import generateToken from "@/lib/tokenHandler/generateToken";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma/prisma";
 
 export default async function registerNewUser(

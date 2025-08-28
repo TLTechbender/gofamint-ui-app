@@ -47,9 +47,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: [
-    "/profile/:path*", 
-    "/publishing/author/:path*", 
-    "/auth/:path*", 
-  ],
+  matcher: ["/profile/:path*", "/publishing/author/:path*", "/auth/:path*"],
 };
