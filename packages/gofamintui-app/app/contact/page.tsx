@@ -1,4 +1,3 @@
-
 import { ContactInfo } from "@/sanity/interfaces/contact";
 import { getFellowshipContactInfo } from "@/sanity/queries/contact";
 import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
@@ -90,14 +89,14 @@ export async function generateMetadata(): Promise<Metadata> {
   // Fallback images
   images.push(
     {
-      url: "",
+      url: `${process.env.NEXT_PUBLIC_SITE_URL}/phoneCall.jpg`,
       width: 1200,
       height: 630,
       alt: `${fellowshipName} contact information and community`,
       type: "image/jpeg",
     },
     {
-      url: "",
+      url: `${process.env.NEXT_PUBLIC_SITE_URL}/phoneCall.jpg`,
       width: 800,
       height: 600,
       alt: `Welcome to ${fellowshipName} - Connect with our community`,
@@ -180,9 +179,6 @@ export async function generateMetadata(): Promise<Metadata> {
 
     // App-specific metadata
     applicationName: fellowshipName,
-
-    // Manifest for PWA
-    manifest: "/manifest.json",
   };
 }
 
