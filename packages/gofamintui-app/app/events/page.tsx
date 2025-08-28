@@ -1,30 +1,12 @@
 import { Metadata } from "next";
 import React from "react";
-import nextDynamic from "next/dynamic";
 import { sanityFetchWrapper } from "@/sanity/sanityCRUDHandlers";
 import { FellowshipEventsSeo } from "@/sanity/interfaces/fellowshipEvent";
 import { fellowshipEventPageMetadataQuery } from "@/sanity/queries/fellowshipEventMetadata";
+import CalendarWrapper from "@/components/events/calendarWrapper";
 
 //Don't ever server side this page
 export const dynamic = "force-dynamic";
-
-// Doing this cos of a vercel error that did not happen locally😢 😢 😢
-const DynamicFellowshipCalendar = nextDynamic(
-  () => import("@/components/events/dynamicFellowshipCalendar"),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="min-h-screen flex items-center justify-center bg-white rounded-xl shadow-sm p-8">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
-          <p className="text-lg text-black font-light">
-            Loading Events Calendar...
-          </p>
-        </div>
-      </div>
-    ),
-  }
-);
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
@@ -226,7 +208,7 @@ export default async function Events() {
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <DynamicFellowshipCalendar />
+          <CalendarWrapper/>
           </div>
         </div>
       </section>
