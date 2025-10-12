@@ -62,7 +62,6 @@ const JourneyPlanner: React.FC = () => {
       cost: "Free",
       difficulty: "Easy",
       estimatedDistance: "1.2 km",
-    
       steps: [],
       tips: "Wear comfortable shoes and carry an umbrella. The route has sidewalks but can be crowded in the mornings.",
       travelMode: "WALKING",
@@ -75,36 +74,9 @@ const JourneyPlanner: React.FC = () => {
       cost: "₦200 fuel",
       difficulty: "Easy",
       estimatedDistance: "2.5 km",
-   
       steps: [],
       tips: "Sunday parking fills up by 9:30am. Carpool if possible. Security guards monitor the parking area.",
       travelMode: "DRIVING",
-    },
-    {
-      id: "okada",
-      name: "Okada (Motorcycle)",
-      icon: <Bike className="w-6 h-6" />,
-      time: "8-12 mins",
-      cost: "₦100-150",
-      difficulty: "Moderate",
-      estimatedDistance: "2 km",
-   
-      steps: [],
-      tips: "Always wear the provided helmet. Have exact change ready. Avoid riding in heavy rain.",
-      travelMode: "DRIVING",
-    },
-    {
-      id: "bus",
-      name: "Public Bus",
-      icon: <Bus className="w-6 h-6" />,
-      time: "20-30 mins",
-      cost: "₦50-80",
-      difficulty: "Moderate",
-      estimatedDistance: "3 km",
-    
-      steps: [],
-      tips: "Buses run every 10-15 minutes. Have small bills ready. Morning buses are most crowded.",
-      travelMode: "TRANSIT",
     },
   ];
 
@@ -238,6 +210,8 @@ const JourneyPlanner: React.FC = () => {
                       type="button"
                       onClick={() => setOrigin("")}
                       className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                      aria-label="Clear location input"
+                      title="Clear location input"
                     >
                       <X className="h-5 w-5 text-gray-400 hover:text-gray-600" />
                     </button>
@@ -333,7 +307,7 @@ const JourneyPlanner: React.FC = () => {
                     Directions to Gofamint Student Fellowship, UI
                   </h3>
                   <p className="text-sm text-gray-600 font-light">
-                    {origin} → Water Bus stop, Ibadan
+                    {origin} → Zik Cafeteria, University of Ibadan
                   </p>
                 </div>
 
@@ -391,11 +365,11 @@ const JourneyPlanner: React.FC = () => {
             </span>
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-black mb-6 leading-tight">
-            Visit Gofamint Student Fellowship
+            Visit Gofamints' Student Fellowship
           </h1>
           <p className="text-lg md:text-xl text-black font-light mb-2 max-w-3xl mx-auto leading-relaxed">
             Plan your visit to our church at{" "}
-            <span className="font-medium">Water Bus stop, Ibadan</span>
+            <span className="font-medium">Zik Cafeteria, University of Ibadan</span>
           </p>
         </div>
 
@@ -434,8 +408,6 @@ const JourneyPlanner: React.FC = () => {
                     </div>
                   )}
                 </div>
-
-             
               </div>
 
               {/* Action Button */}
