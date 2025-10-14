@@ -67,6 +67,12 @@ export default async function RootLayout({
       className={`${montserrat.variable} ${syne.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        <meta
+          name="google-site-verification"
+          content="-w70OFbwvhnUpr8UEgR2H_BzniKctcGrIRlHg4kKdd4"
+        />
+      </head>
       <body className="antialiased bg-white">
         <ReactQueryProviders>
           <ReactToastifyProvider>
