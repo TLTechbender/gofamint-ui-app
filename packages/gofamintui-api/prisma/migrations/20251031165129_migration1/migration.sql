@@ -17,7 +17,7 @@ CREATE TABLE "User" (
     "phoneNumber" TEXT,
     "password" TEXT,
     "bio" TEXT,
-    "authProvider" "AuthProvider" NOT NULL DEFAULT 'LOCAL',
+    "authProvider" "AuthProvider" NOT NULL,
     "googleId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,

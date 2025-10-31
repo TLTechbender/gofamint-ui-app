@@ -9,6 +9,7 @@
   "author": "Bolarinwa Paul Ayomide",
   "license": "ISC",
   "dependencies": {
+    "@prisma/client": "^6.18.0",
     "bcryptjs": "^3.0.2",
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
@@ -26,6 +27,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@types/compression": "^1.8.1",
     "@types/node": "^24.9.2",
     "prisma": "^6.18.0",
     "tsx": "^4.20.6",
