@@ -1,4 +1,4 @@
-// lib/smoothScroll.ts
+
 export const smoothScrollTo = (targetId: string, offset = 0) => {
   const target = document.getElementById(targetId);
   if (target) {

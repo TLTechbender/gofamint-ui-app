@@ -10,9 +10,6 @@ const APPLICATION_STATUSES: Array<{title: string; value: ApplicationStatus}> = [
 
 ]
 
-
-
-
 export const author = defineType({
   name: 'author',
   title: 'Author Details',
