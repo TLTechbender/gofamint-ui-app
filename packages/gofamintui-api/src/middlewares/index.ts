@@ -20,6 +20,13 @@ export function setupMiddleware(app: Express): void {
   // Security headers
   app.use(helmet());
   app.use(helmet.hidePoweredBy());
+  app.use( helmet.contentSecurityPolicy({
+    useDefaults: true,
+    directives: {
+      "default-src": ["'self'"],
+      "script-src": ["'self'"], 
+    },
+  }))
 app.use(helmet.noSniff());
 app.use(helmet.ieNoOpen());
 app.use(helmet.dnsPrefetchControl());
