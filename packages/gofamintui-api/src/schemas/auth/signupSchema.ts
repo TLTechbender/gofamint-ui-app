@@ -15,7 +15,7 @@ export const signupSchema = z
       .string()
       .min(2, "user name must be at least 4 characters")
       .trim(),
-    email: z.string().email("Please enter a valid email address").trim(),
+    email: z.email("Please enter a valid email address").trim(),
     phoneNumber: z
       .string()
       .trim()

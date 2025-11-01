@@ -43,7 +43,9 @@ model Author {
   id              String       @id @default(uuid())
   userId          String       @unique
   authorBio       String?
-  profilePic      String?
+  profilePic      String
+  sanityDocumentId String?      @unique 
+  
   status          AuthorStatus @default(PENDING)
   appliedAt       DateTime     @default(now())
   approvedAt      DateTime?
