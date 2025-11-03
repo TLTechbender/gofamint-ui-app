@@ -1,8 +1,10 @@
 
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+
+const SALT_ROUNDS = 12;
 export const hashPassword = async (password: string) => {
-	return await bcrypt.hash(password, 12);
+	return await bcrypt.hash(password, SALT_ROUNDS);
 };
 
 export const comparePassword = async (password: string, hashedPassword: string) => {
@@ -69,4 +71,10 @@ export const timeAgo = (dateString: DateInput): string => {
     console.error("Error calculating time ago:", error);
     return "Invalid date";
   }
+};
+
+
+
+export const verifyPasswordSignature = async (password: string, hashedPassword: string) => { 
+  return await bcrypt.compare(password, hashedPassword);
 };

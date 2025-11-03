@@ -121,6 +121,7 @@ export const resetPassword = catchAsync(
       });
 
       // Revoke all existing sessions (force re-login everywhere)
+      //funny thing is I have a revokeAllUserTokens function but I don't use it here, this one still dey work sha
       await tx.session.deleteMany({
         where: { userId: user.id },
       });

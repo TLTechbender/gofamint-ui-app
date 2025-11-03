@@ -1,0 +1,1 @@
+a new field is added to blogs so we have to handle that across the app

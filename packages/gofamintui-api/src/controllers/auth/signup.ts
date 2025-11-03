@@ -6,7 +6,7 @@ import { catchAsync } from "../../utils/catchAsync";
 import { formatZodErrors } from "../../utils/formatZodErrors";
 import { Request, Response } from "express";
 import { hashPassword } from "../../utils/helpers";
-import Authprovider from "@prisma/client"
+
 import { prisma } from "../../database/prisma";
 import { sendWelcomeEmail } from "../../utils/emails/emailHandlers";
 
