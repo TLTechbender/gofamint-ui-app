@@ -58,7 +58,7 @@ export const getAuthorAnalytics = catchAsync(
         },
         blogs: {
           where: {
-            isPublishedInSanity: true,
+            isApproved: true,
             isDeleted: false,
           },
           select: {

@@ -53,11 +53,11 @@ export const addComment = catchAsync(async (req: AuthRequest, res: Response) => 
       id: true,
       sanitySlug: true,
       isDeleted: true,
-      isPublishedInSanity: true,
+      isApproved: true,
     },
   });
 
-  if (!blog || blog.isDeleted || !blog.isPublishedInSanity) {
+  if (!blog || blog.isDeleted || !blog.isApproved) {
     throw new AppError("Blog not found", 404);
   }
 

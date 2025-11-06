@@ -8,7 +8,7 @@ import { formatZodErrors } from '../../utils/formatZodErrors';
 import { prisma } from '../../database/prisma';
 import { AppResponse } from '../../utils/appResponse';
 
-export const getAdminInvitations = catchAsync(
+export const getAdminInvites = catchAsync(
   async (req: AuthRequest, res: Response) => {
 
     if (!req.admin) {

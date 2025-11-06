@@ -173,7 +173,7 @@ const authorProfilePicQuery = `*[_type == "author" && userId == $userId][0] {
 );
 
 
-export const updateAuthorDetails = catchAsync(
+export const editAuthorProfile = catchAsync(
   async (req: AuthRequest, res: Response) => {
     const userId = req.user?.id;
 

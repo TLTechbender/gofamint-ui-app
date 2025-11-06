@@ -8,7 +8,7 @@ import { getUsersSchema } from '../../schemas/admin/getUsersSchema';
 import { formatZodErrors } from '../../utils/formatZodErrors';
 
 
-export const getAllUsers = catchAsync(
+export const getUsers = catchAsync(
   async (req: AuthRequest, res: Response) => {
 
     if(!req.admin){

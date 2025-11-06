@@ -14,4 +14,4 @@ router.get('/user/me', getUserProfile);
 router.patch('/user/me', editUserProfile);
 
 
-export { router as UserRouter };
+export { router as userRouter };

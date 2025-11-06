@@ -4,6 +4,11 @@ import { logger } from "./utils/logger";
 import { errorHandler, notFoundHandler } from "./middlewares/errorHandling";
 import { env } from "./config/enviroment";
 import { setupMiddleware } from "./middlewares";
+import { authRouter } from "./routes/authRouter";
+import { userRouter } from "./routes/userRouter";
+import { blogRouter } from "./routes/blogRouter";
+import { adminRouter } from "./routes/adminRouter";
+import { authorRouter } from "./routes/authorRouter";
 
 
 
@@ -36,6 +41,14 @@ export async function bootstrap(): Promise<void> {
 
   
     setupMiddleware(app);
+
+
+    app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/user', userRouter);
+app.use('/api/v1/blog', blogRouter);
+app.use('/api/v1/admin', adminRouter);
+app.use('/api/v1/author', authorRouter);
+
 
 
     app.use(notFoundHandler);

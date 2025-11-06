@@ -75,11 +75,11 @@ export const getBlogComments = catchAsync(
       select: {
         id: true,
         isDeleted: true,
-        isPublishedInSanity: true,
+        isApproved: true,
       },
     });
 
-    if (!blog || blog.isDeleted || !blog.isPublishedInSanity) {
+    if (!blog || blog.isDeleted || !blog.isApproved) {
       throw new AppError("Blog not found", 404);
     }
 

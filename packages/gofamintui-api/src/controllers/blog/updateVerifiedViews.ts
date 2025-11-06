@@ -43,11 +43,11 @@ export const updateVerifiedViewCount = catchAsync(
         id: true,
         sanitySlug: true,
         isDeleted: true,
-        isPublishedInSanity: true,
+        isApproved: true,
       },
     });
 
-    if (!blog || blog.isDeleted || !blog.isPublishedInSanity) {
+    if (!blog || blog.isDeleted || !blog.isApproved) {
       throw new AppError("Blog post not found", 404);
     }
 

@@ -125,7 +125,7 @@ export const getAuthorRecentPosts = catchAsync(
     const totalCount = await prisma.blog.count({
       where: {
         authorId: author.id,
-        isPublishedInSanity: true,
+        isApproved: true,
         isDeleted: false, // Only count active blogs
       },
     });
@@ -139,7 +139,7 @@ export const getAuthorRecentPosts = catchAsync(
     const blogs = await prisma.blog.findMany({
       where: {
         authorId: author.id,
-        isPublishedInSanity: true,
+        isApproved: true,
         isDeleted: false,
       },
       select: {
