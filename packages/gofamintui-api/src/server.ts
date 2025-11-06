@@ -1,6 +1,6 @@
 import express, { Express } from "express";
 import { logger } from "./utils/logger";
-import { disconnectPrisma, initPrisma } from "./config/prismaConfig";
+
 import { errorHandler, notFoundHandler } from "./middlewares/errorHandling";
 import { env } from "./config/enviroment";
 import { setupMiddleware } from "./middlewares";
@@ -18,7 +18,7 @@ async function gracefulShutdown(): Promise<void> {
   logger.info("🛑 Starting graceful shutdown...");
 
   try {
-    await disconnectPrisma();
+   
     logger.info("✅ Graceful shutdown complete");
   } catch (error) {
     logger.error("❌ Error during shutdown:", error);
@@ -30,9 +30,6 @@ async function gracefulShutdown(): Promise<void> {
 export async function bootstrap(): Promise<void> {
   try {
     logger.info("🚀 Bootstrapping application...");
-
-    // 1. Initialize Prisma
-    await initPrisma();
 
     // 2. Create Express app
     const app: Express = express();

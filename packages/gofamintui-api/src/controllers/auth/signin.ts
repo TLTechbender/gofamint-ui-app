@@ -5,9 +5,12 @@ import { formatZodErrors } from "../../utils/formatZodErrors";
 import { AppError } from "../../utils/appError";
 import { prisma } from "../../database/prisma";
 import { verifyPasswordSignature } from "../../utils/helpers";
-import { generateTokens } from "../../utils/tokens/tokenService";
+import { generateAuthTokens } from "../../utils/tokenService";
 import { AppResponse } from "../../utils/appResponse";
-export const signin = catchAsync(async (req: Request, res: Response) => {
+
+const MAX_SESSIONS_PER_USER = 4;
+
+export const signIn = catchAsync(async (req: Request, res: Response) => {
   const validationResult = signinSchema.safeParse(req.body);
 
   if (!validationResult.success) {
@@ -17,11 +20,11 @@ export const signin = catchAsync(async (req: Request, res: Response) => {
 
   const { username, password } = validationResult.data;
 
- 
+
   const user = await prisma.user.findFirst({
     where: {
       OR: [{ userName: username }, { email: username }],
-      isDeleted: false, 
+      isDeleted: false,
     },
   });
 
@@ -29,7 +32,6 @@ export const signin = catchAsync(async (req: Request, res: Response) => {
     throw new AppError('Invalid credentials', 401);
   }
 
-  // Check if user uses local auth (not OAuth)
   if (user.authProvider !== 'LOCAL') {
     throw new AppError(
       `This account uses ${user.authProvider} authentication. Please sign in with ${user.authProvider}.`,
@@ -37,17 +39,60 @@ export const signin = catchAsync(async (req: Request, res: Response) => {
     );
   }
 
-  // Verify password
-  //at this point the password can never be null because only local auth users reach here
-  const userPasword = user!.password;
-  const isValidPassword = await verifyPasswordSignature(password, userPasword!);
+  
+  const isValidPassword = await verifyPasswordSignature(password, user.password!);
 
   if (!isValidPassword) {
     throw new AppError('Invalid credentials', 401);
   }
 
+  
   if (!user.isVerified) {
     throw new AppError('Please verify your email before signing in', 403);
+  }
+
+
+  const activeSessions = await prisma.session.findMany({
+    where: {
+      userId: user.id,
+      expiresAt: { gt: new Date() },
+    },
+    orderBy: {
+      lastUsedAt: 'desc', 
+    },
+    select: {
+      id: true,
+      userAgent: true,
+      ipAddress: true,
+      lastUsedAt: true,
+      createdAt: true,
+    },
+  });
+
+  if (activeSessions.length >= MAX_SESSIONS_PER_USER) {
+    //error here is pretty unique so we have to deviate a bit from our known strategy
+    return res.status(409).json({
+      success: false,
+      message: `You have reached the maximum of ${MAX_SESSIONS_PER_USER} active sessions. Please sign out from one of your devices to continue.`,
+      error: {
+        code: 'MAX_SESSIONS_REACHED',
+        maxSessions: MAX_SESSIONS_PER_USER,
+        currentSessions: activeSessions.length,
+        sessions: activeSessions.map(session => ({
+          id: session.id,
+          device: parseUserAgent(session.userAgent!),
+          location: maskIpAddress(session.ipAddress!),
+          lastUsed: session.lastUsedAt,
+          createdAt: session.createdAt,
+        })),
+        instructions: {
+          step1: 'Review your active sessions above',
+          step2: 'Sign out from a device you no longer use',
+          step3: 'Use DELETE /api/auth/sessions/{sessionId} to remove a session',
+          step4: 'Then try signing in again',
+        },
+      },
+    });
   }
 
 
@@ -56,26 +101,23 @@ export const signin = catchAsync(async (req: Request, res: Response) => {
     ipAddress: req.ip || req.socket.remoteAddress,
   };
 
-   const tokens = await generateTokens(user.id, sessionData);
+  const tokens = await generateAuthTokens(user.id, sessionData);
 
-   res.cookie('accessToken', tokens.accessToken, {
-    httpOnly: true,   
-    secure: true,       
-    sameSite: 'strict', 
+  res.cookie('accessToken', tokens.accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
     maxAge: 15 * 60 * 1000,
     path: '/',
   });
 
   res.cookie('refreshToken', tokens.refreshToken, {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    path: '/api/auth/refresh', 
+    path: '/api/auth/refresh',
   });
-
-
- 
 
   return AppResponse(
     res,
@@ -95,3 +137,46 @@ export const signin = catchAsync(async (req: Request, res: Response) => {
     'Sign in successful'
   );
 });
+
+// Helper: Parse user agent into human-readable format
+function parseUserAgent(userAgent?: string): string {
+  if (!userAgent) return 'Unknown Device';
+
+  // Mobile devices
+  if (userAgent.includes('Mobile')) {
+    if (userAgent.includes('iPhone')) return 'iPhone';
+    if (userAgent.includes('iPad')) return 'iPad';
+    if (userAgent.includes('Android')) return 'Android Phone';
+    return 'Mobile Device';
+  }
+
+  // Desktop
+  if (userAgent.includes('Macintosh')) return 'Mac';
+  if (userAgent.includes('Windows')) return 'Windows PC';
+  if (userAgent.includes('Linux')) return 'Linux PC';
+
+  // Browsers
+  if (userAgent.includes('Chrome')) return 'Chrome Browser';
+  if (userAgent.includes('Safari')) return 'Safari Browser';
+  if (userAgent.includes('Firefox')) return 'Firefox Browser';
+
+  return 'Desktop Browser';
+}
+
+// Helper: Mask IP address for privacy
+function maskIpAddress(ip?: string): string {
+  if (!ip) return 'Unknown Location';
+  
+  // For IPv4: 192.168.1.100 -> 192.168.*.*
+  const parts = ip.split('.');
+  if (parts.length === 4) {
+    return `${parts[0]}.${parts[1]}.*.*`;
+  }
+  
+  // For IPv6: Just show first part
+  if (ip.includes(':')) {
+    return ip.split(':')[0] + ':****';
+  }
+  
+  return 'Hidden';
+}

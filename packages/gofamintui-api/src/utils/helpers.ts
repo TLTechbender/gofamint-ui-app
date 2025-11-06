@@ -78,3 +78,21 @@ export const timeAgo = (dateString: DateInput): string => {
 export const verifyPasswordSignature = async (password: string, hashedPassword: string) => { 
   return await bcrypt.compare(password, hashedPassword);
 };
+
+
+export const  parseUserAgent =(userAgent?: string): string=> {
+  if (!userAgent) return 'Unknown Device';
+
+  if (userAgent.includes('Mobile')) {
+    if (userAgent.includes('iPhone')) return 'iPhone';
+    if (userAgent.includes('Android')) return 'Android Phone';
+    return 'Mobile Device';
+  }
+
+  if (userAgent.includes('iPad')) return 'iPad';
+  if (userAgent.includes('Macintosh')) return 'Mac';
+  if (userAgent.includes('Windows')) return 'Windows PC';
+  if (userAgent.includes('Linux')) return 'Linux PC';
+
+  return 'Desktop Browser';
+}

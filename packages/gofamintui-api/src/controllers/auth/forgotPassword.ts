@@ -10,7 +10,7 @@ import { logger } from "../../utils/logger";
 import { forgotPasswordSchema } from "../../schemas/auth/forgotPasswordSchema";
 import { sendPasswordResetEmail } from "../../utils/emails/emailHandlers";
 
-export const forgotPassword = catchAsync(
+export const forgetPassword = catchAsync(
   async (req: Request, res: Response) => {
     // Validate input
     const validationResult = forgotPasswordSchema.safeParse(req.body);

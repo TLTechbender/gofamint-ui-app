@@ -1,5 +1,4 @@
-import { NextFunction, Request, Response } from 'express';
-
+import { NextFunction, Request, Response, RequestHandler } from 'express';
 
 type CatchAsyncFunction<TReq extends Request = Request> = (
   req: TReq, 
@@ -9,8 +8,8 @@ type CatchAsyncFunction<TReq extends Request = Request> = (
 
 export const catchAsync = <TReq extends Request = Request>(
   fn: CatchAsyncFunction<TReq>
-) => {
-  return (req: TReq, res: Response, next: NextFunction) => {
-    fn(req, res, next).catch(next);
+): RequestHandler => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    fn(req as TReq, res, next).catch(next);
   };
 };

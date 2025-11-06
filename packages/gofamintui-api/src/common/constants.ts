@@ -9,7 +9,8 @@ export interface AuthRequest extends Request {
   author?: Author | null;  // null if user isn't an author
   admin?: Admin | null;    // null if user isn't an admin
   isAuthor: boolean;       
-  isAdmin: boolean;        
+  isAdmin: boolean;     
+  sessionId:string;   
 }
 
 export interface   Multer {
