@@ -1,4 +1,363 @@
-// // Prisma Schema - Fixed and Production Ready
+// // // Prisma Schema - Fixed and Production Ready
+// // // Database: PostgreSQL
+
+// // generator client {
+// //   provider = "prisma-client-js"
+// // }
+
+// // datasource db {
+// //   provider = "postgresql"
+// //   url      = env("DATABASE_URL")
+// // }
+
+// // model User {
+// //   id           String       @id @default(uuid())
+// //   email        String       @unique
+// //   userName     String       @unique
+// //   firstName    String
+// //   lastName     String
+// //   phoneNumber  String?      @unique
+// //   password     String?
+// //   bio          String?
+// //   authProvider AuthProvider
+// //   googleId     String?      @unique // Store Google OAuth ID
+// //   createdAt    DateTime     @default(now())
+// //   updatedAt    DateTime     @updatedAt
+// //   isVerified   Boolean      @default(false)
+// //   isDeleted    Boolean      @default(false) // Soft delete flag, cos nobod dey delete data again
+// //   deletedAt    DateTime?
+
+// //   author             Author?
+// //   comments           Comment[]
+// //   commentLikes       CommentLike[]
+// //   blogReads          BlogRead[]
+// //   blogLikes          BlogLike[]
+// //   sessions           Session[]
+// //   verificationTokens VerificationToken[]
+
+// //   admin            Admin?
+// //   adminInvitations AdminInvitation[]
+
+// //   @@index([authProvider])
+// //   @@index([isDeleted])
+// // }
+
+// // model Author {
+// //   id               String  @id @default(uuid())
+// //   userId           String  @unique
+// //   authorBio        String?
+// //   profilePic       String
+// //   sanityDocumentId String? @unique
+
+// //   status          AuthorStatus @default(PENDING)
+// //   appliedAt       DateTime     @default(now())
+// //   approvedAt      DateTime?
+// //   rejectedAt      DateTime?
+// //   rejectionReason String?
+// //   reviewedBy      String?
+// //   reviewedAt      DateTime?
+// //   createdAt       DateTime     @default(now())
+// //   updatedAt       DateTime     @updatedAt
+// //   isSuspended     Boolean      @default(false)
+// //   isDeleted       Boolean      @default(false) // Soft delete - never nuke authors
+// //   deletedAt       DateTime? // Track when they got "deleted"
+
+// //   user    User           @relation(fields: [userId], references: [id], onDelete: Restrict)
+// //   blogs   Blog[]
+// //   socials AuthorSocial[]
+
+// //   @@index([status])
+// //   @@index([appliedAt])
+// //   @@index([userId, status])
+// //   @@index([isDeleted]) // Filter deleted authors from public views
+// //   @@index([status, isDeleted]) // Get active authors only
+// //   @@map("authors")
+// // }
+
+// // model AuthorSocial {
+// //   id        String   @id @default(uuid())
+// //   authorId  String
+// //   platform  String // twitter, linkedin, github, etc
+// //   url       String
+// //   handle    String?
+// //   createdAt DateTime @default(now())
+// //   updatedAt DateTime @updatedAt
+
+// //   author Author @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+// //   @@unique([authorId, platform])
+// //   @@map("author_socials")
+// // }
+
+// // model Blog {
+// //   id                  String     @id @default(uuid())
+// //   sanityId            String     @unique
+// //   sanitySlug          String     @unique
+// //   authorId            String // Required - blogs MUST have authors
+// //   isPublishedInSanity Boolean    @default(false)
+// //   publishedAt         DateTime?
+// //   sanityUpdatedAt     DateTime?
+// //   genericViewCount    Int        @default(0) // Viewport intersections (can be gamed)
+// //   verifiedViewCount   Int        @default(0) // Authenticated user reads (honest metrics)
+// //   createdAt           DateTime   @default(now())
+// //   updatedAt           DateTime   @updatedAt
+// //   lastSyncedAt        DateTime   @default(now())
+// //   lastSyncedBy        String? // Track who/what synced
+// //   isDeleted           Boolean    @default(false) // Soft delete
+// //   deletedAt           DateTime? // When it got yeeted
+// //   approvedBy          String? // Admin ID who approved
+// //   approvedAt          DateTime?
+// //   rejectionReason     String?
+// //   rejectedBy          String?
+// //   rejectedAt          DateTime?
+// //   author              Author     @relation(fields: [authorId], references: [id], onDelete: Restrict)
+// //   likes               BlogLike[]
+// //   reads               BlogRead[]
+// //   comments            Comment[]
+
+// //   approver  Admin?     @relation("ApprovedBlogs", fields: [approvedBy], references: [id], onDelete: SetNull)
+// //   rejecter  Admin?     @relation("RejectedBlogs", fields: [rejectedBy], references: [id], onDelete: SetNull)
+  
+
+// //   @@index([sanityId])
+// //   @@index([sanitySlug])
+// //   @@index([authorId])
+// //   @@index([isPublishedInSanity])
+// //   @@index([authorId, isPublishedInSanity])
+// //   @@index([publishedAt])
+// //   @@index([isDeleted]) // Filter deleted blogs
+// //   @@index([isPublishedInSanity, isDeleted]) // Public active blogs
+// //   @@map("blogs")
+// // }
+
+// // model Comment {
+// //   id        String    @id @default(uuid())
+// //   content   String
+// //   blogId    String
+// //   userId    String
+// //   parentId  String?
+// //   createdAt DateTime  @default(now())
+// //   updatedAt DateTime  @updatedAt
+// //   isEdited  Boolean   @default(false)
+// //   isDeleted Boolean   @default(false) // Soft delete comments
+// //   deletedAt DateTime?
+
+// //   blog    Blog          @relation(fields: [blogId], references: [id], onDelete: Cascade)
+// //   user    User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+// //   parent  Comment?      @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+// //   replies Comment[]     @relation("CommentReplies")
+// //   likes   CommentLike[]
+
+// //   @@index([blogId])
+// //   @@index([userId])
+// //   @@index([parentId])
+// //   @@index([blogId, createdAt])
+// //   @@index([isDeleted]) // Filter deleted comments
+// //   @@map("comments")
+// // }
+
+// // model CommentLike {
+// //   id        String   @id @default(uuid())
+// //   userId    String
+// //   commentId String
+// //   createdAt DateTime @default(now())
+
+// //   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+// //   comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+// //   @@unique([userId, commentId])
+// //   @@index([commentId])
+// //   @@map("comment_likes")
+// // }
+
+// // model BlogLike {
+// //   id        String   @id @default(uuid())
+// //   userId    String
+// //   blogId    String
+// //   createdAt DateTime @default(now())
+
+// //   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+// //   blog Blog @relation(fields: [blogId], references: [id], onDelete: Cascade)
+
+// //   @@unique([userId, blogId])
+// //   @@index([blogId])
+// //   @@index([userId])
+// //   @@map("blog_likes")
+// // }
+
+// // model BlogRead {
+// //   id     String   @id @default(uuid())
+// //   userId String
+// //   blogId String
+// //   readAt DateTime @default(now())
+
+// //   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+// //   blog Blog @relation(fields: [blogId], references: [id], onDelete: Cascade)
+
+// //   @@unique([userId, blogId])
+// //   @@index([blogId])
+// //   @@index([userId, readAt])
+// //   @@map("blog_reads")
+// // }
+
+// // model Session {
+// //   id         String   @id @default(uuid())
+// //   userId     String
+// //   userAgent  String?
+// //   ipAddress  String?
+// //   createdAt  DateTime @default(now())
+// //   lastUsedAt DateTime @default(now())
+// //   expiresAt  DateTime
+
+// //   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+// //   refreshTokens RefreshToken[]
+
+// //   @@index([userId])
+// //   @@index([userId, expiresAt])
+// //   @@map("sessions")
+// // }
+
+// // model RefreshToken {
+// //   id        String   @id @default(uuid())
+// //   sessionId String
+// //   token     String   @unique
+// //   isRevoked Boolean  @default(false)
+// //   createdAt DateTime @default(now())
+// //   expiresAt DateTime
+
+// //   session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+// //   @@index([sessionId])
+// //   @@index([token, expiresAt])
+// //   @@map("refresh_tokens")
+// // }
+
+// // model VerificationToken {
+// //   id        String    @id @default(uuid())
+// //   userId    String
+// //   token     String    @unique
+// //   type      TokenType @default(EMAIL_VERIFICATION)
+// //   createdAt DateTime  @default(now())
+// //   usedAt    DateTime?
+// //   expiresAt DateTime
+
+// //   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+// //   @@index([userId, type])
+// //   @@map("verification_tokens")
+// // }
+
+// // enum AuthProvider {
+// //   LOCAL
+// //   GOOGLE
+// // }
+
+// // enum AuthorStatus {
+// //   PENDING
+// //   APPROVED
+// //   REJECTED
+// // }
+
+// // enum TokenType {
+// //   EMAIL_VERIFICATION
+// //   PASSWORD_RESET
+// //   EMAIL_CHANGE
+// // }
+
+// // model Admin {
+// //   id     String @id @default(uuid())
+// //   userId String @unique
+
+// //   invitedBy String? // Admin ID who invited them (null for super admin brimz)
+// //   invitedAt DateTime @default(now())
+
+// //   isActive         Boolean   @default(true) // Can be deactivated without deletion
+// //   isSuspended      Boolean   @default(false)
+// //   suspendedAt      DateTime?
+// //   suspendedBy      String?
+// //   suspensionReason String?
+
+// //   lastActiveAt DateTime  @default(now())
+// //   createdAt    DateTime  @default(now())
+// //   updatedAt    DateTime  @updatedAt
+// //   isDeleted    Boolean   @default(false) // Soft delete for audit compliance
+// //   deletedAt    DateTime?
+// //   deletedBy    String? // Admin ID who deleted them
+
+// //   user     User    @relation(fields: [userId], references: [id], onDelete: Restrict)
+// //   inviter  Admin?  @relation("AdminInvites", fields: [invitedBy], references: [id], onDelete: SetNull)
+// //   invitees Admin[] @relation("AdminInvites")
+
+// //   sentInvitations AdminInvitation[]  @relation("SentInvitations")
+// //   activities      AdminActivityLog[]
+
+// //   @@index([userId])
+// //   @@index([isActive, isSuspended, isDeleted]) // Quick filtering for active admins
+// //   @@index([invitedBy])
+// //   @@map("admins")
+// // }
+
+// // model AdminActivityLog {
+// //   id        String   @id @default(uuid())
+// //   adminId   String
+// //   action    String // e.g., "APPROVED_AUTHOR", "SUSPENDED_USER", "DELETED_COMMENT"
+// //   entity    String? // e.g., "Author", "User", "Comment"
+// //   entityId  String? // ID of affected entity
+// //   metadata  Json? // Additional context (e.g., reason, old values)
+// //   ipAddress String?
+// //   userAgent String?
+// //   createdAt DateTime @default(now())
+
+// //   admin Admin @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+// //   @@index([adminId])
+// //   @@index([action])
+// //   @@index([createdAt])
+// //   @@index([entity, entityId]) // Track all actions on specific entity
+// //   @@map("admin_activity_logs")
+// // }
+
+// // enum AdminInvitationStatus {
+// //   PENDING // Sent, awaiting acceptance
+// //   ACCEPTED // User accepted and is now admin
+// //   EXPIRED // Past expiration date
+// //   REVOKED // Admin revoked before acceptance
+// // }
+
+// // model AdminInvitation {
+// //   id     String  @id @default(uuid())
+// //   email  String // Email of user to invite (must match existing User)
+// //   userId String? // Set after user accepts
+// //   token  String  @unique // Secure invitation token
+
+// //   // Invitation metadata
+// //   invitedBy String // Admin who sent invitation
+// //   sentAt    DateTime @default(now())
+// //   expiresAt DateTime // Invitations expire after 7 days
+
+// //   // Status tracking
+// //   status       AdminInvitationStatus @default(PENDING)
+// //   acceptedAt   DateTime?
+// //   revokedAt    DateTime?
+// //   revokedBy    String? // Admin who revoked it
+// //   revokeReason String?
+
+// //   // Audit
+// //   createdAt DateTime @default(now())
+// //   updatedAt DateTime @updatedAt
+
+// //   // Relations
+// //   inviter Admin @relation("SentInvitations", fields: [invitedBy], references: [id], onDelete: Restrict)
+// //   user    User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+// //   @@index([email])
+// //   @@index([token])
+// //   @@index([status])
+// //   @@index([invitedBy])
+// //   @@index([expiresAt, status]) // Find expired pending invitations
+// //   @@map("admin_invitations")
+// // }
+// // Prisma Schema - Production Ready with Approve/Unapprove System
 // // Database: PostgreSQL
 
 // generator client {
@@ -20,11 +379,11 @@
 //   password     String?
 //   bio          String?
 //   authProvider AuthProvider
-//   googleId     String?      @unique // Store Google OAuth ID
+//   googleId     String?      @unique
 //   createdAt    DateTime     @default(now())
 //   updatedAt    DateTime     @updatedAt
 //   isVerified   Boolean      @default(false)
-//   isDeleted    Boolean      @default(false) // Soft delete flag, cos nobod dey delete data again
+//   isDeleted    Boolean      @default(false)
 //   deletedAt    DateTime?
 
 //   author             Author?
@@ -34,9 +393,8 @@
 //   blogLikes          BlogLike[]
 //   sessions           Session[]
 //   verificationTokens VerificationToken[]
-
-//   admin            Admin?
-//   adminInvitations AdminInvitation[]
+//   admin              Admin?
+//   adminInvitations   AdminInvitation[]
 
 //   @@index([authProvider])
 //   @@index([isDeleted])
@@ -59,8 +417,8 @@
 //   createdAt       DateTime     @default(now())
 //   updatedAt       DateTime     @updatedAt
 //   isSuspended     Boolean      @default(false)
-//   isDeleted       Boolean      @default(false) // Soft delete - never nuke authors
-//   deletedAt       DateTime? // Track when they got "deleted"
+//   isDeleted       Boolean      @default(false)
+//   deletedAt       DateTime?
 
 //   user    User           @relation(fields: [userId], references: [id], onDelete: Restrict)
 //   blogs   Blog[]
@@ -69,15 +427,15 @@
 //   @@index([status])
 //   @@index([appliedAt])
 //   @@index([userId, status])
-//   @@index([isDeleted]) // Filter deleted authors from public views
-//   @@index([status, isDeleted]) // Get active authors only
+//   @@index([isDeleted])
+//   @@index([status, isDeleted])
 //   @@map("authors")
 // }
 
 // model AuthorSocial {
 //   id        String   @id @default(uuid())
 //   authorId  String
-//   platform  String // twitter, linkedin, github, etc
+//   platform  String
 //   url       String
 //   handle    String?
 //   createdAt DateTime @default(now())
@@ -90,43 +448,49 @@
 // }
 
 // model Blog {
-//   id                  String     @id @default(uuid())
-//   sanityId            String     @unique
-//   sanitySlug          String     @unique
-//   authorId            String // Required - blogs MUST have authors
-//   isPublishedInSanity Boolean    @default(false)
+//   id                  String    @id @default(uuid())
+//   sanityId            String    @unique
+//   sanitySlug          String    @unique
+//   authorId            String
+  
 //   publishedAt         DateTime?
 //   sanityUpdatedAt     DateTime?
-//   genericViewCount    Int        @default(0) // Viewport intersections (can be gamed)
-//   verifiedViewCount   Int        @default(0) // Authenticated user reads (honest metrics)
-//   createdAt           DateTime   @default(now())
-//   updatedAt           DateTime   @updatedAt
-//   lastSyncedAt        DateTime   @default(now())
-//   lastSyncedBy        String? // Track who/what synced
-//   isDeleted           Boolean    @default(false) // Soft delete
-//   deletedAt           DateTime? // When it got yeeted
-//   approvedBy          String? // Admin ID who approved
-//   approvedAt          DateTime?
-//   rejectionReason     String?
-//   rejectedBy          String?
-//   rejectedAt          DateTime?
-//   author              Author     @relation(fields: [authorId], references: [id], onDelete: Restrict)
-//   likes               BlogLike[]
-//   reads               BlogRead[]
-//   comments            Comment[]
+//   genericViewCount    Int       @default(0)
+//   verifiedViewCount   Int       @default(0)
+//   createdAt           DateTime  @default(now())
+//   updatedAt           DateTime  @updatedAt
+//   lastSyncedAt        DateTime  @default(now())
+//   lastSyncedBy        String?
+//   isDeleted           Boolean   @default(false)
+//   deletedAt           DateTime?
 
-//   approver  Admin?     @relation("ApprovedBlogs", fields: [approvedBy], references: [id], onDelete: SetNull)
-//   rejecter  Admin?     @relation("RejectedBlogs", fields: [rejectedBy], references: [id], onDelete: SetNull)
-  
+//   // Approval tracking
+//   approvedBy String?   @map("approved_by")
+//   approvedAt DateTime? @map("approved_at")
+
+//   // Unapproval tracking
+//   lastUnapprovedBy String?   @map("last_unapproved_by")
+//   lastUnapprovedAt DateTime? @map("last_unapproved_at")
+//   unapprovalReason String?   @map("unapproval_reason")
+
+//   author Author     @relation(fields: [authorId], references: [id], onDelete: Restrict)
+//   likes  BlogLike[]
+//   reads  BlogRead[]
+//   comments Comment[]
+
+//   approver       Admin? @relation("ApprovedBlogs", fields: [approvedBy], references: [id], onDelete: SetNull)
+//   lastUnapprover Admin? @relation("UnapprovedBlogs", fields: [lastUnapprovedBy], references: [id], onDelete: SetNull)
 
 //   @@index([sanityId])
 //   @@index([sanitySlug])
 //   @@index([authorId])
-//   @@index([isPublishedInSanity])
-//   @@index([authorId, isPublishedInSanity])
+
+
 //   @@index([publishedAt])
-//   @@index([isDeleted]) // Filter deleted blogs
-//   @@index([isPublishedInSanity, isDeleted]) // Public active blogs
+//   @@index([isDeleted])
+
+//   @@index([approvedBy])
+//   @@index([lastUnapprovedBy])
 //   @@map("blogs")
 // }
 
@@ -139,7 +503,7 @@
 //   createdAt DateTime  @default(now())
 //   updatedAt DateTime  @updatedAt
 //   isEdited  Boolean   @default(false)
-//   isDeleted Boolean   @default(false) // Soft delete comments
+//   isDeleted Boolean   @default(false)
 //   deletedAt DateTime?
 
 //   blog    Blog          @relation(fields: [blogId], references: [id], onDelete: Cascade)
@@ -152,7 +516,7 @@
 //   @@index([userId])
 //   @@index([parentId])
 //   @@index([blogId, createdAt])
-//   @@index([isDeleted]) // Filter deleted comments
+//   @@index([isDeleted])
 //   @@map("comments")
 // }
 
@@ -247,6 +611,91 @@
 //   @@map("verification_tokens")
 // }
 
+// model Admin {
+//   id     String @id @default(uuid())
+//   userId String @unique
+
+//   invitedBy String?
+//   invitedAt DateTime @default(now())
+
+//   isActive         Boolean   @default(true)
+//   isSuspended      Boolean   @default(false)
+//   suspendedAt      DateTime?
+//   suspendedBy      String?
+//   suspensionReason String?
+
+//   lastActiveAt DateTime  @default(now())
+//   createdAt    DateTime  @default(now())
+//   updatedAt    DateTime  @updatedAt
+//   isDeleted    Boolean   @default(false)
+//   deletedAt    DateTime?
+//   deletedBy    String?
+
+//   user     User    @relation(fields: [userId], references: [id], onDelete: Restrict)
+//   inviter  Admin?  @relation("AdminInvites", fields: [invitedBy], references: [id], onDelete: SetNull)
+//   invitees Admin[] @relation("AdminInvites")
+
+//   sentInvitations AdminInvitation[]  @relation("SentInvitations")
+//   activities      AdminActivityLog[]
+//   approvedBlogs   Blog[]             @relation("ApprovedBlogs")
+//   unapprovedBlogs Blog[]             @relation("UnapprovedBlogs")
+
+//   @@index([userId])
+//   @@index([isActive, isSuspended, isDeleted])
+//   @@index([invitedBy])
+//   @@map("admins")
+// }
+
+// model AdminActivityLog {
+//   id        String   @id @default(uuid())
+//   adminId   String
+//   action    String
+//   entity    String?
+//   entityId  String?
+//   metadata  Json?
+//   ipAddress String?
+//   userAgent String?
+//   createdAt DateTime @default(now())
+
+//   admin Admin @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+//   @@index([adminId])
+//   @@index([action])
+//   @@index([createdAt])
+//   @@index([entity, entityId])
+//   @@map("admin_activity_logs")
+// }
+
+// model AdminInvitation {
+//   id     String  @id @default(uuid())
+//   email  String
+//   userId String?
+//   token  String  @unique
+
+//   invitedBy String
+//   sentAt    DateTime @default(now())
+//   expiresAt DateTime
+
+//   status       AdminInvitationStatus @default(PENDING)
+//   acceptedAt   DateTime?
+//   revokedAt    DateTime?
+//   revokedBy    String?
+//   revokeReason String?
+
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+
+//   inviter Admin @relation("SentInvitations", fields: [invitedBy], references: [id], onDelete: Restrict)
+//   user    User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+//   @@index([email])
+//   @@index([token])
+//   @@index([status])
+//   @@index([invitedBy])
+//   @@index([expiresAt, status])
+//   @@map("admin_invitations")
+// }
+
 // enum AuthProvider {
 //   LOCAL
 //   GOOGLE
@@ -264,100 +713,16 @@
 //   EMAIL_CHANGE
 // }
 
-// model Admin {
-//   id     String @id @default(uuid())
-//   userId String @unique
-
-//   invitedBy String? // Admin ID who invited them (null for super admin brimz)
-//   invitedAt DateTime @default(now())
-
-//   isActive         Boolean   @default(true) // Can be deactivated without deletion
-//   isSuspended      Boolean   @default(false)
-//   suspendedAt      DateTime?
-//   suspendedBy      String?
-//   suspensionReason String?
-
-//   lastActiveAt DateTime  @default(now())
-//   createdAt    DateTime  @default(now())
-//   updatedAt    DateTime  @updatedAt
-//   isDeleted    Boolean   @default(false) // Soft delete for audit compliance
-//   deletedAt    DateTime?
-//   deletedBy    String? // Admin ID who deleted them
-
-//   user     User    @relation(fields: [userId], references: [id], onDelete: Restrict)
-//   inviter  Admin?  @relation("AdminInvites", fields: [invitedBy], references: [id], onDelete: SetNull)
-//   invitees Admin[] @relation("AdminInvites")
-
-//   sentInvitations AdminInvitation[]  @relation("SentInvitations")
-//   activities      AdminActivityLog[]
-
-//   @@index([userId])
-//   @@index([isActive, isSuspended, isDeleted]) // Quick filtering for active admins
-//   @@index([invitedBy])
-//   @@map("admins")
-// }
-
-// model AdminActivityLog {
-//   id        String   @id @default(uuid())
-//   adminId   String
-//   action    String // e.g., "APPROVED_AUTHOR", "SUSPENDED_USER", "DELETED_COMMENT"
-//   entity    String? // e.g., "Author", "User", "Comment"
-//   entityId  String? // ID of affected entity
-//   metadata  Json? // Additional context (e.g., reason, old values)
-//   ipAddress String?
-//   userAgent String?
-//   createdAt DateTime @default(now())
-
-//   admin Admin @relation(fields: [adminId], references: [id], onDelete: Cascade)
-
-//   @@index([adminId])
-//   @@index([action])
-//   @@index([createdAt])
-//   @@index([entity, entityId]) // Track all actions on specific entity
-//   @@map("admin_activity_logs")
-// }
-
 // enum AdminInvitationStatus {
-//   PENDING // Sent, awaiting acceptance
-//   ACCEPTED // User accepted and is now admin
-//   EXPIRED // Past expiration date
-//   REVOKED // Admin revoked before acceptance
+//   PENDING
+//   ACCEPTED
+//   EXPIRED
+//   REVOKED
 // }
 
-// model AdminInvitation {
-//   id     String  @id @default(uuid())
-//   email  String // Email of user to invite (must match existing User)
-//   userId String? // Set after user accepts
-//   token  String  @unique // Secure invitation token
 
-//   // Invitation metadata
-//   invitedBy String // Admin who sent invitation
-//   sentAt    DateTime @default(now())
-//   expiresAt DateTime // Invitations expire after 7 days
 
-//   // Status tracking
-//   status       AdminInvitationStatus @default(PENDING)
-//   acceptedAt   DateTime?
-//   revokedAt    DateTime?
-//   revokedBy    String? // Admin who revoked it
-//   revokeReason String?
-
-//   // Audit
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-
-//   // Relations
-//   inviter Admin @relation("SentInvitations", fields: [invitedBy], references: [id], onDelete: Restrict)
-//   user    User? @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-//   @@index([email])
-//   @@index([token])
-//   @@index([status])
-//   @@index([invitedBy])
-//   @@index([expiresAt, status]) // Find expired pending invitations
-//   @@map("admin_invitations")
-// }
-// Prisma Schema - Production Ready with Approve/Unapprove System
+// Prisma Schema - Production Ready with Explicit Approval Flag
 // Database: PostgreSQL
 
 generator client {
@@ -464,18 +829,21 @@ model Blog {
   isDeleted           Boolean   @default(false)
   deletedAt           DateTime?
 
-  // Approval tracking
+  // ✅ Explicit approval state
+  isApproved Boolean @default(false) @map("is_approved")
+
+  // Approval audit trail
   approvedBy String?   @map("approved_by")
   approvedAt DateTime? @map("approved_at")
 
-  // Unapproval tracking
+  // Unapproval audit trail
   lastUnapprovedBy String?   @map("last_unapproved_by")
   lastUnapprovedAt DateTime? @map("last_unapproved_at")
   unapprovalReason String?   @map("unapproval_reason")
 
-  author Author     @relation(fields: [authorId], references: [id], onDelete: Restrict)
-  likes  BlogLike[]
-  reads  BlogRead[]
+  author   Author     @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  likes    BlogLike[]
+  reads    BlogRead[]
   comments Comment[]
 
   approver       Admin? @relation("ApprovedBlogs", fields: [approvedBy], references: [id], onDelete: SetNull)
@@ -484,11 +852,11 @@ model Blog {
   @@index([sanityId])
   @@index([sanitySlug])
   @@index([authorId])
-
-
   @@index([publishedAt])
   @@index([isDeleted])
-
+  @@index([isApproved])
+  @@index([isApproved, isDeleted]) // Fast filtering for public approved blogs
+  @@index([isApproved, publishedAt]) // Fast sorting of approved blogs by date
   @@index([approvedBy])
   @@index([lastUnapprovedBy])
   @@map("blogs")

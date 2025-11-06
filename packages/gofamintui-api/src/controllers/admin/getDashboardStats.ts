@@ -3,12 +3,16 @@ import { catchAsync } from '../../utils/catchAsync';
 import { AppResponse } from '../../utils/appResponse';
 import { prisma } from '../../database/prisma';
 import { AuthRequest } from '../../common/constants';
+import { AppError } from '../../utils/appError';
 
 export const getDashboardStats = catchAsync(
   async (req: AuthRequest, res: Response) => {
-    // Run all queries in parallel for performance, even though this thing go still slow
+   
+     if (!req.admin) {
+          throw new AppError('Admin authentication required', 401);
+        }
     const [
-      // User metrics
+   
       totalUsers,
       verifiedUsers,
       unverifiedUsers,
@@ -78,7 +82,7 @@ export const getDashboardStats = catchAsync(
         where: { isDeleted: false },
       }),
 
-      // === AUTHOR QUERIES ===
+    
       prisma.author.count(),
       prisma.author.count({ where: { status: 'PENDING', isDeleted: false } }),
       prisma.author.count({ where: { status: 'APPROVED', isDeleted: false } }),
@@ -91,22 +95,21 @@ export const getDashboardStats = catchAsync(
         },
       }),
 
-      // === BLOG QUERIES ===
       prisma.blog.count(),
       prisma.blog.count({
-        where: { isPublishedInSanity: true, isDeleted: false },
+        where: { isApproved: true, isDeleted: false },
       }),
       prisma.blog.count({
-        where: { isPublishedInSanity: false, isDeleted: false },
+        where: { isApproved: false, isDeleted: false },
       }),
-      // NEW: Approved blogs (approvedBy is set)
+     
       prisma.blog.count({
         where: {
           approvedBy: { not: null },
           isDeleted: false,
         },
       }),
-      // NEW: Unapproved blogs (was approved, then unapproved)
+
       prisma.blog.count({
         where: {
           approvedBy: null,
@@ -114,7 +117,7 @@ export const getDashboardStats = catchAsync(
           isDeleted: false,
         },
       }),
-      // NEW: Pending approval blogs (never been touched by admin)
+   
       prisma.blog.count({
         where: {
           approvedBy: null,
@@ -156,7 +159,7 @@ export const getDashboardStats = catchAsync(
       // === TOP CONTENT QUERIES ===
       prisma.blog.findMany({
         where: {
-          isPublishedInSanity: true,
+          isApproved: true,
           isDeleted: false,
           approvedBy: { not: null }, // Only approved blogs
         },
@@ -179,7 +182,7 @@ export const getDashboardStats = catchAsync(
 
       prisma.blog.findMany({
         where: {
-          isPublishedInSanity: true,
+          isApproved: true,
           isDeleted: false,
           approvedBy: { not: null }, // Only approved blogs
         },

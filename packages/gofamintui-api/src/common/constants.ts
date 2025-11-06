@@ -1,12 +1,15 @@
 
 import { Request } from "express";
-import { User } from '@prisma/client';
-
+import { Admin, Author, User } from '@prisma/client';
 
 
 
 export interface AuthRequest extends Request {
   user?: User;
+  author?: Author | null;  // null if user isn't an author
+  admin?: Admin | null;    // null if user isn't an admin
+  isAuthor: boolean;       
+  isAdmin: boolean;        
 }
 
 export interface   Multer {

@@ -6,12 +6,15 @@ import { generateToken } from "../helpers";
 import { prisma } from "../../database/prisma";
 import { logger } from "../logger";
 import resetPasswordEmail from "./emailTemplates/resetPasswordEmail";
+import inviteAdminEmail from "./emailTemplates/inviteAdminEmail";
+import approveAuthorEmail from "./emailTemplates/approveAuthorEmail";
+import suspendAuthorEmail from "./emailTemplates/suspendAuthorEmail";
 
 export const sendWelcomeEmail = async (user: User): Promise<void> => {
   const { email, firstName, id } = user;
 
   try {
-    // Generate and save verification token
+  
     const verificationToken = await generateToken(32);
     
     const saveVerificationToken = await prisma.verificationToken.create({
@@ -76,7 +79,8 @@ export const sendPasswordResetEmail = async (user: User): Promise<void> => {
       }
     });
 
-    const resetUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/forgot-password/reset/${resetToken}?email=${email}`;
+
+    const resetUrl = `${env.FRONTEND_URL}/auth/forgot-password/reset/${resetToken}?email=${email}`;
     
    
     await sendEmail({
@@ -97,4 +101,99 @@ export const sendPasswordResetEmail = async (user: User): Promise<void> => {
     
    
   }
+};
+
+
+export const sendAdminInvitationEmail  = async (
+ 
+  token: string,
+  inviterName: string,
+  email: string
+) => {
+ 
+
+  try{
+  const inviteUrl = `${env.FRONTEND_URL}/admin/accept-invitation?token=${token}`;
+  
+    await sendEmail({
+      to: email,
+      subject: 'Reset Your Password',
+      html: inviteAdminEmail(inviterName, inviteUrl)
+    });
+
+
+  }catch(error){
+logger.error('Failed to send Admin Invite Email', {
+      
+      email: email,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
+    
+  }
+ 
+ 
+};
+
+
+
+
+
+export const sendAuthorApprovedEmail  = async (
+ email:string,
+ firstName:string
+) => {
+ 
+
+  try{
+ 
+  
+    await sendEmail({
+      to: email,
+      subject: 'Reset Your Password',
+      html:approveAuthorEmail(firstName)
+    });
+
+
+  }catch(error){
+logger.error('Failed to send Admin Invite Email', {
+      
+      email: email,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
+    
+  }
+ 
+ 
+};
+
+
+
+export const sendAuthorSuspendedEmail  = async (
+ email:string
+) => {
+ 
+
+  try{
+ 
+  
+    await sendEmail({
+      to: email,
+      subject: 'Reset Your Password',
+      html: suspendAuthorEmail
+    });
+
+
+  }catch(error){
+logger.error('Failed to send Admin Invite Email', {
+      
+      email: email,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
+    
+  }
+ 
+ 
 };
