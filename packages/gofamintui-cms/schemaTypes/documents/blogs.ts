@@ -23,26 +23,11 @@ export const blogPost = defineType({
     }),
     defineField({
       name: 'authorDatabaseReferenceId',
-      title: 'Author',
-      type: 'text',
+      title: 'Author Reference ID',
+      type: 'string',
       readOnly: true,
-      rows: 1,
       description: 'A reference to keep track of the author in the database',
       validation: (Rule) => Rule.required(),
-    }),
-
-    
-    defineField({
-      name: 'author',
-      title: 'Author',
-      type: 'reference',
-      to: [{ type: 'author' }],
-      readOnly: true,
-      validation: (Rule) => Rule.required(),
-      options: {
-        filter: 'application.status == "approved" && application.isApproved == true',
-        // Show only approved authors in the reference picker
-      },
     }),
     defineField({
       name: 'featuredImage',
@@ -136,13 +121,7 @@ export const blogPost = defineType({
       type: 'datetime',
       initialValue: () => new Date().toISOString(),
     }),
-    defineField({
-      name: 'isApprovedToBePublished',
-      title: 'Approved to be Published',
-      type: 'boolean',
-      initialValue: false,
-      description: 'Set to true to approve this post for publication',
-    }),
+  
     defineField({
       name: 'readingTime',
       title: 'Reading Time (minutes)',
@@ -169,7 +148,6 @@ export const blogPost = defineType({
           rows: 3,
           validation: (Rule) => Rule.required().min(10).max(300),
         }),
-
         defineField({
           name: 'ogImage',
           title: 'Social Media Image',
@@ -214,22 +192,18 @@ export const blogPost = defineType({
   preview: {
     select: {
       title: 'title',
-      authorName: 'author.firstName',
-      authorLastName: 'author.lastName',
       media: 'featuredImage',
       publishedAt: 'publishedAt',
       isApprovedToBePublished: 'isApprovedToBePublished',
     },
     prepare(selection) {
-      const {title, authorName, authorLastName, publishedAt, isApprovedToBePublished} = selection
+      const {title, publishedAt, isApprovedToBePublished} = selection
       const status = isApprovedToBePublished ? '✅ Approved' : '⏳ Pending'
       const date = publishedAt ? new Date(publishedAt).toLocaleDateString() : ''
-      const author =
-        authorName && authorLastName ? `${authorName} ${authorLastName}` : 'Unknown Author'
 
       return {
         title: `${title}`,
-        subtitle: `Author: ${author} • ${status} ${date ? `• ${date}` : ''} `,
+        subtitle: `${status} ${date ? `• ${date}` : ''}`,
       }
     },
   },

@@ -77,6 +77,11 @@ export default async function RootLayout({
         <ReactQueryProviders>
           <ReactToastifyProvider>
             <AuthSessionProvider>
+            /**
+           Todo: Why do we have a google map provider, nha only one page dey use this thingsef
+
+           Also that auuth session provider, wetin we dey use am for sef, no be next auth we been use b4?
+             */
               <GoogleMapProvider
                 apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
               >
