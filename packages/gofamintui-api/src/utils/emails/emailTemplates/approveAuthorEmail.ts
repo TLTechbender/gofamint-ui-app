@@ -1,5 +1,10 @@
-const approveAuthorEmail = (firstName: string) =>
-  `<!DOCTYPE html>
+const approveAuthorEmail = (firstName: string) => {
+    const currentYear = new Date().getFullYear();
+    const startYear = 2025;
+    const copyrightYear =
+        currentYear === startYear ? `${startYear}` : `${startYear} - ${currentYear}`;
+
+    return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -55,7 +60,7 @@ const approveAuthorEmail = (firstName: string) =>
       </p>
      
       <p style="font-size:14px; color:#666666; font-weight:300; line-height:1.5; margin:0;">
-        © 2025 Gofamint Students' Fellowship, University of Ibadan
+        © ${copyrightYear} Gofamint Students' Fellowship, University of Ibadan
       </p>
     </div>
 
@@ -63,5 +68,6 @@ const approveAuthorEmail = (firstName: string) =>
 </body>
 </html>
 `;
+};
 
 export default approveAuthorEmail;

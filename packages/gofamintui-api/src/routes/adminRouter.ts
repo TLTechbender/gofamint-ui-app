@@ -17,33 +17,34 @@ import { resendAdminInvite } from "../controllers/admin/resendAdminInvite";
 import { suspendAuthor } from "../controllers/admin/suspendAuthor";
 import { unapproveBlog } from "../controllers/admin/unapproveBlog";
 import { unsuspendAuthor } from "../controllers/admin/unSuspendAuthor";
-
+import { requireAuth } from "../middlewares/authenticate";
 
 const router = Router();
 
-router.get("/invites", getAdminInvites);
-router.post("/invites", inviteAdmin);
-router.post("/invites/accept", acceptAdminInvite);
-router.post("/invites/resend", resendAdminInvite);
-router.delete("/admins/:id", removeAdmin);
+router.use(requireAuth);
 
+router.get("/admin-invitations", getAdminInvites);
+router.post("/admin-invitations", inviteAdmin);
+router.post("/admin-invitations/accept", acceptAdminInvite);
+router.post("/admin-invitations/resend", resendAdminInvite);
+
+//This remove admin would be  kinda tricky ngl, so I'ma just avoid it and let the suspending be done by the person in charge of the app....
+router.post("/admins/", removeAdmin);
 
 router.get("/authors", getAuthors);
-router.get("/authors/:id", getAuthor);
-router.post("/authors/:id/approve", approveAuthor);
-router.post("/authors/:id/reject", rejectAuthor);
-router.post("/authors/:id/suspend", suspendAuthor);
-router.post("/authors/:id/unsuspend", unsuspendAuthor);
-
+router.get("/authors/:authorId", getAuthor);
+router.post("/authors/:authorId/approve", approveAuthor);
+router.post("/authors/:authorId/reject", rejectAuthor);
+router.post("/authors/:authorId/suspend", suspendAuthor);
+router.post("/authors/:authorId/unsuspend", unsuspendAuthor);
 
 router.get("/blogs/pending", getPendingBlogs);
-router.post("/blogs/:id/approve", approveBlog);
-router.post("/blogs/:id/unapprove", unapproveBlog);
+router.post("/blogs/:blogId/approve", approveBlog);
+router.post("/blogs/:blogId/unapprove", unapproveBlog);
 
 router.get("/users", getUsers);
-router.get("/users/:id", getUser);
+router.get("/users/:userId", getUser);
 
-router.get("/stats/dashboard", getDashboardStats);
+router.get("/dashboard/stats", getDashboardStats);
 
-
-export {router as adminRouter}
+export { router as adminRouter };

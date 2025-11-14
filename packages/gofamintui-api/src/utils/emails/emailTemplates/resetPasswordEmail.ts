@@ -1,7 +1,9 @@
-const resetPasswordEmail = (
-  firstName: string,
-  resetUrl: string
-) => `<!DOCTYPE html>
+const resetPasswordEmail = (firstName: string, resetUrl: string) => {
+    const currentYear = new Date().getFullYear();
+    const startYear = 2025;
+    const copyrightYear =
+        currentYear === startYear ? `${startYear}` : `${startYear} - ${currentYear}`;
+    return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -59,7 +61,7 @@ const resetPasswordEmail = (
       </div>
 
       <p style="font-size:16px; color:#000000; font-weight:300; line-height:1.6; margin:32px 0 0 0;">
-        This reset link will expire in 15 minutes for security purposes.
+        This reset link will expire in 15 minutes .
       </p>
     </div>
 
@@ -73,12 +75,13 @@ const resetPasswordEmail = (
         <a href="#" style="color:#4169E1; text-decoration:none; font-size:14px; margin:0 16px;">Contact Support</a>
       </div>
       <p style="font-size:14px; color:#666666; font-weight:300; line-height:1.5; margin:0;">
-        © 2025 Gofamint Students' Fellowship, University of Ibadan
+        © ${copyrightYear} Gofamint Students' Fellowship, University of Ibadan
       </p>
     </div>
 
   </div>
 </body>
 </html>`;
+};
 
 export default resetPasswordEmail;

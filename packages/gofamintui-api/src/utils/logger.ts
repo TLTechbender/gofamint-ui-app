@@ -21,44 +21,41 @@
 //   },
 // };
 
-
-
 import winston from "winston";
 import { env } from "../config/enviroment";
-
 
 const isDev = env.NODE_ENV === "development";
 
 const logger = winston.createLogger({
-  level: isDev ? "debug" : "info",
-  format: winston.format.combine(
-    winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
-    winston.format.errors({ stack: true }),
-    winston.format.splat(),
-    winston.format.json()
-  ),
-  defaultMeta: { service: "api" },
-  transports: [
-    // Console output
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.printf(({ timestamp, level, message, ...rest }) => {
-          const meta = Object.keys(rest).length ? JSON.stringify(rest) : "";
-          return `[${timestamp}] ${level}: ${message} ${meta}`;
-        })
-      ),
-    }),
-    // Error logs to file
-    new winston.transports.File({
-      filename: "logs/error.log",
-      level: "error",
-    }),
-    // All logs to file
-    new winston.transports.File({
-      filename: "logs/app.log",
-    }),
-  ],
+    level: isDev ? "debug" : "info",
+    format: winston.format.combine(
+        winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+        winston.format.errors({ stack: true }),
+        winston.format.splat(),
+        winston.format.json()
+    ),
+    defaultMeta: { service: "api" },
+    transports: [
+        // Console output
+        new winston.transports.Console({
+            format: winston.format.combine(
+                winston.format.colorize(),
+                winston.format.printf(({ timestamp, level, message, ...rest }) => {
+                    const meta = Object.keys(rest).length ? JSON.stringify(rest) : "";
+                    return `[${timestamp}] ${level}: ${message} ${meta}`;
+                })
+            ),
+        }),
+        // Error logs to file
+        new winston.transports.File({
+            filename: "logs/error.log",
+            level: "error",
+        }),
+        // All logs to file
+        new winston.transports.File({
+            filename: "logs/app.log",
+        }),
+    ],
 });
 
 export { logger };

@@ -6,12 +6,10 @@ import { getUserProfile } from "../controllers/user/getProfile";
 
 const router = Router();
 
+router.use("/my-details", requireAuth);
+router.get("/my-details", getUserProfile);
+router.patch("/my-details", editUserProfile);
 
-router.get('/user/:userName', getPublicUserProfile);
-router.use(requireAuth)
-
-router.get('/user/me', getUserProfile);
-router.patch('/user/me', editUserProfile);
-
+router.get("/:userName", getPublicUserProfile);
 
 export { router as userRouter };

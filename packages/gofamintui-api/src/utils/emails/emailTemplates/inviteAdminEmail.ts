@@ -1,8 +1,10 @@
-const inviteAdminEmail = (
-  
-  inviterName: string,
-  inviteUrl: string
-) => `<!DOCTYPE html>
+const inviteAdminEmail = (inviterName: string, inviteUrl: string, invitee: string) => {
+    const currentYear = new Date().getFullYear();
+    const startYear = 2025;
+    const copyrightYear =
+        currentYear === startYear ? `${startYear}` : `${startYear} - ${currentYear}`;
+
+    return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -31,7 +33,7 @@ const inviteAdminEmail = (
       <h1 style="font-size:28px; font-weight:300; color:#000000; margin:0 0 24px 0; line-height:1.3;">You've Been Invited!</h1>
 
       <p style="font-size:16px; color:#000000; font-weight:300; line-height:1.6; margin:0 0 32px 0;">
-        Hi <strong>${inviterName}</strong> has invited you to join the GSF UI platform as an administrator.
+        Hi <strong>${invitee}</strong>, <strong>${inviterName}</strong> has invited you to join the GSF UI platform as an administrator.
       </p>
 
       <p style="font-size:16px; color:#000000; font-weight:300; line-height:1.6; margin:0 0 16px 0;">
@@ -94,12 +96,13 @@ const inviteAdminEmail = (
         <a href="#" style="color:#4169E1; text-decoration:none; font-size:14px; margin:0 16px;">Contact Support</a>
       </div>
       <p style="font-size:14px; color:#666666; font-weight:300; line-height:1.5; margin:0;">
-        © 2025 Gofamint Students' Fellowship, University of Ibadan
+        © ${copyrightYear} Gofamint Students' Fellowship, University of Ibadan
       </p>
     </div>
 
   </div>
 </body>
 </html>`;
+};
 
 export default inviteAdminEmail;

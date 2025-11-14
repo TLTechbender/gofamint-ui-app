@@ -1,7 +1,10 @@
-const verifyNewUserEmail = (
-  firstName: string,
-  verificationUrl: string
-) => `<!DOCTYPE html>
+const verifyNewUserEmail = (firstName: string, verificationUrl: string) => {
+    const currentYear = new Date().getFullYear();
+    const startYear = 2025;
+    const copyrightYear =
+        currentYear === startYear ? `${startYear}` : `${startYear} - ${currentYear}`;
+
+    return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -47,9 +50,7 @@ const verifyNewUserEmail = (
         <span style="color:#4169E1; word-break:break-all;">${verificationUrl}</span>
       </p>
 
-      <p style="font-size:16px; color:#000000; font-weight:300; line-height:1.6; margin:0;">
-        This verification link will expire in 24 hours for security purposes.
-      </p>
+   
     </div>
 
     <!-- Footer -->
@@ -58,16 +59,17 @@ const verifyNewUserEmail = (
         If you didn't create an account with GSF UI, you can safely ignore this email.
       </p>
       <div style="margin:24px 0;">
-        <a href="#" style="color:#4169E1; text-decoration:none; font-size:14px; margin:0 16px;">Visit Website</a>
-        <a href="#" style="color:#4169E1; text-decoration:none; font-size:14px; margin:0 16px;">Contact Support</a>
+        <a href="https://gofamint-ui.vercel.app/" style="color:#4169E1; text-decoration:none; font-size:14px; margin:0 16px;">Visit Website</a>
+        
       </div>
       <p style="font-size:14px; color:#666666; font-weight:300; line-height:1.5; margin:0;">
-        © 2025 Gofamint Students' Fellowship, University of Ibadan
+        © ${copyrightYear} Gofamint Students' Fellowship, University of Ibadan
       </p>
     </div>
 
   </div>
 </body>
 </html>`;
+};
 
 export default verifyNewUserEmail;

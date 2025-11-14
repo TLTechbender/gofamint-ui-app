@@ -1,9 +1,5 @@
-
 import { z } from "zod";
 
 export const updateGenericViewCountSchema = z.object({
-  sanitySlug: z
-    .string()
-    .min(1, "Sanity slug is required")
-    .max(200, "Sanity slug is too long"),
+    blogId: z.string().min(2, "Blog Id is required"),
 });
