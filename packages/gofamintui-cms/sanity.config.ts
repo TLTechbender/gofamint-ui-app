@@ -38,6 +38,19 @@ import { schemaTypes } from "./schemaTypes";
  */
 
 export default defineConfig([
+   {
+    name: "development-workspace",
+    title: "GOFAMINT UI - Development",
+    basePath: "/development",
+    subtitle: "Development workspace",
+    icon: CodeIcon,
+    projectId: "276it5za",
+    dataset: "development",
+    plugins: [structureTool(), visionTool()],
+    schema: {
+      types: schemaTypes,
+    },
+  },
   {
     name: "production-workspace",
     title: "GOFAMINT UI - Production",
@@ -51,17 +64,5 @@ export default defineConfig([
       types: schemaTypes,
     },
   },
-  {
-    name: "development-workspace",
-    title: "GOFAMINT UI - Development",
-    basePath: "/development",
-    subtitle: "Development workspace",
-    icon: CodeIcon,
-    projectId: "276it5za",
-    dataset: "development",
-    plugins: [structureTool(), visionTool()],
-    schema: {
-      types: schemaTypes,
-    },
-  },
+ 
 ]);

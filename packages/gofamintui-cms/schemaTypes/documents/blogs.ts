@@ -25,7 +25,7 @@ export const blogPost = defineType({
       name: 'authorDatabaseReferenceId',
       title: 'Author Reference ID',
       type: 'string',
-      readOnly: true,
+    
       description: 'A reference to keep track of the author in the database',
       validation: (Rule) => Rule.required(),
     }),
