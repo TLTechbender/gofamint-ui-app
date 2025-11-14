@@ -52,9 +52,12 @@ export async function bootstrap(): Promise<void> {
 
         app.use(errorHandler);
 
-        // 6. Start server
-        app.listen(env.PORT, () => {
-            logger.info(`✅ Server running on port ${env.PORT} (${env.NODE_ENV})`);
+        
+        const PORT = env.PORT;
+        const HOST = "0.0.0.0"; 
+        
+        app.listen(PORT, HOST, () => {
+            logger.info(`✅ Server running on ${HOST}:${PORT} (${env.NODE_ENV})`);
         });
 
         // 7. Graceful shutdown handlers

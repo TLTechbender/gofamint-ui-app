@@ -8,18 +8,21 @@ export const initializeEmailService = async (): Promise<void> => {
     try {
         transporter = nodemailer.createTransport({
             host: env.EMAIL_HOST,
-
+            port: env.EMAIL_SECURE ? 465 : 587,
+            secure: env.EMAIL_SECURE,
             auth: {
                 user: env.EMAIL_USER,
                 pass: env.EMAIL_PASSWORD,
             },
+            connectionTimeout: 10000, 
+            greetingTimeout: 10000,
         });
 
         await transporter.verify();
         logger.info("Email service initialized successfully");
     } catch (error) {
         logger.error("Email service initialization failed:", error);
-        // Don't throw - let app start even if email is down
+     
     }
 };
 
