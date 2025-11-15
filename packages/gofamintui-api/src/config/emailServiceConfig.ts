@@ -1,47 +1,40 @@
-import nodemailer, { Transporter } from "nodemailer";
 import { env } from "./enviroment";
 import { logger } from "../utils/logger";
 
-let transporter: Transporter | null = null;
+interface EmailOptions {
+    to: string;
+    subject: string;
+    html: string;
+}
 
 export const initializeEmailService = async (): Promise<void> => {
-    try {
-        transporter = nodemailer.createTransport({
-            host: env.EMAIL_HOST,
+    logger.info("Email service configured (using Vercel endpoint)");
+};
 
-            auth: {
-                user: env.EMAIL_USER,
-                pass: env.EMAIL_PASSWORD,
+export const sendEmail = async (options: EmailOptions): Promise<void> => {
+    try {
+        const response = await fetch(env.EMAIL_SERVICE_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
             },
+            body: JSON.stringify({
+                to: options.to,
+                subject: options.subject,
+                html: options.html,
+            }),
         });
 
-        await transporter.verify();
-        logger.info("Email service initialized successfully");
-    } catch (error) {
-        logger.error("Email service initialization failed:", error);
-        // Don't throw - let app start even if email is down
-    }
-};
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+            throw new Error(`Email service failed: ${errorData.error || response.statusText}`);
+        }
 
-export const getEmailTransporter = (): Transporter => {
-    if (!transporter) {
-        throw new Error("Email service not initialized. Call initializeEmailService() first.");
-    }
-    return transporter;
-};
-
-export const sendEmail = async (options: nodemailer.SendMailOptions): Promise<void> => {
-    try {
-        const emailTransporter = getEmailTransporter();
-
-        const info = await emailTransporter.sendMail({
-            from: env.EMAIL_USER,
-            ...options,
-        });
-
+        const result = await response.json();
+        
         logger.info("Email sent successfully", {
-            messageId: info.messageId,
             recipient: options.to,
+            messageId: result.messageId,
         });
     } catch (error) {
         logger.error("Failed to send email", {
@@ -51,3 +44,8 @@ export const sendEmail = async (options: nodemailer.SendMailOptions): Promise<vo
         });
     }
 };
+```
+
+**Render `.env`:**
+```
+EMAIL_SERVICE_URL=https://your-vercel-app.vercel.app/api/send-email

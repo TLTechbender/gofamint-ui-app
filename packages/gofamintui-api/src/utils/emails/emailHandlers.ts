@@ -27,7 +27,7 @@ export const sendWelcomeEmail = async (user: User): Promise<void> => {
 
         const verificationUrl = `${env.FRONTEND_URL}/auth/verify-email/${verificationToken}?email=${email}`;
 
-        await sendEmail({
+        await ({
             to: email,
             subject: "Welcome to The Gofamint UI Platform",
             html: verifyNewUserEmail(firstName, verificationUrl),
