@@ -50,18 +50,35 @@ async function gracefulShutdown(): Promise<void> {
 
 export async function bootstrap(): Promise<void> {
     try {
-        logger.info("🚀 Bootstrapping application...");
+        logger.info("Bootstrapping application...");
 
         await connectDatabase();
 
         const app: Express = express();
 
         setupMiddleware(app);
-        app.get("/health", (req, res) => {
+        app.get("/", (req, res) => {
             res.status(200).json({
-                status: "ok",
-                timestamp: new Date().toISOString(),
+                message: "GoFamint UI API",
             });
+        });
+        app.get("/health", async (req, res) => {
+            try {
+                await prisma.$queryRaw`SELECT 1`;
+
+                res.status(200).json({
+                    status: "ok",
+                    timestamp: new Date().toISOString(),
+                    database: "connected",
+                });
+            } catch (error) {
+                logger.error("Health check failed", error);
+
+                res.status(503).json({
+                    status: "error",
+                    timestamp: new Date().toISOString(),
+                });
+            }
         });
         await initializeEmailService();
         app.use("/api/v1/auth", authRouter);
