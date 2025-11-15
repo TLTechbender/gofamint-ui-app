@@ -1,3 +1,1 @@
-
-
 The goal here is to create a serverless function and deploy on vercel cos platforms like render block outbound smtp, so I would create a serverless function, deploy that to vercel and continue the code

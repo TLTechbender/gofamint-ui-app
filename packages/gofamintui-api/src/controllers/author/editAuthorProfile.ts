@@ -89,7 +89,7 @@ const updateAuthorProfilePicture = async (
         throw new AppError("Author not found", 404, [{ author: "Author document not found" }]);
     }
 
-    let imageAsset ;
+    let imageAsset;
     try {
         imageAsset = await sanityClient.assets.upload("image", file.buffer, {
             filename: file.originalname,
@@ -235,7 +235,7 @@ export const editAuthorProfile = catchAsync(async (req: AuthRequest, res: Respon
     }
 
     //eslint-disable-next-line
-    const updateOperations:any = [];
+    const updateOperations: any = [];
 
     if (validatedData.bio !== undefined) {
         updateOperations.push(

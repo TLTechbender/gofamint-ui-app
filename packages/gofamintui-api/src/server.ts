@@ -11,29 +11,25 @@ import { authorRouter } from "./routes/authorRouter";
 import { initializeEmailService } from "./config/emailServiceConfig";
 import { prisma } from "./database/prisma";
 
-
-
-
- async function connectDatabase(): Promise<void> {
-  try {
-    await prisma.$connect();
-    logger.info('Database connected successfully');
-  } catch (error) {
-    logger.error('Database connection failed:', error);
-    throw error;
-  }
+async function connectDatabase(): Promise<void> {
+    try {
+        await prisma.$connect();
+        logger.info("Database connected successfully");
+    } catch (error) {
+        logger.error("Database connection failed:", error);
+        throw error;
+    }
 }
 
- async function disconnectDatabase(): Promise<void> {
-  try {
-    await prisma.$disconnect();
-    logger.info('✅ Database disconnected');
-  } catch (error) {
-    logger.error('❌ Error disconnecting database:', error);
-    throw error;
-  }
+async function disconnectDatabase(): Promise<void> {
+    try {
+        await prisma.$disconnect();
+        logger.info("Database disconnected");
+    } catch (error) {
+        logger.error("Error disconnecting database:", error);
+        throw error;
+    }
 }
-
 
 let isShuttingDown = false;
 
@@ -44,7 +40,7 @@ async function gracefulShutdown(): Promise<void> {
     logger.info("Starting graceful shutdown...");
 
     try {
-        await disconnectDatabase(); 
+        await disconnectDatabase();
         logger.info("Graceful shutdown complete");
     } catch (error) {
         logger.error("Error during shutdown:", error);
@@ -56,10 +52,8 @@ export async function bootstrap(): Promise<void> {
     try {
         logger.info("🚀 Bootstrapping application...");
 
-   
-        await connectDatabase(); 
+        await connectDatabase();
 
-      
         const app: Express = express();
 
         setupMiddleware(app);
@@ -80,15 +74,13 @@ export async function bootstrap(): Promise<void> {
 
         app.use(errorHandler);
 
-        
         const PORT = env.PORT;
-        const HOST = "0.0.0.0"; 
-        
+        const HOST = "0.0.0.0";
+
         app.listen(PORT, HOST, () => {
             logger.info(`Server running on ${HOST}:${PORT} (${env.NODE_ENV})`);
         });
 
-       
         process.on("SIGTERM", gracefulShutdown);
         process.on("SIGINT", gracefulShutdown);
 

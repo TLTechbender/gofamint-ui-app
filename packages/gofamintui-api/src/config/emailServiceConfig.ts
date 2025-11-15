@@ -14,7 +14,7 @@ export const initializeEmailService = async (): Promise<void> => {
                 user: env.EMAIL_USER,
                 pass: env.EMAIL_PASSWORD,
             },
-            connectionTimeout: 10000, 
+            connectionTimeout: 10000,
             greetingTimeout: 10000,
         });
 
@@ -22,7 +22,6 @@ export const initializeEmailService = async (): Promise<void> => {
         logger.info("Email service initialized successfully");
     } catch (error) {
         logger.error("Email service initialization failed:", error);
-     
     }
 };
 
