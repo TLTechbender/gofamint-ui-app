@@ -1,6 +1,5 @@
 import express, { Express } from "express";
 import { logger } from "./utils/logger";
-
 import { errorHandler, notFoundHandler } from "./middlewares/errorHandling";
 import { env } from "./config/enviroment";
 import { setupMiddleware } from "./middlewares";
@@ -10,6 +9,8 @@ import { blogRouter } from "./routes/blogRouter";
 import { adminRouter } from "./routes/adminRouter";
 import { authorRouter } from "./routes/authorRouter";
 import { initializeEmailService } from "./config/emailServiceConfig";
+import { connectDatabase, disconnectDatabase } from "./database/prisma";
+
 
 let isShuttingDown = false;
 
@@ -17,12 +18,13 @@ async function gracefulShutdown(): Promise<void> {
     if (isShuttingDown) return;
     isShuttingDown = true;
 
-    logger.info("🛑 Starting graceful shutdown...");
+    logger.info("Starting graceful shutdown...");
 
     try {
-        logger.info("✅ Graceful shutdown complete");
+        await disconnectDatabase(); 
+        logger.info("Graceful shutdown complete");
     } catch (error) {
-        logger.error("❌ Error during shutdown:", error);
+        logger.error("Error during shutdown:", error);
         process.exit(1);
     }
 }
@@ -31,7 +33,10 @@ export async function bootstrap(): Promise<void> {
     try {
         logger.info("🚀 Bootstrapping application...");
 
-        // 2. Create Express app
+   
+        await connectDatabase(); 
+
+      
         const app: Express = express();
 
         setupMiddleware(app);
@@ -57,20 +62,20 @@ export async function bootstrap(): Promise<void> {
         const HOST = "0.0.0.0"; 
         
         app.listen(PORT, HOST, () => {
-            logger.info(`✅ Server running on ${HOST}:${PORT} (${env.NODE_ENV})`);
+            logger.info(`Server running on ${HOST}:${PORT} (${env.NODE_ENV})`);
         });
 
-        // 7. Graceful shutdown handlers
+       
         process.on("SIGTERM", gracefulShutdown);
         process.on("SIGINT", gracefulShutdown);
 
         process.on("uncaughtException", (error) => {
-            logger.error("💥 UNCAUGHT EXCEPTION:", error);
+            logger.error("UNCAUGHT EXCEPTION:", error);
             gracefulShutdown().then(() => process.exit(1));
         });
 
         process.on("unhandledRejection", (reason) => {
-            logger.error("💥 UNHANDLED REJECTION:", reason);
+            logger.error("UNHANDLED REJECTION:", reason);
             gracefulShutdown().then(() => process.exit(1));
         });
     } catch (error) {
