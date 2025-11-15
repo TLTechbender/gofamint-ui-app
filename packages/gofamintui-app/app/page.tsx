@@ -35,7 +35,7 @@ export async function generateMetadata(): Promise<Metadata> {
     "Join us at Gofamint Students' Fellowship, University of Ibadan for spiritual growth, fellowship, and community service.";
   const keywords =
     dynamicMetaData?.seo?.keywords ||
-    "GSF UI, Gofamint Students Fellowship, University of Ibadan, Christian Fellowship, Students Ministry, Nigeria";
+    "GSF UI, Gofamint Students' Fellowship, University of Ibadan, Christian Fellowship, Students Ministry, Nigeria";
 
   return {
     title,
@@ -291,18 +291,6 @@ export default async function Home() {
       {/* Welcome Section */}
       <section id="welcome" className="py-20  bg-white">
         <div>
-          <div className="container mx-auto px-4 py-18 max-w-6xl animate-fade-in">
-            <div className="flex flex-col gap-1 items-left">
-              <h5 className="text-gray-900 font-extralight text-sm md:text-xs leading-tight uppercase ">
-                {homepage.welcomeSection.title}
-              </h5>
-
-              <h2 className="text-xl md:text-lg text-gray-700 font-semibold leading-relaxed">
-                {homepage.welcomeSection.description}
-              </h2>
-            </div>
-          </div>
-
           <div>
             <ImagesScrollingContainer
               images={homepage.welcomeSection.imageSlider.map((imageAsset) =>
