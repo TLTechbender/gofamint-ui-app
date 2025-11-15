@@ -44,8 +44,3 @@ export const sendEmail = async (options: EmailOptions): Promise<void> => {
         });
     }
 };
-```
-
-**Render `.env`:**
-```
-EMAIL_SERVICE_URL=https://your-vercel-app.vercel.app/api/send-email
