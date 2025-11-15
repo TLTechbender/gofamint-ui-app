@@ -9,7 +9,30 @@ import { blogRouter } from "./routes/blogRouter";
 import { adminRouter } from "./routes/adminRouter";
 import { authorRouter } from "./routes/authorRouter";
 import { initializeEmailService } from "./config/emailServiceConfig";
-import { connectDatabase, disconnectDatabase } from "./database/prisma";
+import { prisma } from "./database/prisma";
+
+
+
+
+ async function connectDatabase(): Promise<void> {
+  try {
+    await prisma.$connect();
+    logger.info('Database connected successfully');
+  } catch (error) {
+    logger.error('Database connection failed:', error);
+    throw error;
+  }
+}
+
+ async function disconnectDatabase(): Promise<void> {
+  try {
+    await prisma.$disconnect();
+    logger.info('✅ Database disconnected');
+  } catch (error) {
+    logger.error('❌ Error disconnecting database:', error);
+    throw error;
+  }
+}
 
 
 let isShuttingDown = false;
